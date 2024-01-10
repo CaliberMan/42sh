@@ -19,7 +19,7 @@ struct ast
     struct ast *left;
     struct ast *right;
     enum ast_type type;
-    char *command;
+    char **command;
 };
 
 /**
