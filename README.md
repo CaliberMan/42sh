@@ -65,4 +65,3 @@ Maintainer: terence.miralves <br>
 ## > 125 autism score section
 
 # shits easy
->>>>>>> Stashed changes
