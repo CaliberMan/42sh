@@ -4,7 +4,6 @@
 enum ast_type
 {
     AST_IF,
-    AST_ELSE,
     AST_COMMAND
 };
 

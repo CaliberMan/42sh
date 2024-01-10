@@ -1,10 +1,14 @@
-#ifndef PARSER_H
-#define PARSER_H
+#pragma once
+//#ifndef PARSER_H
+//#define PARSER_H
+
+#include "../ast/ast.h"
+#include "../lexer/lexer.h"
 
 enum parser_status
 {
-    PARSER_OK,
-    PARSER_ERROR
+    PARSER_OK = 0,
+    PARSER_ERROR,
 };
 
 /**
@@ -93,4 +97,4 @@ enum parser_status parse_else_clause(struct ast **ast, struct lexer *lexer);
  */
 enum parser_status parse_command_list(struct ast **ast, struct lexer *lexer);
 
-#endif /* ! PARSER_H */
+//#endif /* ! PARSER_H */
