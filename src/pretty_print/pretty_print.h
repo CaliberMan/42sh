@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include "../ast/ast.h"
+#include <stdio.h>
 
 /**
  * @brief Prints the AST tree
