@@ -30,11 +30,19 @@ struct lexer
 };
 
 /**
- * @brief
- * @param
- * @return
+ * @brief sets up a lexer with a given input string
+ * @param input string that the lexer will lex
+ * @return lexer
  */
 
+struct lexer *init_lexer(char *input);
 
+/**
+ * @brief free the given lexer
+ * @param lexer to be freed
+ * @return nothing
+*/
+
+void lexer_free(struct lexer *lex);
 
 #endif /* ! LEXER_H */
