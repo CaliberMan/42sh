@@ -2,14 +2,14 @@
 
 #include <stdlib.h>
 
-struct ast *init_ast(enum ast_type)
+struct ast *init_ast(enum ast_type type)
 {
     struct ast *ast = calloc(1, sizeof(struct ast));
     if (!ast)
         return NULL;
 
     ast->command = calloc(5, sizeof(char *));
-    ast->type = ast_type;
+    ast->type = type;
     return ast;
 }
 
@@ -25,7 +25,7 @@ void free_ast(struct ast *ast)
     ast->right = NULL;
 
     if (ast->command)
-        free(command);
+        free(ast->command);
 
     free(ast);
 }

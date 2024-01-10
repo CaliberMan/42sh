@@ -11,8 +11,8 @@ enum ast_type
 /**
  * @param left The left node of the ast
  * @param right The right node of the ast
- * @type The type of the node
- * @command array of the command name and the args. command[0] = command name
+ * @param type The type of the node
+ * @param command array of the command name and the args. command[0] = command name
  */
 struct ast
 {
