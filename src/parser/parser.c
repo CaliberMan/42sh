@@ -19,10 +19,6 @@ enum parser_status parse_input(struct ast **ast, struct lexer *lexer)
 
 enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
 {
-    struct token *token = lexer_peek(lexer);
-    if (token->type == TOKEN_EOF)
-        return PARSER_ERROR;
-
     enum parser_status status = parse_and_or(ast, lexer);
     if (status == PARSER_ERROR)
         return PARSER_ERROR;
@@ -32,19 +28,16 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
     {
         lexer_pop(lexer);
 
-        struct ast *right;
-        status = parse_and_or(&right, lexer);
+        struct ast *left;
+        status = parse_and_or(&left, lexer);
+
+        // means the next token is not in and_or rule
         if (status == PARSER_ERROR)
-            return PARSER_ERROR;
+            return PARSER_OK;
 
         // add the right node to the new one
-
+        *ast->left = left;
         token = lexer_peek(lexer);
-    }
-
-    if (token->type == TOKEN_COLON)
-    {
-        // do something
     }
 
     return PARSER_OK;
