@@ -1,18 +1,78 @@
-#include <string.h>
-#include <stdio.h>
+#include "builtins.h"
 
-int true(void)
+int b_true(void)
 {
     return 0;
 }
 
-int false(void)
+int b_false(void)
 {
-    return 0;
+    return 1;
 }
 
-void echo(char **args)
+//int eval(char **args)
+//{
+//    int f = fork();
+//    if (f < 0)
+//        errx(1, "%s\n", "Bad fork");
+//    // Child
+//    if (f == 0)
+//    {
+//        if (execvp(args[0], args) == -1)
+//            exit(127);
+//    }
+//    else
+//    {
+//        int status;
+//        waitpid(f, &status, 0);
+//        if (WIFEXITED(status))
+//        {
+//            int ex_st = WEXITSTATUS(status);
+//            if (ex_st == 127)
+//                return -1;
+//        }
+//    }
+//
+//    return 0;
+//}
+
+int b_echo(char **args)
 {
-    for (size_t i = 0; args[i]; i++)
-        fprintf(stdout,"%s", args[i]);
+    size_t i = 1;
+    int newline = 1;
+    int interpreted = 0;
+    for (; args[i]; i++)
+    {
+        if (strcmp("-n", args[i]) == 0)
+            newline = 0;
+        // use puts
+        else if (strcmp("-E", args[i]) == 0)
+            interpreted = 0;
+        else if (strcmp("-e", args[i]) == 0)
+            interpreted = 1;
+        else
+            break;
+    }
+    if (interpreted)
+    {
+        for (; args[i]; i++)
+        {
+            puts(args[i]);
+            if (args[i+1])
+                printf(" ");
+        }
+    }
+    else
+    {
+        for (; args[i]; i++)
+        {
+            printf("%s", args[i]);
+            if (args[i+1])
+                printf(" ");
+        }
+    }
+    if (newline)
+        printf("\n");
+
+    return 0;
 }
