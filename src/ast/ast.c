@@ -29,3 +29,15 @@ void free_ast(struct ast *ast)
 
     free(ast);
 }
+
+void free_ast_list(struct ast_list *list)
+{
+    struct ast *ast = list->head;
+    while (ast)
+    {
+        struct ast *tmp = ast;
+        ast = ast->next;
+
+        free_ast(ast);
+    }
+}
