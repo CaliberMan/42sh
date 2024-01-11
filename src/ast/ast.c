@@ -7,7 +7,6 @@ struct ast *init_ast(enum ast_type type)
     struct ast *ast = calloc(1, sizeof(struct ast));
     if (!ast)
         return NULL;
-
     ast->command = calloc(5, sizeof(char *));
     ast->type = type;
     return ast;
@@ -28,16 +27,4 @@ void free_ast(struct ast *ast)
         free(ast->command);
 
     free(ast);
-}
-
-void free_ast_list(struct ast_list *list)
-{
-    struct ast *ast = list->head;
-    while (ast)
-    {
-        struct ast *tmp = ast;
-        ast = ast->next;
-
-        free_ast(ast);
-    }
 }

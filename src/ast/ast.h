@@ -7,17 +7,15 @@ enum ast_type
     AST_COMMAND
 };
 
-struct ast_list
-{
-    struct ast *head; // The first ast
-};
-
 struct ast
 {
+    enum ast_type type; // The type of the node
+
     struct ast *left; // The left node of the ast
     struct ast *right; // The right node of the ast
     struct ast *next; // The next ast
-    enum ast_type type; // The type of the node
+    struct ast *op_ast; // The 
+
     char **command; // array of the command name and the args. command[0] =
                     // command name
 };
@@ -35,9 +33,4 @@ struct ast *init_ast(enum ast_type);
  */
 void free_ast(struct ast *ast);
 
-/**
- * @brief Frees the list of asts
- * @param list The linked list of ast
- */
-void free_ast_list(struct ast_list *list);
 #endif /* ! PARSER_H */
