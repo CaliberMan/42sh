@@ -105,5 +105,17 @@ enum parser_status parse_element(struct ast **ast, struct lexer *lexer)
 
 enum parser_status parse_shell_command(struct ast **ast, struct lexer *lexer)
 {
+    return parser_rule_if(ast, lexer);
+}
 
+enum parser_status parse_rule_if(struct ast **ast, struct lexer *lexer)
+{
+}
+
+enum parser_status parse_else_clause(struct ast **ast, struct lexer *lexer);
+{
+}
+
+enum parser_status parse_command_list(struct ast **ast, struct lexer *lexer)
+{
 }
