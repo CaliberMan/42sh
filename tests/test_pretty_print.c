@@ -1,9 +1,10 @@
 #include <criterion/criterion.h>
 #include <criterion/redirect.h>
 #include <stdio.h>
-#include <unistd.h>
-#include "../src/pretty_print/pretty_print.h"
 #include <string.h>
+#include <unistd.h>
+
+#include "../src/pretty_print/pretty_print.h"
 
 void redirect_all_stdout(void)
 {
@@ -36,7 +37,8 @@ Test(Pretty_Print_EasyTest, SecondTest, .init = redirect_all_stdout)
     ast.command[2] = NULL;
     cr_expect_eq(pretty_print(&ast), 0, "Should return 0");
     fflush(NULL);
-    cr_expect_stdout_eq_str("command \"echo\" \"Hello World\"", "Wrong format output for echo hello world");
+    cr_expect_stdout_eq_str("command \"echo\" \"Hello World\"",
+                            "Wrong format output for echo hello world");
     free(ast.command[0]);
     free(ast.command[1]);
     free(ast.command[2]);
