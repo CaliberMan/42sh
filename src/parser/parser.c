@@ -131,7 +131,7 @@ enum parser_status parse_simple_command(struct ast **ast, struct lexer *lexer)
     struct ast *command_node = init_ast(AST_COMMAND);
     command_node->command[0] = token->data;
 
-    command_node->left = *ast;
+    *ast = command_node;
 
     lexer_pop(lexer);
     int index = 1;
@@ -148,7 +148,6 @@ enum parser_status parse_simple_command(struct ast **ast, struct lexer *lexer)
         command_node->command[index++] = next_word->command[0];
     }
 
-    *ast = command_node;
     return PARSER_OK;
 }
 
@@ -167,6 +166,7 @@ enum parser_status parse_element(struct ast **ast, struct lexer *lexer)
     node->command[0] = token->data;
     *ast = node;
 
+    lexer_pop(lexer);
     return PARSER_OK;
 }
 
