@@ -78,7 +78,7 @@ struct token *lexer_pop(struct lexer *lex)
     }
     t->capacity = 10;
     while (lex->input[lex->index] == ' ')
-        lex->input++;
+        lex->index++;
     while (valid_char(lex->input[lex->index]))
     {
         if (lex->input[lex->index] == '\'')
@@ -114,7 +114,7 @@ struct token *lexer_pop(struct lexer *lex)
                     free(t);
             }
         }
-        lex->input++;
+        lex->index++;
     }
     if (t->data[0] == 0)
     {
