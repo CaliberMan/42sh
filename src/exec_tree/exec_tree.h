@@ -3,6 +3,8 @@
 
 #include "../ast/ast.h"
 #include "../exec/exec.h"
+#include "../builtins/builtins.h"
+#include <string.h>
 
 /**
  * @brief Executes the given tree
