@@ -1,7 +1,7 @@
-#include "ast/ast.h"
-#include "exec_tree/exec_tree.h"
-#include "lexer/lexer.h"
-#include "parser/parser.h"
+#include "ast.h"
+#include "exec_tree.h"
+#include "exer.h"
+#include "parser.h"
 
 #include <stdio.h>
 

@@ -1,5 +1,5 @@
 #include "parser.h"
-#include "../pretty_print/pretty_print.h"
+#include "pretty_print.h"
 
 #include <stdio.h>
 

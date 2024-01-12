@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c99 -Wvla -Werror -Wextra -Wall -pedantic -g
+CFLAGS = -std=c99 -Wvla -Werror -Wextra -Wall -pedantic
 CPPFLAGS = -Isrc -Isrc/ast -Isrc/parser -Isrc/lexer -Isrc/pretty_print -Itests
 
 OBJS = src/parser/parser.o \
@@ -14,7 +14,7 @@ $(BIN): $(OBJS)
 	$(CC) -o $(BIN) $(OBJS)
 
 debug: CFLAGS += -g
-debug: $(OBJS)
+debug: $(BIN)
 
 clean:
 	$(RM) $(OBJS) $(BIN)
