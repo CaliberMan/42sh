@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ast.h"
-#include "lexer.h"
+#include "../ast/ast.h"
+#include "../lexer/lexer.h"
 
 enum parser_status
 {

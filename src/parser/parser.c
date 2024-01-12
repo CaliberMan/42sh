@@ -218,7 +218,7 @@ enum parser_status parse_rule_if_elif(struct ast **ast, struct lexer *lexer,
     if (status == PARSER_ERROR)
         return PARSER_ERROR;
 
-    cond->left = if_true;
+    if_ast->left = if_true;
 
     // check if false (else)
     struct ast *if_false;
@@ -227,7 +227,7 @@ enum parser_status parse_rule_if_elif(struct ast **ast, struct lexer *lexer,
         return PARSER_ERROR;
 
     if (status == PARSER_OK)
-        cond->right = if_false;
+        if_ast->right = if_false;
 
     *ast = if_ast;
     return PARSER_OK;
