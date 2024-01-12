@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 
     // parsing
     struct ast *ast;
-    enum parser_status status = parse(&ast, lexer);
+    enum parser_status status = parse_input(&ast, lexer);
     if (status != PARSER_OK)
         printf("parser: failed to parse the tokens");
 

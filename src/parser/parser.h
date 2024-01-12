@@ -10,4 +10,4 @@ enum parser_status
     PARSER_ERROR,
 };
 
-enum parser_status parse(struct ast **ast, struct lexer *lexer);
+enum parser_status parse_input(struct ast **ast, struct lexer *lexer);
