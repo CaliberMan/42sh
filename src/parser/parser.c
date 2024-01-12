@@ -17,6 +17,7 @@ enum parser_status parse_rule_if_elif(struct ast **ast, struct lexer *lexer,
 enum parser_status parse_rule_if(struct ast **ast, struct lexer *lexer);
 enum parser_status parse_else_clause(struct ast **ast, struct lexer *lexer);
 enum parser_status parse_compound_list(struct ast **ast, struct lexer *lexer);
+enum parser_status parse_compound_list_rep(struct ast **ast, struct lexer *lexer);
 
 /**
  * @brief Parse a list, \n or nothing
@@ -292,20 +293,30 @@ enum parser_status parse_else_clause(struct ast **ast, struct lexer *lexer)
 }
 
 /**
+ * @brief Popping concecutive tokens of type type 
+ * @param lexer The lexer
+ * @param type Type to be popped
+ */
+void pop_duplicates(struct lexer *lexer, enum token_type type)
+{
+    struct token *token = lexer_peek(lexer);
+    while (token->type == type)
+    {
+        lexer_pop(lexer);
+        token = lexer_peek(lexer);
+    }
+}
+
+/**
  * @brief Parse compound_list expressions
  *
- * compound_list = {'\n'} and_or { ( ';' | '\n' ) {'\n'} and_or } [';'] {'\n'}
+ * compound_list = {'\n'} and_or compound_list_rep [';'] {'\n'}
  *               ;
  */
 enum parser_status parse_compound_list(struct ast **ast, struct lexer *lexer)
 {
     // the NEWLINES
-    struct token *token = lexer_peek(lexer);
-    while (token->type == TOKEN_NEWLINE)
-    {
-        lexer_pop(lexer);
-        token = lexer_peek(lexer);
-    }
+    pop_duplicates(lexer, TOKEN_NEWLINE);
 
     // the AND_OR
     struct ast *and_or_ast;
@@ -315,48 +326,54 @@ enum parser_status parse_compound_list(struct ast **ast, struct lexer *lexer)
 
     *ast = and_or_ast;
 
-    status = PARSER_OK;
+    // the COMMAND_LIST_REP
+    status = parse_compound_list_rep(ast, lexer);
+    if (status != PARSER_OK)
+        return status;
+
+    // the ';'
+    struct token *token = lexer_peek(lexer);
+    if (token->type == TOKEN_COLON)
+        lexer_pop(lexer);
+
+    // the NEWLINES
+    pop_duplicates(lexer, TOKEN_NEWLINE);
+    return PARSER_OK;
+}
+
+/**
+ * @brief Parse compound_list_rep
+ *
+ * compound_list_rep = { ( ';' | '\n' ) {'\n'} and_or }
+ *                     ;
+ */
+enum parser_status parse_compound_list_rep(struct ast **ast, struct lexer *lexer)
+{
+    enum parser_status status = PARSER_OK;
+    struct token *token;
     while (status == PARSER_OK)
     {
-        // the ';' or '\n'
+        // the (';' | '\n')
         token = lexer_peek(lexer);
 
         if (token->type == TOKEN_COLON || token->type == TOKEN_NEWLINE)
             lexer_pop(lexer);
 
-        // the '\n'
-        token = lexer_peek(lexer);
-        while (token->type == TOKEN_NEWLINE)
-        {
-            lexer_pop(lexer);
-            token = lexer_peek(lexer);
-        }
+        // the {'\n'}
+        pop_duplicates(lexer, TOKEN_NEWLINE);
 
-        while (1)
-        {
-            struct ast *node;
-            status = parse_and_or(&node, lexer);
-            if (status == PARSER_ERROR)
-                return PARSER_ERROR;
+        // the ast_node
+        struct ast *node;
+        status = parse_and_or(&node, lexer);
+        if (status == PARSER_ERROR)
+            return PARSER_ERROR;
 
-            if (status == PARSER_UNKNOWN_TOKEN)
-                break;
-            
-            struct ast *tmp = (*ast)->next;
-            node->next = tmp;
-            (*ast)->next = node;
-        }
-    }
-
-    token = lexer_peek(lexer);
-    if (token->type == TOKEN_COLON)
-        lexer_pop(lexer);
-
-    token = lexer_peek(lexer);
-    while (token->type == TOKEN_NEWLINE)
-    {
-        lexer_pop(lexer);
-        token = lexer_peek(lexer);
+        if (status == PARSER_UNKNOWN_TOKEN)
+            return PARSER_OK;
+        
+        struct ast *tmp = (*ast)->next;
+        node->next = tmp;
+        (*ast)->next = node;
     }
 
     return PARSER_OK;
