@@ -1,5 +1,6 @@
 #include "lexer.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -16,14 +17,15 @@ struct lexer *init_lexer(char *input)
     }
     t->data = NULL;
     t->type = TOKEN_START;
+    lex->prev_token = t;
     lex->input = input;
     return lex;
 }
 
 void lexer_free(struct lexer *lex)
 {
-    if (lex->prev_t)
-        free(lex->prev_t);
+    if (lex->prev_token)
+        free(lex->prev_token);
     free(lex);
 }
 
@@ -46,17 +48,17 @@ int valid_char(char c)
 	       c != 0;
 }
 
-int init_token(struct lex *lex, struct token *t)
+int init_token(struct lexer *lex, struct token *t)
 {
 	if (lex->prev_token->type != TOKEN_WORD)
 	{
 		if (!strcmp("if", t->data))
 			t->type = TOKEN_IF;
-		elif (!strcmp("else", t->data))
+		else if (!strcmp("else", t->data))
 			t->type = TOKEN_ELSE;
-		elif (!strcmp("then", t->data))
+		else if (!strcmp("then", t->data))
 			t->type = TOKEN_THEN;
-		elif (!strcmp("fi", t->data))
+		else if (!strcmp("fi", t->data))
 			t->type = TOKEN_FI;
 		else
 			t->type = TOKEN_WORD;
@@ -75,21 +77,16 @@ struct token *lexer_pop(struct lexer *lex)
     if (!t->data)
     {
 	    free(t);
-	    return 1;
+	    return NULL;
     }
     t->capacity = 10;
     while (lex->input[lex->index] == ' ')
 	    lex->input++;
     while (valid_char(lex->input[lex->index]))
     {
-	    //       			   |
-	    //				   |
-	    //CHKQWKLIE DSA ]'             | ?????????????????????
-	    //				  \ /
-	    //				   v
-	    if (lex->input[lex->index] == ''')
+	    if (lex->input[lex->index] == '\'')
 	    {
-		    while (lex->input[lex->index] != ''' &&
+		    while (lex->input[lex->index] != '\'' &&
 		           lex->input[lex->index] != 0)
 		    {
 			    t->data[t->len] = lex->input[lex->index];
@@ -124,18 +121,20 @@ struct token *lexer_pop(struct lexer *lex)
     }
     if (t->data[0] == 0)
     {
-	    if (lexer->input[lexer->index] == ';')
+	    if (lex->input[lex->index] == ';')
 		    t->type = TOKEN_COLON;
-	    if (lexer->input[lexer->index] == '\n')
+	    if (lex->input[lex->index] == '\n')
 		    t->type = TOKEN_NEWLINE;
-	    if (lexer->input[lexer->index] == 0)
+	    if (lex->input[lex->index] == 0)
 		    t->type = TOKEN_EOF;
-	    lexer->index++;
+	    lex->index++;
     }
     else
+    {
     	int res = init_token(lex, t);
-    if (!res)
-	    return NULL;
+    	if (res)
+		return NULL;
+    }
     free(lex->prev_token);
     lex->prev_token = t;
     return t;
@@ -150,17 +149,17 @@ struct token *lexer_peek(struct lexer *lex)
     if (!t->data)
     {
 	    free(t);
-	    return 1;
+	    return NULL;
     }
     int index = lex->index;
     t->capacity = 10;
     while (lex->input[index] == ' ')
-	    input++;
-    while (valid_char(input[lex->index]))
+	    index++;
+    while (valid_char(lex->input[lex->index]))
     {
-	    if (lex->input[lex->index] == ''')
+	    if (lex->input[lex->index] == '\'')
 	    {
-		    while (lex->input[lex->index] != ''' &&
+		    while (lex->input[lex->index] != '\'' &&
 		           lex->input[lex->index] != 0)
 		    {
 			    t->data[t->len] = lex->input[lex->index];
@@ -191,25 +190,37 @@ struct token *lexer_peek(struct lexer *lex)
 				    free(t);
 		    }
 	    }
-	    input++;
+	    index++;
     }
     if (t->data[0] == 0)
     {
-	    if (lexer->input[lexer->index] == ';')
+	    if (lex->input[lex->index] == ';')
 		    t->type = TOKEN_COLON;
-	    if (lexer->input[lexer->index] == '\n')
+	    if (lex->input[lex->index] == '\n')
 		    t->type = TOKEN_NEWLINE;
-	    if (lexer->input[lexer->index] == 0)
+	    if (lex->input[lex->index] == 0)
 		    t->type = TOKEN_EOF;
     }
     else
+    {
     	int res = init_token(lex, t);
-    if (!res)
-	    return NULL;
+    	if (res)
+		return NULL;
+    }
     return t;
 }
 
 int main(void)
 {
-	struct lexer *lex = init_lexer("echo")
+	struct lexer *lex = init_lexer("echo a; if echo b; then echo c; else echo d; fi;");
+	struct token *t = lexer_pop(lex);
+	while (t->type != TOKEN_EOF)
+	{
+		printf("%s\n", t->data);
+		t = lexer_pop(lex);
+	}
+	free(lex);
+	free(t->data);
+	free(t);
+	return 0;
 }
