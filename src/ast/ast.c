@@ -23,6 +23,9 @@ void free_ast(struct ast *ast)
     free_ast(ast->right);
     ast->right = NULL;
 
+    free_ast(ast->next);
+    ast->next = NULL;
+
     if (ast->command)
         free(ast->command);
 
