@@ -313,10 +313,69 @@ enum parser_status parse_else_clause(struct ast **ast, struct lexer *lexer)
 /**
  * @brief Parse compound_list expressions
  *
- * compound_list = {'\n'} and_or { ( ';' | '\n' ) {'\n' and_or } [';'] {'\n'}
+ * compound_list = {'\n'} and_or { ( ';' | '\n' ) {'\n'} and_or } [';'] {'\n'}
  *               ;
  */
 enum parser_status parse_compound_list(struct ast **ast, struct lexer *lexer)
 {
+    // the NEWLINES
+    struct token *token = lexer_peek(lexer);
+    while (token->type == TOKEN_NEWLINE)
+    {
+        lexer_pop(lexer);
+        token = lexer_peek(lexer);
+    }
+
+    // the AND_OR
+    struct ast *and_or_ast;
+    enum parser_status status = parse_and_or(&and_or_ast, lexer);
+    if (status != PARSER_OK)
+       return PARSER_ERROR;
+
+    *ast = and_or_ast;
+
+    status = PARSER_OK;
+    while (status == PARSER_OK)
+    {
+        // the ';' or '\n'
+        token = lexer_peek(lexer);
+
+        if (token->type == TOKEN_COLON || token->type == TOKEN_NEWLINE)
+            lexer_pop(lexer);
+
+        // the '\n'
+        token = lexer_peek(lexer);
+        while (token->type == TOKEN_NEWLINE)
+        {
+            lexer_pop(lexer);
+            token = lexer_peek(lexer);
+        }
+
+        while (1)
+        {
+            struct ast *node;
+            status = parse_and_or(&node, lexer);
+            if (status == PARSER_ERROR)
+                return PARSER_ERROR;
+
+            if (status == PARSER_UNKNOWN_TOKEN)
+                break;
+
+            node->next = *ast;
+            *ast = node;
+        }
+    }
+
+    token = lexer_peek(lexer);
+    if (token->type == TOKEN_COLON)
+        lexer_pop(lexer);
+
+    token = lexer_peek(lexer);
+    while (token->type == TOKEN_NEWLINE)
+    {
+        lexer_pop(lexer);
+        token = lexer_peek(lexer);
+    }
+
     return PARSER_OK;
 }
