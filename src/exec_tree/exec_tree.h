@@ -12,4 +12,5 @@
  * @return Returns -1 if the execution failled, 1 if the output of the excecution is false, 0 if everything went well
  */
 int execute_tree(struct ast *ast);
+
 #endif /* ! EXEC_TREE_H */
