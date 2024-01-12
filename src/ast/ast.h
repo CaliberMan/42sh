@@ -4,22 +4,20 @@
 enum ast_type
 {
     AST_IF,
-    AST_ELSE,
     AST_COMMAND
 };
 
-/**
- * @param left The left node of the ast
- * @param right The right node of the ast
- * @param type The type of the node
- * @param command array of the command name and the args. command[0] = command name
- */
 struct ast
 {
-    struct ast *left;
-    struct ast *right;
-    enum ast_type type;
-    char **command;
+    enum ast_type type; // The type of the node
+
+    struct ast *left; // The left node of the ast
+    struct ast *right; // The right node of the ast
+    struct ast *next; // The next ast
+    struct ast *op_ast; // The 
+
+    char **command; // array of the command name and the args. command[0] =
+                    // command name
 };
 
 /**
