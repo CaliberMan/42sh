@@ -36,7 +36,7 @@ int increase_capacity(struct token *t)
         return 1;
     t->capacity *= 2;
     for (int i = t->len; i < t->capacity; i++)
-        t->data[i] == 0;
+        t->data[i] = 0;
     return 1;
 }
 

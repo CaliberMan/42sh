@@ -1,5 +1,4 @@
-#ifndef LEXER_H
-#define LEXER_H
+#pragma once
 
 enum token_type
 {
@@ -43,24 +42,26 @@ struct lexer *init_lexer(char *input);
  * @brief free the given lexer
  * @param lexer to be freed
  * @return nothing
-*/
+ */
 
 void lexer_free(struct lexer *lex);
 
 /**
- * @brief retreives the next token in the lexer, updates the index, and puts the token lexed in prev_token
+ * @brief retreives the next token in the lexer, updates the index, and puts the
+ * token lexed in prev_token
  * @param lexer
  * @return token lexed
-*/
+ */
 
 struct token *lexer_pop(struct lexer *lex);
 
 /**
- * @brief same behaviour as lexer_pop but it does not update either the index or the prev_token
+ * @brief same behaviour as lexer_pop but it does not update either the index or
+ * the prev_token
  * @param lexer
  * @return token lexed
-*/
+ */
 
 struct token *lexer_peek(struct lexer *lex);
 
-#endif /* ! LEXER_H */
+// #endif /* ! LEXER_H */

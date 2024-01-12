@@ -5,7 +5,10 @@
 
 int main(int argc, char **argv)
 {
-    struct lexer *lexer = init_lexer("echo bar;");
+    if (argc < 2)
+        return 0;
+
+    struct lexer *lexer = init_lexer(argv[1]);
     struct ast *ast;
 
     enum parser_status status = parse_input(&ast, lexer);

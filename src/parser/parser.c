@@ -39,8 +39,7 @@ enum parser_status parse_input(struct ast **ast, struct lexer *lexer)
         return PARSER_ERROR;
 
     token = lexer_peek(lexer);
-    if (token->type != TOKEN_NEWLINE &&token->type != TOKEN_EOF
-            || lexer->prev_token->type == TOKEN_COLON)
+    if (token->type != TOKEN_NEWLINE && token->type != TOKEN_EOF)
         return PARSER_ERROR;
 
     return PARSER_OK;
@@ -274,6 +273,8 @@ enum parser_status parse_else_clause(struct ast **ast, struct lexer *lexer)
         lexer_pop(lexer);
         struct ast *ast_else;
         enum parser_status status = parse_compound_list(&ast_else, lexer);
+        if (status != PARSER_OK)
+            return PARSER_ERROR;
 
         *ast = ast_else;
     }
