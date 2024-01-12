@@ -2,6 +2,7 @@
 #define EXEC_TREE_H
 
 #include "../ast/ast.h"
+#include "../exec/exec.h"
 
 /**
  * @brief Executes the given tree
