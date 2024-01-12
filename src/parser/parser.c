@@ -80,7 +80,7 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
     if (status == PARSER_ERROR)
         return PARSER_ERROR;
 
-    token = lexer_peek(lexer);
+    struct token *token = lexer_peek(lexer);
     while (token->type == TOKEN_COLON)
     {
         lexer_pop(lexer);
@@ -196,7 +196,7 @@ enum parser_status parse_element(struct ast **ast, struct lexer *lexer)
  */
 enum parser_status parse_shell_command(struct ast **ast, struct lexer *lexer)
 {
-    return parser_rule_if(ast, lexer);
+    return parse_rule_if(ast, lexer);
 }
 
 /**
@@ -262,13 +262,14 @@ enum parser_status parse_rule_if(struct ast **ast, struct lexer *lexer)
     enum parser_status status = parse_rule_if_elif(ast, lexer, TOKEN_IF);
     if (status != PARSER_OK)
         return status;
-
+    
+    struct token *token = lexer_peek(lexer);
     // check for FI
     if (token->type != TOKEN_FI)
         return PARSER_ERROR;
 
     lexer_pop(lexer);
-    return PARSER_OK
+    return PARSER_OK;
 }
 
 /**
@@ -278,7 +279,7 @@ enum parser_status parse_rule_if(struct ast **ast, struct lexer *lexer)
  *              | 'elif' compound_list 'then' compound_list [else_clause]
  *              ;
  */
-enum parser_status parse_else_clause(struct ast **ast, struct lexer *lexer);
+enum parser_status parse_else_clause(struct ast **ast, struct lexer *lexer)
 {
     struct token *token = lexer_peek(lexer);
     if (token->type == TOKEN_ELSE || token->type == TOKEN_ELIF)
@@ -299,7 +300,7 @@ enum parser_status parse_else_clause(struct ast **ast, struct lexer *lexer);
         lexer_pop(lexer);
         struct ast *ast_elif;
         enum parser_status status =
-            parse_rule_if_else(&ast_elif, lexer, TOKEN_ELIF);
+            parse_rule_if_elif(&ast_elif, lexer, TOKEN_ELIF);
         if (status != PARSER_OK)
             return status;
 
@@ -316,4 +317,6 @@ enum parser_status parse_else_clause(struct ast **ast, struct lexer *lexer);
  *               ;
  */
 enum parser_status parse_compound_list(struct ast **ast, struct lexer *lexer)
-{}
+{
+    return PARSER_OK;
+}
