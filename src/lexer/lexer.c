@@ -206,19 +206,3 @@ struct token *lexer_peek(struct lexer *lex)
     }
     return t;
 }
-
-int main(void)
-{
-    struct lexer *lex =
-        init_lexer("echo a; if echo b; then echo c; else echo d; fi;");
-    struct token *t = lexer_pop(lex);
-    while (t->type != TOKEN_EOF)
-    {
-        printf("%s\n", t->data);
-        t = lexer_pop(lex);
-    }
-    free(lex);
-    free(t->data);
-    free(t);
-    return 0;
-}
