@@ -209,13 +209,3 @@ struct token *lexer_peek(struct lexer *lex)
     }
     return t;
 }
-
-int main(void)
-{
-	struct lexer *l = init_lexer("echo'    'text ok");
-	struct token *t = lexer_pop(l);
-	printf("%s\n", t->data);
-	t = lexer_pop(l);
-	printf("%s\n", t->data);
-	return 0;
-}

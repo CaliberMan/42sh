@@ -201,7 +201,7 @@ enum parser_status parse_rule_if_elif(struct ast **ast, struct lexer *lexer,
     // check for the CONDITION
     struct ast *cond;
     enum parser_status status = parse_compound_list(&cond, lexer);
-    if (status != PARSER_OK)
+    if (status == PARSER_ERROR)
         return PARSER_ERROR;
 
     if_ast->op_ast = cond;
@@ -215,7 +215,7 @@ enum parser_status parse_rule_if_elif(struct ast **ast, struct lexer *lexer,
 
     struct ast *if_true;
     status = parse_compound_list(&if_true, lexer);
-    if (status != PARSER_OK)
+    if (status == PARSER_ERROR)
         return PARSER_ERROR;
 
     cond->left = if_true;
@@ -243,7 +243,7 @@ enum parser_status parse_rule_if(struct ast **ast, struct lexer *lexer)
     enum parser_status status = parse_rule_if_elif(ast, lexer, TOKEN_IF);
     if (status != PARSER_OK)
         return status;
-    
+
     struct token *token = lexer_peek(lexer);
     // check for FI
     if (token->type != TOKEN_FI)
@@ -263,28 +263,26 @@ enum parser_status parse_rule_if(struct ast **ast, struct lexer *lexer)
 enum parser_status parse_else_clause(struct ast **ast, struct lexer *lexer)
 {
     struct token *token = lexer_peek(lexer);
-    if (token->type == TOKEN_ELSE || token->type == TOKEN_ELIF)
+    if (token->type != TOKEN_ELSE && token->type != TOKEN_ELIF)
         return PARSER_UNKNOWN_TOKEN;
 
     lexer_pop(lexer);
 
     if (token->type == TOKEN_ELSE)
     {
-        lexer_pop(lexer);
         struct ast *ast_else;
         enum parser_status status = parse_compound_list(&ast_else, lexer);
-        if (status != PARSER_OK)
+        if (status == PARSER_ERROR)
             return PARSER_ERROR;
 
         *ast = ast_else;
     }
     else if (token->type == TOKEN_ELIF)
     {
-        lexer_pop(lexer);
         struct ast *ast_elif;
         enum parser_status status =
             parse_rule_if_elif(&ast_elif, lexer, TOKEN_ELIF);
-        if (status != PARSER_OK)
+        if (status == PARSER_ERROR)
             return status;
 
         *ast = ast_elif;
