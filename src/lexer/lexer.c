@@ -83,6 +83,7 @@ struct token *lexer_pop(struct lexer *lex)
     {
         if (lex->input[lex->index] == '\'')
         {
+	    lex->index++;
             while (lex->input[lex->index] != '\''
                    && lex->input[lex->index] != 0)
             {
@@ -156,6 +157,7 @@ struct token *lexer_peek(struct lexer *lex)
     {
         if (lex->input[index] == '\'')
         {
+	    lex->index++;
             while (lex->input[index] != '\''
                    && lex->input[index] != 0)
             {
@@ -174,7 +176,8 @@ struct token *lexer_peek(struct lexer *lex)
                 free(t->data);
                 free(t);
                 return NULL;
-            }
+            
+	    }
         }
         else
         {
@@ -205,4 +208,14 @@ struct token *lexer_peek(struct lexer *lex)
             return NULL;
     }
     return t;
+}
+
+int main(void)
+{
+	struct lexer *l = init_lexer("echo'    'text ok");
+	struct token *t = lexer_pop(l);
+	printf("%s\n", t->data);
+	t = lexer_pop(l);
+	printf("%s\n", t->data);
+	return 0;
 }
