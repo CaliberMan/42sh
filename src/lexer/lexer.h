@@ -61,6 +61,6 @@ struct token *lexer_pop(struct lexer *lex);
  * @return token lexed
 */
 
-struct token *lexer_peek(struct lexer_ *lex);
+struct token *lexer_peek(struct lexer *lex);
 
 #endif /* ! LEXER_H */

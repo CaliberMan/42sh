@@ -63,7 +63,7 @@ enum parser_status parse_input(struct ast **ast, struct lexer *lexer)
 
     token = lexer_peek(lexer);
     if (token->type != TOKEN_NEWLINE &&token->type != TOKEN_EOF
-            || lexer->prev_t->type = TOKEN_COLON)
+            || lexer->prev_token->type == TOKEN_COLON)
         return PARSER_ERROR;
 
     return PARSER_OK;
