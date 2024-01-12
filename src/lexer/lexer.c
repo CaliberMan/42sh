@@ -152,14 +152,14 @@ struct token *lexer_peek(struct lexer *lex)
     t->capacity = 10;
     while (lex->input[index] == ' ')
         index++;
-    while (valid_char(lex->input[lex->index]))
+    while (valid_char(lex->input[index]))
     {
-        if (lex->input[lex->index] == '\'')
+        if (lex->input[index] == '\'')
         {
-            while (lex->input[lex->index] != '\''
-                   && lex->input[lex->index] != 0)
+            while (lex->input[index] != '\''
+                   && lex->input[index] != 0)
             {
-                t->data[t->len] = lex->input[lex->index];
+                t->data[t->len] = lex->input[index];
                 t->len++;
                 if (t->len == t->capacity)
                 {
@@ -169,7 +169,7 @@ struct token *lexer_peek(struct lexer *lex)
                 }
                 lex->index++;
             }
-            if (lex->input[lex->index] == 0)
+            if (lex->input[index] == 0)
             {
                 free(t->data);
                 free(t);
@@ -178,8 +178,8 @@ struct token *lexer_peek(struct lexer *lex)
         }
         else
         {
-            t->data[t->len] = lex->input[lex->index];
-            t->len++;
+            t->data[t->len] = lex->input[index];
+ 	    t->len++;
             if (t->len == t->capacity)
             {
                 int res = increase_capacity(t);
@@ -191,11 +191,11 @@ struct token *lexer_peek(struct lexer *lex)
     }
     if (t->data[0] == 0)
     {
-        if (lex->input[lex->index] == ';')
+        if (lex->input[index] == ';')
             t->type = TOKEN_COLON;
-        if (lex->input[lex->index] == '\n')
+        if (lex->input[index] == '\n')
             t->type = TOKEN_NEWLINE;
-        if (lex->input[lex->index] == 0)
+        if (lex->input[index] == 0)
             t->type = TOKEN_EOF;
     }
     else
