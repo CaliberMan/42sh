@@ -8,4 +8,4 @@ check: test_pretty_print.o ../src/pretty_print/pretty_print.o
 	./test_pretty_print
 
 clean:
-	$(RM) *.o test_pretty_print
+	$(RM) *.o test_pretty_print ../src/pretty_print/pretty_print.o
