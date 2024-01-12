@@ -4,7 +4,7 @@ int exec(char **args)
 {
     int f = fork();
     if (f < 0)
-        errx(1, "%s\n", "Bad fork");
+        return -1;
 
     // Child
     if (f == 0)
@@ -21,6 +21,8 @@ int exec(char **args)
             int ex_st = WEXITSTATUS(status);
             if (ex_st == 127)
                 return -1;
+            else if (ex_st == 1)
+                return 1;
         }
     }
 
