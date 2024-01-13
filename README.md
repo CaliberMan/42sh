@@ -1,6 +1,8 @@
-# 42sh Paris 20
+# 42sh
 
 ## GROUP MEMBERS
+
+PARIS 20 <br>
 
 david-ortiz.calderon <br>
 maxime.francois-bardouil <br>
@@ -26,7 +28,23 @@ make check
 
 ## HOW TO USE 42sh
 
-To run the project
+To execute shell code directly in 42sh
 ```
-./42sh [shell_code to execute]
+./42sh -c [shell code]
+```
+
+To execute a shell file
+```
+./42sh [shell file]
+```
+
+To execute a redirect
+```
+./42sh < [shell file]
+```
+
+## FEATURES TO IMPLEMENT
+To print the AST (execution tree)
+```
+./42sh -print [shell code]
 ```

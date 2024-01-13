@@ -2,10 +2,10 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#include "src/ast/ast.h"
-#include "src/exec_tree/exec_tree.h"
-#include "src/lexer/lexer.h"
-#include "src/parser/parser.h"
+#include "ast/ast.h"
+#include "exec_tree/exec_tree.h"
+#include "lexer/lexer.h"
+#include "parser/parser.h"
 
 int is_valid_file(const char *path)
 {
