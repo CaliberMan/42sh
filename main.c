@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
 	int res = execute_tree(ast);
 	lexer_free(lexer);
 	free_ast(ast);
-	if (!res)
+	if (res)
 	{
 		fprintf(stderr, "execute_tree error");
 		return 1;
