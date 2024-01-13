@@ -37,7 +37,7 @@ struct lexer *file_to_lexer(char *filename)
 	return lexer;
 }
 
-struct lexer *stdin_to_lexer()
+struct lexer *stdin_to_lexer(void)
 {
 	char *buffer = calloc(100, sizeof(char));
 	int len = 0;
