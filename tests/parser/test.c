@@ -20,5 +20,6 @@ int main(int argc, char **argv)
     }
 
     pretty_print(ast);
+    free_ast(ast);
     return 0;
 }
