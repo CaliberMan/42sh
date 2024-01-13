@@ -1,8 +1,5 @@
 #include "parser.h"
 
-#include <stddef.h>
-#include <string.h>
-
 // Prototypes of the functions used
 enum parser_status parse_input(struct ast **ast, struct lexer *lexer);
 enum parser_status parse_list(struct ast **ast, struct lexer *lexer);
