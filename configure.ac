@@ -16,6 +16,7 @@ AC_CONFIG_FILES([
                  src/lexer/Makefile
                  src/parser/Makefile
                  src/pretty_print/Makefile
+                 src/Makefile
                  ])
 
 AC_OUTPUT
