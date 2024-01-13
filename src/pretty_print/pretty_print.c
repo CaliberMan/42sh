@@ -35,7 +35,7 @@ int pretty_print(struct ast *ast)
     case AST_COMMAND:
         i = 0;
         str = ast->command[i];
-//        printf("command ");
+        printf("command ");
         while (str != NULL)
         {   
             printf("\"%s\" ", str);
