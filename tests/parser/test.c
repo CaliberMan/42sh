@@ -1,5 +1,5 @@
-#include "parser.h"
-#include "pretty_print.h"
+#include "../../src/parser/parser.h"
+#include "../../src/pretty_print/pretty_print.h"
 
 #include <stdio.h>
 
@@ -13,10 +13,6 @@ int main(int argc, char **argv)
 
     enum parser_status status = parse_input(&ast, lexer);
 
-    struct ast *tmp = ast->op_ast;
-    if (!tmp)
-        return 1;
-
     if (status != PARSER_OK)
     {
         printf("parser: failed");
@@ -24,6 +20,5 @@ int main(int argc, char **argv)
     }
 
     pretty_print(ast);
-//    pretty_print(ast->next);
     return 0;
 }
