@@ -7,7 +7,7 @@ struct ast *init_ast(enum ast_type type)
     struct ast *ast = calloc(1, sizeof(struct ast));
     if (!ast)
         return NULL;
-    ast->command = calloc(5, sizeof(char *));
+    ast->command = calloc(10, sizeof(char *));
     ast->type = type;
     return ast;
 }

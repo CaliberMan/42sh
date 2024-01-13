@@ -1,28 +1,113 @@
-#include "ast.h"
-#include "exec_tree.h"
-#include "exer.h"
-#include "parser.h"
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
 
-#include <stdio.h>
+#include "ast/ast.h"
+#include "exec_tree/exec_tree.h"
+#include "lexer/lexer.h"
+#include "parser/parser.h"
 
-int main(int argc, char **argv)
+int is_valid_file(const char *path)
 {
-    // lexing
-    struct lexer *lexer = init_lexer(argv[0]);
-    if (lexer == NULL)
-        printf("lexer: failed to allocate a lexer");
+    struct stat st;
+    if (stat(path, &st) < 0)
+        return -1;
+    return S_ISREG(st.st_mode);
+}
 
-    // parsing
+struct lexer *file_to_lexer(char *filename)
+{
+    char *buffer = 0;
+    long length;
+    FILE *f = fopen(filename, "rb");
+    if (f)
+    {
+        fseek(f, 0, SEEK_END);
+        length = ftell(f);
+        fseek(f, 0, SEEK_SET);
+        buffer = malloc(length);
+        if (buffer)
+            fread(buffer, 1, length, f);
+        fclose(f);
+    }
+    else
+        return NULL;
+    struct lexer *lexer = init_lexer(buffer);
+    return lexer;
+}
+
+struct lexer *stdin_to_lexer(void)
+{
+    char *buffer = calloc(100, sizeof(char));
+    int len = 0;
+    int capacity = 100;
+    char c = getchar();
+    while (c != EOF)
+    {
+        buffer[len] = c;
+        len++;
+        if (len == capacity)
+        {
+            buffer = realloc(buffer, sizeof(char) * capacity * 2);
+            capacity *= 2;
+        }
+        c = getchar();
+    }
+    buffer[len] = 0;
+    struct lexer *lexer = init_lexer(buffer);
+    return lexer;
+}
+
+struct lexer *create_lexer(int argc, char *argv[])
+{
+    if (argc > 3)
+    {
+        fprintf(stderr, "Invalid number of arguments");
+        return NULL;
+    }
+    if (argc == 3)
+    {
+        if (strcmp("-c", argv[1]))
+        {
+            fprintf(stderr, "invalid arguments");
+            return NULL;
+        }
+        struct lexer *lexer = init_lexer(argv[2]);
+        return lexer;
+    }
+    else if (argc == 2)
+    {
+        struct lexer *lexer = file_to_lexer(argv[1]);
+        return lexer;
+    }
+    else
+    {
+        struct lexer *lexer = stdin_to_lexer();
+        return lexer;
+    }
+}
+
+int main(int argc, char *argv[])
+{
+    struct lexer *lexer = create_lexer(argc, argv);
+    if (!lexer)
+        return 2;
     struct ast *ast;
-    enum parser_status status = parse_input(&ast, lexer);
-    if (status != PARSER_OK)
-        printf("parser: failed to parse the tokens");
-
-    // evaluating
-    int result = execute_tree(ast);
-    
-    if (result)
-        printf("execute_tree: failed to evaluate the tree");
-
-    return result;
+    enum parser_status ps = parse_input(&ast, lexer);
+    if (ps == PARSER_ERROR)
+    {
+        fprintf(stderr, "error parsing the input");
+        free_ast(ast);
+        lexer_free(lexer);
+        return 2;
+    }
+    int res = execute_tree(ast);
+    lexer_free(lexer);
+    free_ast(ast);
+    if (res)
+    {
+        fprintf(stderr, "execute_tree error");
+        return 1;
+    }
+    return 0;
 }

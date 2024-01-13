@@ -22,6 +22,17 @@ struct lexer *init_lexer(char *input)
     return lex;
 }
 
+void *token_free(struct token *t)
+{
+    if (t)
+    {
+        if (t->data)
+            free(t->data);
+        free(t);
+    }
+    return NULL;
+}
+
 void lexer_free(struct lexer *lex)
 {
     if (lex->prev_token)
@@ -65,6 +76,19 @@ int init_token(struct lexer *lex, struct token *t)
     return 0;
 }
 
+enum token_type single_char_tokens(struct lexer *lex)
+{
+    enum token_type tt = TOKEN_ERROR;
+    if (lex->input[lex->index] == ';')
+        tt = TOKEN_COLON;
+    if (lex->input[lex->index] == '\n')
+        tt = TOKEN_NEWLINE;
+    if (lex->input[lex->index] == 0)
+        tt = TOKEN_EOF;
+    lex->index++;
+    return tt;
+}
+
 struct token *lexer_pop(struct lexer *lex)
 {
     struct token *t = calloc(1, sizeof(struct token));
@@ -72,10 +96,7 @@ struct token *lexer_pop(struct lexer *lex)
         return NULL;
     t->data = calloc(10, sizeof(char));
     if (!t->data)
-    {
-        free(t);
-        return NULL;
-    }
+        return token_free(t);
     t->capacity = 10;
     while (lex->input[lex->index] == ' ')
         lex->index++;
@@ -83,7 +104,7 @@ struct token *lexer_pop(struct lexer *lex)
     {
         if (lex->input[lex->index] == '\'')
         {
-	    lex->index++;
+            lex->index++;
             while (lex->input[lex->index] != '\''
                    && lex->input[lex->index] != 0)
             {
@@ -93,16 +114,12 @@ struct token *lexer_pop(struct lexer *lex)
                 {
                     int res = increase_capacity(t);
                     if (res)
-                        free(t);
+                        token_free(t);
                 }
                 lex->index++;
             }
             if (lex->input[lex->index] == 0)
-            {
-                free(t->data);
-                free(t);
-                return NULL;
-            }
+                return token_free(t);
         }
         else
         {
@@ -112,30 +129,34 @@ struct token *lexer_pop(struct lexer *lex)
             {
                 int res = increase_capacity(t);
                 if (res)
-                    free(t);
+                    token_free(t);
             }
         }
         lex->index++;
     }
     if (t->data[0] == 0)
-    {
-        if (lex->input[lex->index] == ';')
-            t->type = TOKEN_COLON;
-        if (lex->input[lex->index] == '\n')
-            t->type = TOKEN_NEWLINE;
-        if (lex->input[lex->index] == 0)
-            t->type = TOKEN_EOF;
-        lex->index++;
-    }
+        t->type = single_char_tokens(lex);
     else
     {
         int res = init_token(lex, t);
         if (res)
             return NULL;
     }
-    free(lex->prev_token);
+    token_free(lex->prev_token);
     lex->prev_token = t;
     return t;
+}
+
+enum token_type single_char_tokens_peek(struct lexer *lex, int index)
+{
+    enum token_type tt = TOKEN_ERROR;
+    if (lex->input[index] == ';')
+        tt = TOKEN_COLON;
+    if (lex->input[index] == '\n')
+        tt = TOKEN_NEWLINE;
+    if (lex->input[index] == 0)
+        tt = TOKEN_EOF;
+    return tt;
 }
 
 struct token *lexer_peek(struct lexer *lex)
@@ -145,10 +166,7 @@ struct token *lexer_peek(struct lexer *lex)
         return NULL;
     t->data = calloc(10, sizeof(char));
     if (!t->data)
-    {
-        free(t);
-        return NULL;
-    }
+        return token_free(t);
     int index = lex->index;
     t->capacity = 10;
     while (lex->input[index] == ' ')
@@ -157,9 +175,8 @@ struct token *lexer_peek(struct lexer *lex)
     {
         if (lex->input[index] == '\'')
         {
-	    lex->index++;
-            while (lex->input[index] != '\''
-                   && lex->input[index] != 0)
+            lex->index++;
+            while (lex->input[index] != '\'' && lex->input[index] != 0)
             {
                 t->data[t->len] = lex->input[index];
                 t->len++;
@@ -167,39 +184,30 @@ struct token *lexer_peek(struct lexer *lex)
                 {
                     int res = increase_capacity(t);
                     if (res)
-                        free(t);
+                        token_free(t);
                 }
                 lex->index++;
             }
             if (lex->input[index] == 0)
-            {
-                free(t->data);
-                free(t);
-                return NULL;
-            
-	    }
+                return token_free(t);
         }
         else
         {
             t->data[t->len] = lex->input[index];
- 	    t->len++;
+            t->len++;
             if (t->len == t->capacity)
             {
                 int res = increase_capacity(t);
                 if (res)
-                    free(t);
+                    return token_free(t);
             }
         }
         index++;
     }
     if (t->data[0] == 0)
     {
-        if (lex->input[index] == ';')
-            t->type = TOKEN_COLON;
-        if (lex->input[index] == '\n')
-            t->type = TOKEN_NEWLINE;
-        if (lex->input[index] == 0)
-            t->type = TOKEN_EOF;
+        t->type = single_char_tokens_peek(lex, index);
+        index++;
     }
     else
     {

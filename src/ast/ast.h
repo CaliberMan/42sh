@@ -14,7 +14,7 @@ struct ast
     struct ast *left; // The left node of the ast
     struct ast *right; // The right node of the ast
     struct ast *next; // The next ast
-    struct ast *op_ast; // The 
+    struct ast *op_ast; // The
 
     char **command; // array of the command name and the args. command[0] =
                     // command name

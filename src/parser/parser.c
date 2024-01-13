@@ -14,7 +14,8 @@ enum parser_status parse_rule_if_elif(struct ast **ast, struct lexer *lexer,
 enum parser_status parse_rule_if(struct ast **ast, struct lexer *lexer);
 enum parser_status parse_else_clause(struct ast **ast, struct lexer *lexer);
 enum parser_status parse_compound_list(struct ast **ast, struct lexer *lexer);
-enum parser_status parse_compound_list_rep(struct ast **ast, struct lexer *lexer);
+enum parser_status parse_compound_list_rep(struct ast **ast,
+                                           struct lexer *lexer);
 
 /**
  * @brief Parse a list, \n or nothing
@@ -290,7 +291,7 @@ enum parser_status parse_else_clause(struct ast **ast, struct lexer *lexer)
 }
 
 /**
- * @brief Popping concecutive tokens of type type 
+ * @brief Popping concecutive tokens of type type
  * @param lexer The lexer
  * @param type Type to be popped
  */
@@ -319,7 +320,7 @@ enum parser_status parse_compound_list(struct ast **ast, struct lexer *lexer)
     struct ast *and_or_ast;
     enum parser_status status = parse_and_or(&and_or_ast, lexer);
     if (status != PARSER_OK)
-       return PARSER_ERROR;
+        return PARSER_ERROR;
 
     *ast = and_or_ast;
 
@@ -344,7 +345,8 @@ enum parser_status parse_compound_list(struct ast **ast, struct lexer *lexer)
  * compound_list_rep = { ( ';' | '\n' ) {'\n'} and_or }
  *                     ;
  */
-enum parser_status parse_compound_list_rep(struct ast **ast, struct lexer *lexer)
+enum parser_status parse_compound_list_rep(struct ast **ast,
+                                           struct lexer *lexer)
 {
     enum parser_status status = PARSER_OK;
     struct token *token;
@@ -367,7 +369,7 @@ enum parser_status parse_compound_list_rep(struct ast **ast, struct lexer *lexer
 
         if (status == PARSER_UNKNOWN_TOKEN)
             return PARSER_OK;
-        
+
         struct ast *tmp = (*ast)->next;
         node->next = tmp;
         (*ast)->next = node;
