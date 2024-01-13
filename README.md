@@ -14,9 +14,25 @@ terence.miralves <br>
 42sh is a replica of a POSIX Shell in C. It is able to parse and execute the
 basics of what a POSIX Shell can.
 
+## Packages Needed
+
+- autoconf-archive
+
 ## HOW TO MAKE 42sh
 
 To build the project use the following commands:
+
+To install the required packages:
+```
+autoreconf --install
+```
+
+To configure to the needs of the project:
+```
+configure
+```
+
+Finally, to make:
 ```
 make
 ```
