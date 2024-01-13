@@ -1,12 +1,11 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 
 #include "src/ast/ast.h"
+#include "src/exec_tree/exec_tree.h"
 #include "src/lexer/lexer.h"
 #include "src/parser/parser.h"
-#include "src/pretty_print/pretty_print.h"
 
 int is_valid_file(const char *path)
 {
@@ -102,11 +101,13 @@ int main(int argc, char *argv[])
 		lexer_free(lexer);
 		return 2;
 	}
-	printf("LEXER STRING:\n%s\n\n", lexer->input);
+	int res = execute_tree(ast);
 	lexer_free(lexer);
-	printf("PRETTY PRINT AST:\n");
-	pretty_print(ast);
-	printf("\n\n");
 	free_ast(ast);
+	if (!res)
+	{
+		fprintf(stderr, "execute_tree error");
+		return 1;
+	}
 	return 0;
 }
