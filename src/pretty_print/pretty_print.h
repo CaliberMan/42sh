@@ -1,3 +1,6 @@
+#ifndef PRETTY_PRINT_H
+#define PRETTY_PRINT_H
+
 #include <stddef.h>
 #include "../ast/ast.h"
 #include <stdio.h>
@@ -8,3 +11,5 @@
  * @return 0 if it works 1 if it failled
  */
 int pretty_print(struct ast *ast);
+
+#endif /* ! PRETTY_PRINT_H */
