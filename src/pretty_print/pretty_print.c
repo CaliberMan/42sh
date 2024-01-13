@@ -11,13 +11,7 @@ int pretty_print(struct ast *ast)
     case AST_IF:
         printf("if { \ncommand ");
         i = 0;
-        str = ast->command[i];
-        while (str != NULL)
-        {   
-            printf("\"%s\" ", str);
-            i++;
-            str = ast->command[i];
-        }
+        pretty_print(ast->op_ast);
         printf("\n}; then { \n");
         pretty_print(ast->left);
         printf("\n}");
