@@ -95,14 +95,18 @@ int main(int argc, char *argv[])
 		return 2;
 	struct ast *ast;
 	enum parser_status ps = parse_input(&ast, lexer);
-	lexer_free(lexer);
 	if (ps == PARSER_ERROR)
 	{
 		fprintf(stderr, "error parsing the input");
 		free_ast(ast);
+		lexer_free(lexer);
 		return 2;
 	}
+	printf("LEXER STRING:\n%s\n\n", lexer->input);
+	lexer_free(lexer);
+	printf("PRETTY PRINT AST:\n");
 	pretty_print(ast);
+	printf("\n\n");
 	free_ast(ast);
 	return 0;
 }
