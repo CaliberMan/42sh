@@ -1,7 +1,7 @@
 #include <criterion/criterion.h>
-#include <stdlib.h>
 #include <criterion/redirect.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 

@@ -1,7 +1,7 @@
+#include <stdio.h>
+
 #include "parser.h"
 #include "pretty_print.h"
-
-#include <stdio.h>
 
 int main(int argc, char **argv)
 {
@@ -24,6 +24,6 @@ int main(int argc, char **argv)
     }
 
     pretty_print(ast);
-//    pretty_print(ast->next);
+    //    pretty_print(ast->next);
     return 0;
 }

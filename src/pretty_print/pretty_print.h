@@ -2,8 +2,9 @@
 #define PRETTY_PRINT_H
 
 #include <stddef.h>
-#include "../ast/ast.h"
 #include <stdio.h>
+
+#include "../ast/ast.h"
 
 /**
  * @brief Prints the AST tree

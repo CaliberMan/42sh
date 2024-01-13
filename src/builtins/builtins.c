@@ -32,7 +32,7 @@ int b_echo(char **args)
         for (; args[i]; i++)
         {
             puts(args[i]);
-            if (args[i+1])
+            if (args[i + 1])
                 printf(" ");
         }
     }
@@ -41,7 +41,7 @@ int b_echo(char **args)
         for (; args[i]; i++)
         {
             printf("%s", args[i]);
-            if (args[i+1])
+            if (args[i + 1])
                 printf(" ");
         }
     }

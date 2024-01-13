@@ -1,4 +1,5 @@
 #include <stdio.h>
+
 #include "pretty_print.h"
 
 int pretty_print(struct ast *ast)
@@ -11,10 +12,10 @@ int pretty_print(struct ast *ast)
     {
     case AST_IF:
         printf("if { \n");
-//        printf("if { \ncommand ");
+        //        printf("if { \ncommand ");
         i = 0;
-	pretty_print(ast->op_ast);
- 	printf("\n}; then { \n");
+        pretty_print(ast->op_ast);
+        printf("\n}; then { \n");
         pretty_print(ast->left);
         printf("\n}");
         if (ast->right)
@@ -29,7 +30,7 @@ int pretty_print(struct ast *ast)
     case AST_COMMAND:
         i = 0;
         str = ast->command[i];
-//        printf("command ");
+        //        printf("command ");
         while (str != NULL)
         {
             printf("\"%s\" ", str);

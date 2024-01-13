@@ -28,7 +28,7 @@ int pretty_print(struct ast *ast)
         str = ast->command[i];
         printf("command ");
         while (str != NULL)
-        {   
+        {
             printf("\"%s\" ", str);
             i++;
             str = ast->command[i];

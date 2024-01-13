@@ -24,13 +24,13 @@ struct lexer *init_lexer(char *input)
 
 void *token_free(struct token *t)
 {
-	if (t)
-	{
-		if (t->data)
-			free(t->data);
-		free(t);
-	}
-	return NULL;
+    if (t)
+    {
+        if (t->data)
+            free(t->data);
+        free(t);
+    }
+    return NULL;
 }
 
 void lexer_free(struct lexer *lex)
@@ -78,15 +78,15 @@ int init_token(struct lexer *lex, struct token *t)
 
 enum token_type single_char_tokens(struct lexer *lex)
 {
-	enum token_type tt = TOKEN_ERROR;
-	if (lex->input[lex->index] == ';')
-            tt = TOKEN_COLON;
-        if (lex->input[lex->index] == '\n')
-            tt = TOKEN_NEWLINE;
-        if (lex->input[lex->index] == 0)
-            tt = TOKEN_EOF;
-	lex->index++;
-	return tt;
+    enum token_type tt = TOKEN_ERROR;
+    if (lex->input[lex->index] == ';')
+        tt = TOKEN_COLON;
+    if (lex->input[lex->index] == '\n')
+        tt = TOKEN_NEWLINE;
+    if (lex->input[lex->index] == 0)
+        tt = TOKEN_EOF;
+    lex->index++;
+    return tt;
 }
 
 struct token *lexer_pop(struct lexer *lex)
@@ -104,7 +104,7 @@ struct token *lexer_pop(struct lexer *lex)
     {
         if (lex->input[lex->index] == '\'')
         {
-	    lex->index++;
+            lex->index++;
             while (lex->input[lex->index] != '\''
                    && lex->input[lex->index] != 0)
             {
@@ -135,7 +135,7 @@ struct token *lexer_pop(struct lexer *lex)
         lex->index++;
     }
     if (t->data[0] == 0)
-	    t->type = single_char_tokens(lex);
+        t->type = single_char_tokens(lex);
     else
     {
         int res = init_token(lex, t);
@@ -149,14 +149,14 @@ struct token *lexer_pop(struct lexer *lex)
 
 enum token_type single_char_tokens_peek(struct lexer *lex, int index)
 {
-	enum token_type tt = TOKEN_ERROR;
-        if (lex->input[index] == ';')
-            tt = TOKEN_COLON;
-        if (lex->input[index] == '\n')
-            tt = TOKEN_NEWLINE;
-        if (lex->input[index] == 0)
-            tt = TOKEN_EOF;
-	return tt;
+    enum token_type tt = TOKEN_ERROR;
+    if (lex->input[index] == ';')
+        tt = TOKEN_COLON;
+    if (lex->input[index] == '\n')
+        tt = TOKEN_NEWLINE;
+    if (lex->input[index] == 0)
+        tt = TOKEN_EOF;
+    return tt;
 }
 
 struct token *lexer_peek(struct lexer *lex)
@@ -175,9 +175,8 @@ struct token *lexer_peek(struct lexer *lex)
     {
         if (lex->input[index] == '\'')
         {
-	    lex->index++;
-            while (lex->input[index] != '\''
-                   && lex->input[index] != 0)
+            lex->index++;
+            while (lex->input[index] != '\'' && lex->input[index] != 0)
             {
                 t->data[t->len] = lex->input[index];
                 t->len++;
@@ -195,7 +194,7 @@ struct token *lexer_peek(struct lexer *lex)
         else
         {
             t->data[t->len] = lex->input[index];
- 	    t->len++;
+            t->len++;
             if (t->len == t->capacity)
             {
                 int res = increase_capacity(t);
@@ -207,8 +206,8 @@ struct token *lexer_peek(struct lexer *lex)
     }
     if (t->data[0] == 0)
     {
-	    t->type = single_char_tokens_peek(lex, index);
-	    index++;
+        t->type = single_char_tokens_peek(lex, index);
+        index++;
     }
     else
     {
