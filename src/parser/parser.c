@@ -56,6 +56,8 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
     if (status == PARSER_ERROR)
         return PARSER_ERROR;
 
+    struct ast *iterator = *ast;
+
     struct token *token = lexer_peek(lexer);
     while (token->type == TOKEN_COLON)
     {
@@ -71,9 +73,8 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
             return PARSER_ERROR;
 
         // add the next node to the ast
-        struct ast *node = (*ast)->next;
-        next->next = node;
-        (*ast)->next = next;
+        iterator->next = next;
+        iterator = iterator->next;
 
         token = lexer_peek(lexer);
     }
