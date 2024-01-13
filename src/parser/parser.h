@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PARSER_H
+#define PARSER_H
 
 #include "../ast/ast.h"
 #include "../lexer/lexer.h"
@@ -11,3 +12,5 @@ enum parser_status
 };
 
 enum parser_status parse_input(struct ast **ast, struct lexer *lexer);
+
+#endif /* ! PARSER_H */
