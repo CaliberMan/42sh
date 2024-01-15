@@ -17,6 +17,7 @@ AC_CONFIG_FILES([
                  src/parser/Makefile
                  src/pretty_print/Makefile
                  src/Makefile
+                 tests/Makefile
                  ])
 
 AC_OUTPUT
