@@ -34,7 +34,7 @@ configure
 
 Finally, to make:
 ```
-make
+make all
 ```
 
 To run tests to on 42sh and compare to the POSIX Shell
