@@ -29,7 +29,7 @@ autoreconf --install
 
 To configure to the needs of the project:
 ```
-configure
+./configure
 ```
 
 Finally, to make:
