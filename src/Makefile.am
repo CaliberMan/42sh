@@ -14,5 +14,5 @@ bin_PROGRAMS = 42sh
 
 SUBDIRS = ast builtins exec exec_tree lexer parser pretty_print
 
-clean-local:
+maintainer-clean-local:
 	rm -rf .deps Makefile Makefile.in
