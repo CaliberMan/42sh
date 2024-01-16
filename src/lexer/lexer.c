@@ -19,7 +19,7 @@ struct lexer *init_lexer(char *input)
     t->type = TOKEN_START;
     lex->prev_token = t;
     lex->input = input;
-    return lex;
+   return lex;
 }
 
 void *token_free(struct token *t)
@@ -36,7 +36,7 @@ void *token_free(struct token *t)
 void lexer_free(struct lexer *lex)
 {
     if (lex->prev_token)
-        free(lex->prev_token);
+        token_free(lex->prev_token);
     free(lex);
 }
 
@@ -48,7 +48,7 @@ int increase_capacity(struct token *t)
     t->capacity *= 2;
     for (int i = t->len; i < t->capacity; i++)
         t->data[i] = 0;
-    return 1;
+    return 0;
 }
 
 int valid_char(char c)
@@ -216,4 +216,46 @@ struct token *lexer_peek(struct lexer *lex)
             return NULL;
     }
     return t;
+}
+
+int main(void)
+{
+    char *str = "echo a b c aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    struct lexer *l = init_lexer(str);
+    printf("starting string: %s\n", str);
+    struct token *t = lexer_peek(l);
+    printf("peek: %s\n", t->data);
+    token_free(t);
+    t = lexer_peek(l);
+    printf("peek: %s\n", t->data);
+    token_free(t);
+    t = lexer_pop(l);
+    printf("pop: %s\n", t->data);
+    t = lexer_peek(l);
+    printf("peek: %s\n", t->data);
+    token_free(t);
+    t = lexer_pop(l);
+    printf("pop: %s\n", t->data);
+    t = lexer_peek(l);
+    printf("peek: %s\n", t->data);
+    token_free(t);
+    t = lexer_pop(l);
+    printf("pop: %s\n", t->data);
+    t = lexer_peek(l);
+    printf("peek: %s\n", t->data);
+    token_free(t);
+    t = lexer_pop(l);
+    printf("pop: %s\n", t->data);
+    t = lexer_peek(l);
+    printf("peek: %s\n", t->data);
+    token_free(t);
+    t = lexer_pop(l);
+    printf("pop: %s\n", t->data);
+    t = lexer_peek(l);
+    printf("peek: %s\n", t->data);
+    token_free(t);
+    t = lexer_pop(l);
+    printf("pop: %s\n", t->data);
+    lexer_free(l);
+    return 0;
 }
