@@ -1,5 +1,7 @@
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef AST_H
+#define AST_H
+
+#include <stddef.h>
 
 enum ast_type
 {
@@ -18,6 +20,7 @@ struct ast
 
     char **command; // array of the command name and the args. command[0] =
                     // command name
+    size_t capacity;
 };
 
 /**
@@ -33,4 +36,4 @@ struct ast *init_ast(enum ast_type);
  */
 void free_ast(struct ast *ast);
 
-#endif /* ! PARSER_H */
+#endif /* ! AST_H */

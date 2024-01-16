@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-#pragma once
-=======
 #ifndef PRETTY_PRINT_H
 #define PRETTY_PRINT_H
->>>>>>> main
 
 #include <stddef.h>
 #include <stdio.h>
@@ -16,8 +12,5 @@
  * @return 0 if it works 1 if it failled
  */
 int pretty_print(struct ast *ast);
-<<<<<<< HEAD
-=======
 
 #endif /* ! PRETTY_PRINT_H */
->>>>>>> main

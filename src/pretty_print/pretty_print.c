@@ -13,7 +13,6 @@ int pretty_print(struct ast *ast)
         printf("if { \n");
 //        printf("if { \ncommand ");
         i = 0;
-<<<<<<< HEAD
         str = ast->op_ast->command[i];
         while (str != NULL)
         {   
@@ -21,9 +20,7 @@ int pretty_print(struct ast *ast)
             i++;
             str = ast->op_ast->command[i];
         }
-=======
         pretty_print(ast->op_ast);
->>>>>>> main
         printf("\n}; then { \n");
         pretty_print(ast->left);
         printf("\n}");
