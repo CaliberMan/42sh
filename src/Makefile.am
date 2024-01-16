@@ -13,3 +13,6 @@ bin_PROGRAMS = 42sh
 	pretty_print/libpretty_print.a
 
 SUBDIRS = ast builtins exec exec_tree lexer parser pretty_print
+
+clean-local:
+	rm -rf .deps Makefile Makefile.in
