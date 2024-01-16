@@ -114,7 +114,7 @@ struct token *lexer_pop(struct lexer *lex)
                 {
                     int res = increase_capacity(t);
                     if (res)
-                        token_free(t);
+                        return token_free(t);
                 }
                 lex->index++;
             }
@@ -129,7 +129,7 @@ struct token *lexer_pop(struct lexer *lex)
             {
                 int res = increase_capacity(t);
                 if (res)
-                    token_free(t);
+                    return token_free(t);
             }
         }
         lex->index++;
@@ -184,7 +184,7 @@ struct token *lexer_peek(struct lexer *lex)
                 {
                     int res = increase_capacity(t);
                     if (res)
-                        token_free(t);
+                        return token_free(t);
                 }
                 lex->index++;
             }
