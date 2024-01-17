@@ -175,7 +175,7 @@ struct token *lexer_peek(struct lexer *lex)
     {
         if (lex->input[index] == '\'')
         {
-            lex->index++;
+            index++;
             while (lex->input[index] != '\'' && lex->input[index] != 0)
             {
                 t->data[t->len] = lex->input[index];
@@ -186,7 +186,7 @@ struct token *lexer_peek(struct lexer *lex)
                     if (res)
                         return token_free(t);
                 }
-                lex->index++;
+                index++;
             }
             if (lex->input[index] == 0)
                 return token_free(t);
