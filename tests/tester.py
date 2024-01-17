@@ -6,6 +6,12 @@ from os.path import isfile, join
 from pathlib import Path
 from dataclasses import dataclass
 
+import termcolor
+
+OK_TAG = f"[{termcolor.colored('OK', 'green')}]"
+KO_TAG = f"[{termcolor.colored('KO', 'red')}]"
+EQUALS  = f"{termcolor.colored('=', 'blue')}"
+
 binary = "../src/42sh"
 
 def diff(expected: str, actual: str) -> str:
@@ -64,7 +70,7 @@ if __name__ == "__main__":
 
     for category in categories:
         print(f"Category: {category.name}")
-        print("=" * 48)
+        print(f"{EQUALS}" * 48)
         for file in category.tests:
             sh_proc = run_shell(binary_path, file)
             sh_ref = run_shell("bash", "--posix", file)
@@ -72,7 +78,7 @@ if __name__ == "__main__":
             try:
                 perform_checks(sh_ref, sh_proc)
             except AssertionError as err:
-                print(f"NOT WORKING {file}\n{err}")
+                print(f"{KO_TAG} {file}\n{err}")
             else:
-                print(f"OK {file}")
+                print(f"{OK_TAG} {file}")
                 pass
