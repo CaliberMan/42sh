@@ -4,5 +4,8 @@ libast_a_SOURCES = ast.c ast.h
 libast_a_CFLAGS = -Wall -Wextra -Werror -std=c99 -pedantic
 libast_a_CPPFLAGS = -I$(top_srcdir)/src
 
+clean-local:
+	rm -rf .deps
+
 maintainer-clean-local:
-	rm -rf .deps Makefile Makefile.in
+	rm -rf Makefile Makefile.in

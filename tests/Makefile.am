@@ -1,5 +1,8 @@
 check-local:
 	./test.sh
 
+clean-local:
+	rm -rf .deps
+
 maintainer-clean-local:
-	rm -rf .deps Makefile Makefile.in
+	rm -rf Makefile Makefile.in
