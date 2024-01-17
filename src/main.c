@@ -72,7 +72,10 @@ struct lexer *create_lexer(int argc, char *argv[])
             fprintf(stderr, "invalid arguments");
             return NULL;
         }
-        struct lexer *lexer = init_lexer(argv[2]);
+	char *buffer = calloc(strlen(argv[2]) + 1, sizeof(char));
+	for (int i = 0; argv[2][i]; i++)
+		buffer[i] = argv[2][i];
+        struct lexer *lexer = init_lexer(buffer);
         return lexer;
     }
     else if (argc == 2)
@@ -104,7 +107,7 @@ int main(int argc, char *argv[])
     int res = execute_tree(ast);
     lexer_free(lexer);
     free_ast(ast);
-    if (res)
+    if (res == -1)
     {
         fprintf(stderr, "execute_tree error");
         return 1;

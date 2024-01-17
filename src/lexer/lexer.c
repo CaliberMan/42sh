@@ -35,6 +35,8 @@ void *token_free(struct token *t)
 
 void lexer_free(struct lexer *lex)
 {
+    if (lex->input)
+	    free(lex->input);
     if (lex->prev_token)
         token_free(lex->prev_token);
     free(lex);
