@@ -11,6 +11,6 @@
  * @param ast The ast tree that is about to be printed
  * @return 0 if it works 1 if it failled
  */
-int pretty_print(struct ast *ast);
+int pretty_print(struct ast *ast, int x);
 
 #endif /* ! PRETTY_PRINT_H */

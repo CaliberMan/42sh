@@ -1,5 +1,5 @@
 check-local:
-	./test.sh
+	 python tester.py --binary ../src/42sh
 
 clean-local:
 	rm -rf .deps
