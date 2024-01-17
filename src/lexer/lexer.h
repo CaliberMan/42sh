@@ -25,6 +25,7 @@ struct token
 
 struct lexer
 {
+    int cmd_status;
     char *input;
     int index;
     struct token *prev_token;
@@ -37,6 +38,14 @@ struct lexer
  */
 
 struct lexer *init_lexer(char *input);
+
+/**
+ * @brief free the given token
+ * @param token to be freed
+ * @return void * to NULL
+ */
+
+void *token_free(struct token *t);
 
 /**
  * @brief free the given lexer

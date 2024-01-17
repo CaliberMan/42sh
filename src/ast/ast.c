@@ -9,6 +9,7 @@ struct ast *init_ast(enum ast_type type)
         return NULL;
     ast->command = calloc(10, sizeof(char *));
     ast->type = type;
+    ast->capacity = 10;
     return ast;
 }
 
@@ -23,11 +24,16 @@ void free_ast(struct ast *ast)
     free_ast(ast->right);
     ast->right = NULL;
 
+    free_ast(ast->op_ast);
+    ast->op_ast = NULL;
+
     free_ast(ast->next);
     ast->next = NULL;
 
-    if (ast->command)
-        free(ast->command);
+    size_t i = 0;
+    while (i < ast->capacity)
+        free(ast->command[i++]);
 
+    free(ast->command);
     free(ast);
 }

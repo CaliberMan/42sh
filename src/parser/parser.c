@@ -1,5 +1,8 @@
 #include "parser.h"
 
+#include <stdlib.h>
+#include <string.h>
+
 // Prototypes of the functions used
 enum parser_status parse_input(struct ast **ast, struct lexer *lexer);
 enum parser_status parse_list(struct ast **ast, struct lexer *lexer);
@@ -30,16 +33,24 @@ enum parser_status parse_input(struct ast **ast, struct lexer *lexer)
 {
     struct token *token = lexer_peek(lexer);
     if (token->type == TOKEN_NEWLINE || token->type == TOKEN_EOF)
+    {
+        token_free(token);
         return PARSER_OK;
+    }
 
+    token_free(token);
     enum parser_status status = parse_list(ast, lexer);
     if (status == PARSER_ERROR)
         return PARSER_ERROR;
 
     token = lexer_peek(lexer);
     if (token->type != TOKEN_NEWLINE && token->type != TOKEN_EOF)
+    {
+        token_free(token);
         return PARSER_ERROR;
+    }
 
+    token_free(token);
     return PARSER_OK;
 }
 
@@ -66,17 +77,25 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
 
         // means the next token is not in and_or rule
         if (status == PARSER_UNKNOWN_TOKEN)
+        {
+            token_free(token);
             return PARSER_OK;
+        }
         if (status == PARSER_ERROR)
+        {
+            token_free(token);
             return PARSER_ERROR;
+        }
 
         // add the next node to the ast
         iterator->next = next;
         iterator = iterator->next;
 
+        token_free(token);
         token = lexer_peek(lexer);
     }
 
+    token_free(token);
     return PARSER_OK;
 }
 
@@ -111,8 +130,12 @@ enum parser_status parse_command(struct ast **ast, struct lexer *lexer)
 {
     struct token *token = lexer_peek(lexer);
     if (token->type == TOKEN_WORD)
+    {
+        token_free(token);
         return parse_simple_command(ast, lexer);
+    }
 
+    token_free(token);
     return parse_shell_command(ast, lexer);
 }
 
@@ -125,14 +148,19 @@ enum parser_status parse_simple_command(struct ast **ast, struct lexer *lexer)
 {
     struct token *token = lexer_peek(lexer);
     if (token->type != TOKEN_WORD)
+    {
+        token_free(token);
         return PARSER_UNKNOWN_TOKEN;
+    }
 
     struct ast *command_node = init_ast(AST_COMMAND);
-    command_node->command[0] = token->data;
+    command_node->command[0] = calloc(token->len + 1, sizeof(char));
+    command_node->command[0] = strcpy(command_node->command[0], token->data);
 
     *ast = command_node;
 
     lexer_pop(lexer);
+    token_free(token);
     int index = 1;
 
     while (1)
@@ -144,7 +172,10 @@ enum parser_status parse_simple_command(struct ast **ast, struct lexer *lexer)
         if (status == PARSER_ERROR)
             return PARSER_ERROR;
 
-        command_node->command[index++] = next_word->command[0];
+        command_node->command[index] = calloc(strlen(next_word->command[0]) + 1, sizeof(char));
+        command_node->command[index] = strcpy(command_node->command[index], next_word->command[0]);
+        index++;
+        free_ast(next_word);
     }
 
     return PARSER_OK;
@@ -159,13 +190,18 @@ enum parser_status parse_element(struct ast **ast, struct lexer *lexer)
 {
     struct token *token = lexer_peek(lexer);
     if (token->type != TOKEN_WORD)
+    {
+        token_free(token);
         return PARSER_UNKNOWN_TOKEN;
+    }
 
     struct ast *node = init_ast(AST_COMMAND);
-    node->command[0] = token->data;
+    node->command[0] = calloc(token->len + 1, sizeof(char));
+    node->command[0] = strcpy(node->command[0], token->data);
     *ast = node;
 
     lexer_pop(lexer);
+    token_free(token);
     return PARSER_OK;
 }
 
@@ -191,9 +227,13 @@ enum parser_status parse_rule_if_elif(struct ast **ast, struct lexer *lexer,
     // check for IF
     struct token *token = lexer_peek(lexer);
     if (token->type != type)
+    {
+        token_free(token);
         return PARSER_UNKNOWN_TOKEN;
+    }
 
     lexer_pop(lexer);
+    token_free(token);
 
     struct ast *if_ast = init_ast(AST_IF);
 
@@ -208,9 +248,13 @@ enum parser_status parse_rule_if_elif(struct ast **ast, struct lexer *lexer,
     // check if true (then)
     token = lexer_peek(lexer);
     if (token->type != TOKEN_THEN)
+    {
+        token_free(token);
         return PARSER_ERROR;
+    }
 
     lexer_pop(lexer);
+    token_free(token);
 
     struct ast *if_true;
     status = parse_compound_list(&if_true, lexer);
@@ -246,9 +290,13 @@ enum parser_status parse_rule_if(struct ast **ast, struct lexer *lexer)
     struct token *token = lexer_peek(lexer);
     // check for FI
     if (token->type != TOKEN_FI)
+    {
+        token_free(token);
         return PARSER_ERROR;
+    }
 
     lexer_pop(lexer);
+    token_free(token);
     return PARSER_OK;
 }
 
@@ -263,7 +311,10 @@ enum parser_status parse_else_clause(struct ast **ast, struct lexer *lexer)
 {
     struct token *token = lexer_peek(lexer);
     if (token->type != TOKEN_ELSE && token->type != TOKEN_ELIF)
+    {
+        token_free(token);
         return PARSER_UNKNOWN_TOKEN;
+    }
 
     lexer_pop(lexer);
 
@@ -287,6 +338,7 @@ enum parser_status parse_else_clause(struct ast **ast, struct lexer *lexer)
         *ast = ast_elif;
     }
 
+    token_free(token);
     return PARSER_OK;
 }
 
@@ -301,8 +353,11 @@ void pop_duplicates(struct lexer *lexer, enum token_type type)
     while (token->type == type)
     {
         lexer_pop(lexer);
+        token_free(token);
         token = lexer_peek(lexer);
     }
+
+    token_free(token);
 }
 
 /**
@@ -336,6 +391,8 @@ enum parser_status parse_compound_list(struct ast **ast, struct lexer *lexer)
 
     // the NEWLINES
     pop_duplicates(lexer, TOKEN_NEWLINE);
+
+    token_free(token);
     return PARSER_OK;
 }
 
@@ -357,6 +414,8 @@ enum parser_status parse_compound_list_rep(struct ast **ast,
 
         if (token->type == TOKEN_COLON || token->type == TOKEN_NEWLINE)
             lexer_pop(lexer);
+
+        token_free(token);
 
         // the {'\n'}
         pop_duplicates(lexer, TOKEN_NEWLINE);

@@ -19,7 +19,7 @@ struct lexer *init_lexer(char *input)
     t->type = TOKEN_START;
     lex->prev_token = t;
     lex->input = input;
-    return lex;
+   return lex;
 }
 
 void *token_free(struct token *t)
@@ -36,7 +36,7 @@ void *token_free(struct token *t)
 void lexer_free(struct lexer *lex)
 {
     if (lex->prev_token)
-        free(lex->prev_token);
+        token_free(lex->prev_token);
     free(lex);
 }
 
@@ -48,7 +48,7 @@ int increase_capacity(struct token *t)
     t->capacity *= 2;
     for (int i = t->len; i < t->capacity; i++)
         t->data[i] = 0;
-    return 1;
+    return 0;
 }
 
 int valid_char(char c)
@@ -114,7 +114,7 @@ struct token *lexer_pop(struct lexer *lex)
                 {
                     int res = increase_capacity(t);
                     if (res)
-                        token_free(t);
+                        return token_free(t);
                 }
                 lex->index++;
             }
@@ -129,7 +129,7 @@ struct token *lexer_pop(struct lexer *lex)
             {
                 int res = increase_capacity(t);
                 if (res)
-                    token_free(t);
+                    return token_free(t);
             }
         }
         lex->index++;
@@ -184,7 +184,7 @@ struct token *lexer_peek(struct lexer *lex)
                 {
                     int res = increase_capacity(t);
                     if (res)
-                        token_free(t);
+                        return token_free(t);
                 }
                 lex->index++;
             }
