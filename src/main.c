@@ -5,7 +5,7 @@
 #include "ast/ast.h"
 #include "exec_tree/exec_tree.h"
 #include "lexer/lexer.h"
-#include "parser/parser.h"
+#include "parser/input/input.h"
 
 int is_valid_file(const char *path)
 {
