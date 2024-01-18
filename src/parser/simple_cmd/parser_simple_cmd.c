@@ -35,6 +35,8 @@ enum parser_status parse_simple_command(struct ast **ast, struct lexer *lexer)
             return PARSER_ERROR;
 
         struct ast_cmd *next_cmd = &next_word->data.ast_cmd;
+        if (index == cmd->capacity)
+            realloc_words(cmd);
 
         cmd->words[index] =
             calloc(strlen(next_cmd->words[0]) + 1, sizeof(char));

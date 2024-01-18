@@ -4,8 +4,8 @@
 
 void init_words(struct ast_cmd *ast)
 {
-    ast->words = calloc(1, sizeof(char *));
-    ast->capacity = 10;
+    ast->words = calloc(5, sizeof(char *));
+    ast->capacity = 5;
 }
 
 void realloc_words(struct ast_cmd *ast)
