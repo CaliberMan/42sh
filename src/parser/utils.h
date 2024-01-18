@@ -1,5 +1,5 @@
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef UTILS_H
+#define UTILS_H
 
 #include "../ast/ast.h"
 #include "../lexer/lexer.h"
@@ -11,6 +11,4 @@ enum parser_status
     PARSER_ERROR,
 };
 
-enum parser_status parse_input(struct ast **ast, struct lexer *lexer);
-
-#endif /* ! PARSER_H */
+#endif /* ! UTILS_H */
