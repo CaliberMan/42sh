@@ -10,6 +10,9 @@ enum token_type
     TOKEN_COLON,
     TOKEN_NEWLINE,
     TOKEN_WORD,
+    TOKEN_PIPE,
+    TOKEN_REDIR,
+    TOKEN_NOT,
     TOKEN_EOF,
     TOKEN_START,
     TOKEN_ERROR

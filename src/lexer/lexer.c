@@ -55,7 +55,12 @@ int increase_capacity(struct token *t)
 
 int valid_char(char c)
 {
-    return c != ' ' && c != ';' && c != '\n' && c != 0;
+    return c != ' ' &&
+	   c != ';' &&
+	   c != '\n' &&
+	   c != 0 &&
+	   c != '<' &&
+	   c != '>';
 }
 
 int init_token(struct lexer *lex, struct token *t)
@@ -70,6 +75,14 @@ int init_token(struct lexer *lex, struct token *t)
             t->type = TOKEN_THEN;
         else if (!strcmp("fi", t->data))
             t->type = TOKEN_FI;
+	else if (!strcmp("elif", t->data))
+            t->type = TOKEN_ELIF;
+	else if (is_redir(t->data))
+	    t->type = TOKEN_REDIR;
+	else if (!strcmp("|", t->data))
+	    t->type = TOKEN_PIPE;
+	else if (!strcmp("!", t->data))
+	    t->type = TOKEN_PIPE;
         else
             t->type = TOKEN_WORD;
     }
@@ -91,15 +104,10 @@ enum token_type single_char_tokens(struct lexer *lex)
     return tt;
 }
 
-struct token *lexer_pop(struct lexer *lex)
+
+
+int pop_traverse(struct lexer *lex, struct token *t)
 {
-    struct token *t = calloc(1, sizeof(struct token));
-    if (!t)
-        return NULL;
-    t->data = calloc(10, sizeof(char));
-    if (!t->data)
-        return token_free(t);
-    t->capacity = 10;
     while (lex->input[lex->index] == ' ')
         lex->index++;
     while (valid_char(lex->input[lex->index]))
@@ -116,12 +124,12 @@ struct token *lexer_pop(struct lexer *lex)
                 {
                     int res = increase_capacity(t);
                     if (res)
-                        return token_free(t);
+                        return 1;
                 }
                 lex->index++;
             }
             if (lex->input[lex->index] == 0)
-                return token_free(t);
+                return 1;
         }
         else
         {
@@ -131,11 +139,26 @@ struct token *lexer_pop(struct lexer *lex)
             {
                 int res = increase_capacity(t);
                 if (res)
-                    return token_free(t);
+                    return 1;
             }
         }
         lex->index++;
     }
+    return 0;
+}
+
+struct token *lexer_pop(struct lexer *lex)
+{
+    struct token *t = calloc(1, sizeof(struct token));
+    if (!t)
+        return NULL;
+    t->data = calloc(10, sizeof(char));
+    if (!t->data)
+        return token_free(t);
+    t->capacity = 10;
+    int res = pop_traverse(lex, t);
+    if (res)
+	return token_free(t);
     if (t->data[0] == 0)
         t->type = single_char_tokens(lex);
     else

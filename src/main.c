@@ -18,7 +18,7 @@ int is_valid_file(const char *path)
 
 struct lexer *file_to_lexer(char *filename)
 {
-    char *buffer = 0;
+    char *buffer;
     long length;
     FILE *f = fopen(filename, "rb");
     if (f)
