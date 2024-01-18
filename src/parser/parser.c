@@ -251,7 +251,7 @@ enum parser_status parse_rule_if_elif(struct ast **ast, struct lexer *lexer,
     lexer_pop(lexer);
     token_free(token);
 
-    struct ast *if_ast = init_ast(AST_IF);
+    struct ast *if_ast = init_ast();
 
     // check for the CONDITION
     struct ast *cond;
@@ -259,7 +259,7 @@ enum parser_status parse_rule_if_elif(struct ast **ast, struct lexer *lexer,
     if (status == PARSER_ERROR)
         return PARSER_ERROR;
 
-    if_ast->op_ast = cond;
+    if_ast->data.ast_if.cond = cond;
 
     // check if true (then)
     token = lexer_peek(lexer);
@@ -277,7 +277,7 @@ enum parser_status parse_rule_if_elif(struct ast **ast, struct lexer *lexer,
     if (status == PARSER_ERROR)
         return PARSER_ERROR;
 
-    if_ast->left = if_true;
+    if_ast->data.ast_if.then_body = if_true;
 
     // check if false (else)
     struct ast *if_false;
@@ -286,7 +286,7 @@ enum parser_status parse_rule_if_elif(struct ast **ast, struct lexer *lexer,
         return PARSER_ERROR;
 
     if (status == PARSER_OK)
-        if_ast->right = if_false;
+        if_ast->data.ast_if.else_body = if_false;
 
     *ast = if_ast;
     return PARSER_OK;
@@ -423,6 +423,7 @@ enum parser_status parse_compound_list_rep(struct ast **ast,
 {
     enum parser_status status = PARSER_OK;
     struct token *token;
+    struct ast *iterator = *ast;
     while (status == PARSER_OK)
     {
         // the (';' | '\n')
@@ -445,9 +446,8 @@ enum parser_status parse_compound_list_rep(struct ast **ast,
         if (status == PARSER_UNKNOWN_TOKEN)
             return PARSER_OK;
 
-        struct ast *tmp = (*ast)->next;
-        node->next = tmp;
-        (*ast)->next = node;
+        iterator->next = node;
+        iterator = iterator->next;
     }
 
     return PARSER_OK;
