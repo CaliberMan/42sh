@@ -9,3 +9,15 @@ libparser_a_SOURCES = \
 	utils.h
 libparser_a_CFLAGS = -Wall -Wextra -Werror -std=c99 -pedantic
 libparser_a_CPPFLAGS = -I$(top_srcdir)/src
+
+clean-local:
+	rm -rf .deps
+
+maintainer-clean-local:
+	rm -rf Makefile Makefile.in \
+		input/Makefile.in input/Makefile \
+		shell_cmd/if/Makefile.in shell_cmd/if/Makefile \
+		shell_cmd/Makefile.in shell_cmd/Makefile \
+		simple_cmd/Makefile.in simple_cmd/Makefile \
+		list/Makefile.in list/Makefile
+

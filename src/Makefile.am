@@ -12,3 +12,10 @@ bin_PROGRAMS = 42sh
 	exec/libexec.a
 
 SUBDIRS = ast builtins exec exec_tree lexer parser
+
+clean-local:
+	rm -rf .deps
+
+maintainer-clean-local:
+	rm -rf Makefile Makefile.in
+

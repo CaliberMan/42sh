@@ -3,17 +3,20 @@
 
 #include "cmd/ast_cmd.h"
 #include "if/ast_if.h"
+#include "pipe/ast_pipe.h"
 
 enum ast_type
 {
     AST_IF,
-    AST_CMD
+    AST_CMD,
+    AST_PIPE
 };
 
 union ast_union
 {
     struct ast_if ast_if; // node of type ast_if
     struct ast_cmd ast_cmd; // node of type ast_cmd
+    struct ast_pipe ast_pipe; // node of type ast_pipe
 };
 
 struct ast

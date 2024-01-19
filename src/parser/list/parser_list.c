@@ -47,7 +47,39 @@ enum parser_status parse_and_or(struct ast **ast, struct lexer *lexer)
 
 enum parser_status parse_pipeline(struct ast **ast, struct lexer *lexer)
 {
-    return parse_command(ast, lexer);
+    enum parser_status status = parse_command(ast, lexer);
+    if (status == PARSER_ERROR)
+        return PARSER_ERROR;
+
+    if (status == PARSER_UNKNOWN_TOKEN)
+        return PARSER_UNKNOWN_TOKEN;
+
+    while (1)
+    {
+        struct token *token = lexer_peek(lexer);
+        if (token->type != TOKEN_PIPE)
+        {
+            token_free(token);
+            return PARSER_OK;
+        }
+
+        lexer_pop(lexer);
+        pop_duplicates(lexer, TOKEN_NEWLINE);
+
+        struct ast *pipe_ast = init_ast();
+        pipe_ast->type = AST_PIPE;
+        pipe_ast->data.ast_pipe.left_arg = *ast;
+
+        struct ast *right_arg;
+        status = parse_command(&right_arg, lexer);
+        if (status != PARSER_OK)
+            return status;
+
+        pipe_ast->data.ast_pipe.right_arg = right_arg;
+        *ast = pipe_ast;
+    }
+
+    return PARSER_OK;
 }
 
 enum parser_status parse_command(struct ast **ast, struct lexer *lexer)
@@ -55,25 +87,14 @@ enum parser_status parse_command(struct ast **ast, struct lexer *lexer)
     struct token *token = lexer_peek(lexer);
     if (token->type == TOKEN_WORD)
     {
-        enum parser_status status = parse_simple_command(ast, lexer);
-        if (status != PARSER_UNKNOWN_TOKEN)
-        {
-            token_free(token);
-            return status;
-        }
+        token_free(token);
+        return parse_simple_command(ast, lexer);
     }
 
     token_free(token);
-    enum parser_status status = parse_shell_command(ast, lexer);
-
-    return status;
+    return parse_shell_command(ast, lexer);
 }
 
-/**
- * @brief Popping concecutive tokens of type type
- * @param lexer The lexer
- * @param type Type to be popped
- */
 void pop_duplicates(struct lexer *lexer, enum token_type type)
 {
     struct token *token = lexer_peek(lexer);
@@ -139,11 +160,13 @@ enum parser_status parse_compound_list_rep(struct ast **ast,
         // the ast_node
         struct ast *node;
         status = parse_and_or(&node, lexer);
-        if (status == PARSER_ERROR)
-            return PARSER_ERROR;
+        if (status != PARSER_OK)
+            return status;
+        //if (status == PARSER_ERROR)
+        //    return PARSER_ERROR;
 
-        if (status == PARSER_UNKNOWN_TOKEN)
-            return PARSER_OK;
+        //if (status == PARSER_UNKNOWN_TOKEN)
+        //    return PARSER_OK;
 
         iterator->next = node;
         iterator = iterator->next;

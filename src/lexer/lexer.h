@@ -12,7 +12,8 @@ enum token_type
     TOKEN_WORD,
     TOKEN_EOF,
     TOKEN_START,
-    TOKEN_ERROR
+    TOKEN_ERROR,
+    TOKEN_PIPE
 };
 
 struct token
