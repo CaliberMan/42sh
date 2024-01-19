@@ -65,10 +65,8 @@ enum parser_status parse_command(struct ast **ast, struct lexer *lexer)
 
     token_free(token);
     enum parser_status status = parse_shell_command(ast, lexer);
-    if (status != PARSER_OK)
-        return PARSER_ERROR;
 
-    return PARSER_OK;
+    return status;
 }
 
 /**
