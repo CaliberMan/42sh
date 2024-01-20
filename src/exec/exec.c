@@ -1,6 +1,6 @@
 #include "exec.h"
 
-int exec(char **args)
+int exec(struct exec_arguments command)
 {
     int f = fork();
     if (f < 0)
@@ -9,7 +9,7 @@ int exec(char **args)
     // Child
     if (f == 0)
     {
-        if (execvp(args[0], args) == -1)
+        if (execvp(command.args[0], command.args) == -1)
             exit(127);
     }
     else
@@ -25,6 +25,7 @@ int exec(char **args)
                 return 1;
         }
     }
+
 
     return 0;
 }

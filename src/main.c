@@ -3,9 +3,12 @@
 #include <sys/stat.h>
 
 #include "ast/ast.h"
+#include "exec/exec.h"
 #include "exec_tree/exec_tree.h"
 #include "lexer/lexer.h"
+#include "pretty_print/pretty_print.h"
 #include "parser/input/input.h"
+#include "unistd.h"
 
 int is_valid_file(const char *path)
 {
@@ -104,7 +107,12 @@ int main(int argc, char *argv[])
         lexer_free(lexer);
         return 2;
     }
-    int res = execute_tree(ast);
+    int default_fds[2] = { STDIN_FILENO, STDOUT_FILENO };
+    struct exec_arguments command;
+
+    // copy the contents of pipe into the struct
+    memcpy(command.pipe_fds, default_fds, sizeof(default_fds));
+    int res = execute_tree(ast, command);
     lexer_free(lexer);
     free_ast(ast);
     if (res == -1)
