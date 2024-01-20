@@ -18,18 +18,17 @@ int pretty_print(struct ast *ast, int x)
     case AST_IF:
         tab_print(x);
         printf("if { \n");
-        //        printf("if { \ncommand ");
-        pretty_print(ast->op_ast, x);
+        pretty_print(ast->data.ast_if.cond, x + 1);
         tab_print(x);
         printf("\n}; then { \n");
-        pretty_print(ast->left, x + 1);
+        pretty_print(ast->data.ast_if.then_body, x + 1);
         tab_print(x);
         printf("\n}");
-        if (ast->right)
+        if (ast->data.ast_if.else_body)
         {
             tab_print(x);
             printf(" else { \n");
-            pretty_print(ast->right, x + 1);
+            pretty_print(ast->data.ast_if.else_body, x + 1);
             tab_print(x);
             printf("\n}");
         }
@@ -37,16 +36,15 @@ int pretty_print(struct ast *ast, int x)
         tab_print(x);
         printf("\n");
         break;
-    case AST_COMMAND:;
+    case AST_CMD:;
         int i = 0;
-        str = ast->command[i];
-        //        printf("command ");
+        str = ast->data.ast_cmd.words[i];
         tab_print(x);
         while (str != NULL)
         {
             printf("\"%s\" ", str);
             i++;
-            str = ast->command[i];
+            str = ast->data.ast_cmd.words[i];
         }
         pretty_print(ast->next, 0);
         tab_print(x);

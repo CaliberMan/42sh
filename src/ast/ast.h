@@ -1,39 +1,44 @@
 #ifndef AST_H
 #define AST_H
 
-#include <stddef.h>
+#include "cmd/ast_cmd.h"
+#include "if/ast_if.h"
+#include "pipe/ast_pipe.h"
+#include "redir/ast_redir.h"
 
 enum ast_type
 {
     AST_IF,
-    AST_COMMAND
+    AST_CMD,
+    AST_PIPE,
+    AST_REDIR
+};
+
+union ast_union
+{
+    struct ast_if ast_if; // node of type ast_if
+    struct ast_cmd ast_cmd; // node of type ast_cmd
+    struct ast_pipe ast_pipe; // node of type ast_pipe
+    struct ast_redir ast_redir; // node of type ast_redir
 };
 
 struct ast
 {
-    enum ast_type type; // The type of the node
-
-    struct ast *left; // The left node of the ast
-    struct ast *right; // The right node of the ast
-    struct ast *next; // The next ast
-    struct ast *op_ast; // The
-
-    char **command; // array of the command name and the args. command[0] =
-                    // command name
-    size_t capacity;
+    enum ast_type type; // type of node
+    union ast_union data; // the union of all types of nodes
+    struct ast *next; // the next ast
 };
-
-/**
- * @brief Creates an empty ast node
- * @param ast_type The type of the ast node to be created
- * @return An empty ast node
- */
-struct ast *init_ast(enum ast_type);
 
 /**
  * @brief Frees an ast recursively
  * @param ast The ast to free
  */
 void free_ast(struct ast *ast);
+
+/**
+ * @brief Creates an empty ast
+ * @return The empty ast
+ */
+struct ast *init_ast(void);
 
 #endif /* ! AST_H */

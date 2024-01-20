@@ -2,6 +2,7 @@
 #define EXEC_TREE_H
 
 #include <string.h>
+#include <unistd.h>
 
 #include "../ast/ast.h"
 #include "../builtins/builtins.h"
@@ -13,6 +14,6 @@
  * @return Returns -1 if the execution failled, 1 if the output of the
  * excecution is false, 0 if everything went well
  */
-int execute_tree(struct ast *ast);
+int execute_tree(struct ast *ast, struct exec_arguments args);
 
 #endif /* ! EXEC_TREE_H */
