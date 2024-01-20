@@ -62,6 +62,7 @@ int valid_char(struct lexer *lex, int *index)
 	   c != 0 &&
 	   c != '<' &&
 	   c != '>' &&
+	   c != '|' &&
 	   !((c == '&' || c == '|') && lex->input[(*index) + 1] == c);
 }
 
@@ -79,8 +80,6 @@ int init_token(struct lexer *lex, struct token *t)
             t->type = TOKEN_FI;
 	else if (!strcmp("elif", t->data))
             t->type = TOKEN_ELIF;
-	else if (!strcmp("|", t->data))
-	    t->type = TOKEN_PIPE;
 	else if (!strcmp("!", t->data))
 	    t->type = TOKEN_NOT;
         else if (!strcmp("while", t->data))
@@ -109,6 +108,8 @@ enum token_type single_char_tokens(struct lexer *lex, struct token *t, int index
         tt = TOKEN_NEWLINE;
     else if (lex->input[index] == 0)
 	    tt = TOKEN_EOF;
+    else if (lex->input[index] == '|')
+	    tt = TOKEN_PIPE;
     else if (lex->input[index] == '<' ||
   	     lex->input[index] == '>')
     {
