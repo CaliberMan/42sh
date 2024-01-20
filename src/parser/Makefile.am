@@ -11,7 +11,8 @@ libparser_a_CFLAGS = -Wall -Wextra -Werror -std=c99 -pedantic
 libparser_a_CPPFLAGS = -I$(top_srcdir)/src
 
 clean-local:
-	rm -rf .deps
+	rm -rf .deps input/.deps shell_cmd/.deps shell_cmd/if/.deps \
+		simple_cmd/.deps list/.deps
 
 maintainer-clean-local:
 	rm -rf Makefile Makefile.in \
