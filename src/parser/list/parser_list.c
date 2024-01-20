@@ -69,6 +69,7 @@ enum parser_status parse_pipeline(struct ast **ast, struct lexer *lexer)
         struct ast *pipe_ast = init_ast();
         pipe_ast->type = AST_PIPE;
         pipe_ast->data.ast_pipe.left_arg = *ast;
+        *ast = pipe_ast;
 
         struct ast *right_arg;
         status = parse_command(&right_arg, lexer);
@@ -76,7 +77,6 @@ enum parser_status parse_pipeline(struct ast **ast, struct lexer *lexer)
             return status;
 
         pipe_ast->data.ast_pipe.right_arg = right_arg;
-        *ast = pipe_ast;
     }
 
     return PARSER_OK;

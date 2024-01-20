@@ -1,4 +1,4 @@
-if [ 1 == 1 ]
+if true
 then
     echo Worked
 fi

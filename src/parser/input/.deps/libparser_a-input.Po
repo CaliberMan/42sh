@@ -1,0 +1,28 @@
+input/libparser_a-input.o: input/input.c /usr/include/stdc-predef.h \
+ input/input.h input/../list/parser_list.h \
+ input/../list/../shell_cmd/parser_shell_cmd.h \
+ input/../list/../shell_cmd/../utils.h \
+ input/../list/../shell_cmd/../../ast/ast.h \
+ input/../list/../shell_cmd/../../ast/cmd/ast_cmd.h \
+ /usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include/stddef.h \
+ input/../list/../shell_cmd/../../ast/if/ast_if.h \
+ input/../list/../shell_cmd/../../ast/pipe/ast_pipe.h \
+ input/../list/../shell_cmd/../../lexer/lexer.h \
+ input/../list/../simple_cmd/parser_simple_cmd.h \
+ input/../list/../simple_cmd/../utils.h input/../list/../utils.h \
+ input/../utils.h
+/usr/include/stdc-predef.h:
+input/input.h:
+input/../list/parser_list.h:
+input/../list/../shell_cmd/parser_shell_cmd.h:
+input/../list/../shell_cmd/../utils.h:
+input/../list/../shell_cmd/../../ast/ast.h:
+input/../list/../shell_cmd/../../ast/cmd/ast_cmd.h:
+/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include/stddef.h:
+input/../list/../shell_cmd/../../ast/if/ast_if.h:
+input/../list/../shell_cmd/../../ast/pipe/ast_pipe.h:
+input/../list/../shell_cmd/../../lexer/lexer.h:
+input/../list/../simple_cmd/parser_simple_cmd.h:
+input/../list/../simple_cmd/../utils.h:
+input/../list/../utils.h:
+input/../utils.h:
