@@ -59,6 +59,4 @@ enum parser_status parse_compound_list_rep(struct ast **ast,
  */
 void pop_duplicates(struct lexer *lexer, enum token_type type);
 
-enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer);
-
 #endif /* ! PARSER_LIST_H */
