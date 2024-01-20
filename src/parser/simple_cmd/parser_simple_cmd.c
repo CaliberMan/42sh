@@ -50,6 +50,11 @@ enum parser_status parse_simple_command(struct ast **ast, struct lexer *lexer)
     return PARSER_OK;
 }
 
+//enum parser_status parse_prefix(struct ast **ast, struct lexer *lexer)
+//{
+//    return parse_redirection(ast, lexer);
+//}
+
 enum parser_status parse_element(struct ast **ast, struct lexer *lexer)
 {
     struct token *token = lexer_peek(lexer);

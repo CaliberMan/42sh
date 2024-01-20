@@ -4,7 +4,7 @@
 struct ast_redir
 {
     char *type;
-    char *file;
+    char **file;
     struct ast *left_arg;
 };
 

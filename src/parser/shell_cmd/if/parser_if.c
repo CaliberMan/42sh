@@ -85,10 +85,9 @@ enum parser_status parse_else_clause(struct ast **ast, struct lexer *lexer)
         return PARSER_UNKNOWN_TOKEN;
     }
 
-    lexer_pop(lexer);
-
     if (token->type == TOKEN_ELSE)
     {
+        lexer_pop(lexer);
         struct ast *ast_else;
         enum parser_status status = parse_compound_list(&ast_else, lexer);
         if (status == PARSER_ERROR)
