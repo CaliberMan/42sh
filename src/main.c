@@ -18,7 +18,7 @@ int is_valid_file(const char *path)
 
 struct lexer *file_to_lexer(char *filename)
 {
-    char *buffer = 0;
+    char *buffer;
     long length;
     FILE *f = fopen(filename, "rb");
     if (f)
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
     int res = execute_tree(ast);
     lexer_free(lexer);
     free_ast(ast);
-    if (res)
+    if (res == -1)
     {
         fprintf(stderr, "execute_tree error");
         return 1;
