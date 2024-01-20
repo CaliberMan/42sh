@@ -9,7 +9,7 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
     struct ast *iterator = *ast;
 
     struct token *token = lexer_peek(lexer);
-    while (token->type == TOKEN_COLON)
+    while (token->type == TOKEN_COLON || token->type == TOKEN_NEWLINE)
     {
         lexer_pop(lexer);
 
@@ -54,6 +54,7 @@ enum parser_status parse_pipeline(struct ast **ast, struct lexer *lexer)
     if (status == PARSER_UNKNOWN_TOKEN)
         return PARSER_UNKNOWN_TOKEN;
 
+    int num_args = 0;
     while (1)
     {
         struct token *token = lexer_peek(lexer);
@@ -66,6 +67,7 @@ enum parser_status parse_pipeline(struct ast **ast, struct lexer *lexer)
         lexer_pop(lexer);
         pop_duplicates(lexer, TOKEN_NEWLINE);
 
+        num_args++;
         struct ast *pipe_ast = init_ast();
         pipe_ast->type = AST_PIPE;
         pipe_ast->data.ast_pipe.left_arg = *ast;
@@ -73,10 +75,15 @@ enum parser_status parse_pipeline(struct ast **ast, struct lexer *lexer)
 
         struct ast *right_arg;
         status = parse_command(&right_arg, lexer);
-        if (status != PARSER_OK)
+        if (status == PARSER_ERROR)
             return status;
+        if (status == PARSER_UNKNOWN_TOKEN && num_args % 2 != 0)
+            return PARSER_ERROR;
+        if (status == PARSER_UNKNOWN_TOKEN && num_args % 2 == 0)
+            return PARSER_OK;
 
         pipe_ast->data.ast_pipe.right_arg = right_arg;
+        num_args++;
     }
 
     return PARSER_OK;
@@ -87,25 +94,39 @@ enum parser_status parse_command(struct ast **ast, struct lexer *lexer)
     struct token *token = lexer_peek(lexer);
     if (token->type == TOKEN_WORD)
     {
-        token_free(token);
-        return parse_simple_command(ast, lexer);
+        enum parser_status status = parse_simple_command(ast, lexer);
+        if (status != PARSER_UNKNOWN_TOKEN)
+        {
+            token_free(token);
+            return status;
+        }
     }
 
     token_free(token);
-    return parse_shell_command(ast, lexer);
+    enum parser_status status = parse_shell_command(ast, lexer);
+    if (status != PARSER_OK)
+        return status;
+
+    while (1)
+    {
+        struct ast *redirect_node;
+        status = parse_redirection(&redirect_node, lexer); 
+        if (status == PARSER_ERROR)
+            return PARSER_ERROR;
+        if (status == PARSER_UNKNOWN_TOKEN)
+            return PARSER_OK;
+
+        *ast = redirect_node;
+    }
+
+    return PARSER_OK;
 }
 
-void pop_duplicates(struct lexer *lexer, enum token_type type)
+enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer)
 {
-    struct token *token = lexer_peek(lexer);
-    while (token->type == type)
-    {
-        lexer_pop(lexer);
-        token_free(token);
-        token = lexer_peek(lexer);
-    }
-
-    token_free(token);
+    if (!lexer || !ast)
+        return PARSER_ERROR;
+    return PARSER_UNKNOWN_TOKEN;
 }
 
 enum parser_status parse_compound_list(struct ast **ast, struct lexer *lexer)
@@ -123,6 +144,8 @@ enum parser_status parse_compound_list(struct ast **ast, struct lexer *lexer)
 
     // the COMMAND_LIST_REP
     status = parse_compound_list_rep(ast, lexer);
+    if (status == PARSER_UNKNOWN_TOKEN)
+        return PARSER_OK;
     if (status != PARSER_OK)
         return status;
 
@@ -173,4 +196,17 @@ enum parser_status parse_compound_list_rep(struct ast **ast,
     }
 
     return PARSER_OK;
+}
+
+void pop_duplicates(struct lexer *lexer, enum token_type type)
+{
+    struct token *token = lexer_peek(lexer);
+    while (token->type == type)
+    {
+        lexer_pop(lexer);
+        token_free(token);
+        token = lexer_peek(lexer);
+    }
+
+    token_free(token);
 }

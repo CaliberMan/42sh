@@ -29,7 +29,7 @@ int execute_tree(struct ast *ast)
         else
             ans = -1;
         if (ast->next != NULL)
-            execute_tree(ast->next);
+            ans = execute_tree(ast->next);
         return ans;
         break;
     case AST_CMD:;

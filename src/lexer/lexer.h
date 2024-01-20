@@ -10,10 +10,16 @@ enum token_type
     TOKEN_COLON,
     TOKEN_NEWLINE,
     TOKEN_WORD,
+    TOKEN_PIPE,
+    TOKEN_REDIR,
+    TOKEN_NOT,
+    TOKEN_WHILE,
+    TOKEN_UNTIL,
+    TOKEN_DO,
+    TOKEN_DONE,
     TOKEN_EOF,
     TOKEN_START,
-    TOKEN_ERROR,
-    TOKEN_PIPE
+    TOKEN_ERROR
 };
 
 struct token

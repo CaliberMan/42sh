@@ -8,4 +8,6 @@ struct ast_if
     struct ast *else_body; // if false
 };
 
+void free_if_ast(struct ast_if *ast);
+
 #endif /* ! AST_IF_H */

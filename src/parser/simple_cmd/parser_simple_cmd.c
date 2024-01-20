@@ -31,15 +31,15 @@ enum parser_status parse_simple_command(struct ast **ast, struct lexer *lexer)
     {
         struct ast *next_word;
         enum parser_status status = parse_element(&next_word, lexer);
+        if (index == cmd->capacity)
+            realloc_words(cmd);
+
         if (status == PARSER_UNKNOWN_TOKEN)
             return PARSER_OK;
         if (status == PARSER_ERROR)
             return PARSER_ERROR;
 
         struct ast_cmd *next_cmd = &next_word->data.ast_cmd;
-        if (index == cmd->capacity)
-            realloc_words(cmd);
-
         cmd->words[index] =
             calloc(strlen(next_cmd->words[0]) + 1, sizeof(char));
         cmd->words[index] = strcpy(cmd->words[index], next_cmd->words[0]);

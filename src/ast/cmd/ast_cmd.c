@@ -10,7 +10,7 @@ void init_words(struct ast_cmd *ast)
 
 void realloc_words(struct ast_cmd *ast)
 {
-    ast->words = realloc(ast->words, 2 * ast->capacity);
+    ast->words = realloc(ast->words, 2 * ast->capacity * sizeof(char *));
     for (size_t i = ast->capacity; i < 2 * ast->capacity; i++)
         ast->words[i] = NULL;
 

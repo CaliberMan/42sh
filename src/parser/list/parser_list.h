@@ -30,7 +30,7 @@ enum parser_status parse_pipeline(struct ast **ast, struct lexer *lexer);
  * @brief Parse command expressions
  *
  * command =    simple_command
- *           |  shell_command
+ *           |  shell_command { redirection }
  *           ;
  */
 enum parser_status parse_command(struct ast **ast, struct lexer *lexer);
@@ -58,5 +58,7 @@ enum parser_status parse_compound_list_rep(struct ast **ast,
  * @param type Type to be popped
  */
 void pop_duplicates(struct lexer *lexer, enum token_type type);
+
+enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer);
 
 #endif /* ! PARSER_LIST_H */

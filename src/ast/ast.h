@@ -4,12 +4,14 @@
 #include "cmd/ast_cmd.h"
 #include "if/ast_if.h"
 #include "pipe/ast_pipe.h"
+#include "redir/ast_redir.h"
 
 enum ast_type
 {
     AST_IF,
     AST_CMD,
-    AST_PIPE
+    AST_PIPE,
+    AST_REDIR
 };
 
 union ast_union
@@ -17,6 +19,7 @@ union ast_union
     struct ast_if ast_if; // node of type ast_if
     struct ast_cmd ast_cmd; // node of type ast_cmd
     struct ast_pipe ast_pipe; // node of type ast_pipe
+    struct ast_redir ast_redir;
 };
 
 struct ast
