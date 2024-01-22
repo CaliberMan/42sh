@@ -1,5 +1,7 @@
 #include "parser_list.h"
 
+#include <ctype.h>
+
 enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
 {
     enum parser_status status = parse_and_or(ast, lexer);
@@ -124,9 +126,38 @@ enum parser_status parse_command(struct ast **ast, struct lexer *lexer)
 
 enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer)
 {
-    if (!lexer || !ast)
-        return PARSER_ERROR;
-    return PARSER_UNKNOWN_TOKEN;
+    // CHECK IONUMBER 0 or 1 count
+    struct ast *ast_redir = init_ast(AST_REDIR);
+    *ast = ast_redir;
+
+    struct token *token = lexer_peek(lexer);
+    if (token->type == TOKEN_WORD)
+    {
+        for (int i = 0; i < token->len; i++)
+        {
+            if (!isdigit(token->data[i]))
+                return PARSER_ERROR;
+        }
+    }
+
+    token_free(token);
+    lexer_pop(lexer);
+
+    // CHECK IF TOKEN IS REDIRECT
+    struct token *token2 = lexer_peek(lexer);
+
+    if (token2->type != TOKEN_REDIR)
+	    return PARSER_ERROR;
+
+    token_free(token);
+    lexer_pop(lexer);
+
+    // CHECK IF LAST TOKEN IS WORD, WE DO NOT CARE WHATS AFTER
+    token = lexer_peek(lexer);
+    if (token->type != TOKEN_WORD)
+	    return PARSER_ERROR;
+
+    return PARSER_OK;
 }
 
 enum parser_status parse_compound_list(struct ast **ast, struct lexer *lexer)
