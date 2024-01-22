@@ -1,27 +1,12 @@
 #include "ast.h"
 
 #include <stdlib.h>
-#include "if/ast_if.h"
 
-struct ast *init_ast(void)
+struct ast *init_ast(enum ast_type type)
 {
     struct ast *ast = calloc(1, sizeof(struct ast));
+    ast->type = type;
     return ast;
-}
-
-void free_if_ast(struct ast_if *ast)
-{
-    if (!ast)
-        return;
-
-    free_ast(ast->cond);
-    ast->cond = NULL;
-
-    free_ast(ast->then_body);
-    ast->then_body = NULL;
-
-    free_ast(ast->else_body);
-    ast->else_body = NULL;
 }
 
 void free_ast(struct ast *ast)
@@ -30,10 +15,14 @@ void free_ast(struct ast *ast)
         return;
 
     if (ast->type == AST_CMD)
-        free_words(&ast->data.ast_cmd);
+        free_cmd(&ast->data.ast_cmd);
     if (ast->type == AST_IF)
-        free_if_ast(&ast->data.ast_if);
-
+        free_if(&ast->data.ast_if);
+    if (ast->type == AST_PIPE)
+        free_pipe(&ast->data.ast_pipe);
+    if (ast->type == AST_REDIR)
+        free_redir(&ast->data.ast_redir);
+        
     if (ast->next)
     {
         free_ast(ast->next);
