@@ -39,6 +39,6 @@ void free_ast(struct ast *ast);
  * @brief Creates an empty ast
  * @return The empty ast
  */
-struct ast *init_ast(void);
+struct ast *init_ast(enum ast_type type);
 
 #endif /* ! AST_H */

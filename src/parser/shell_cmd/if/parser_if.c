@@ -16,7 +16,7 @@ enum parser_status parse_rule_if_elif(struct ast **ast, struct lexer *lexer,
     lexer_pop(lexer);
     token_free(token);
 
-    struct ast *if_ast = init_ast();
+    struct ast *if_ast = init_ast(AST_IF);
 
     // check for the CONDITION
     struct ast *cond;

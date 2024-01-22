@@ -17,7 +17,7 @@ void realloc_words(struct ast_cmd *ast)
     ast->capacity *= 2;
 }
 
-void free_words(struct ast_cmd *ast)
+void free_cmd(struct ast_cmd *ast)
 {
     size_t capacity = ast->capacity;
     for (size_t i = 0; i < capacity; i++)

@@ -23,6 +23,6 @@ void realloc_words(struct ast_cmd *ast);
 /**
  * @brief Frees the array words in ast_cmd
  */
-void free_words(struct ast_cmd *ast);
+void free_cmd(struct ast_cmd *ast);
 
 #endif /* ! AST_CMD_H */

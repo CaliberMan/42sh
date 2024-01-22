@@ -44,7 +44,7 @@ class Category:
     name: str
 
 config = {"categories": ["execution/echo", "execution/for", "execution/if",
-                         "execution/multiple_command"]}
+                         "execution/multiple_command", "execution/piping"]}
 
 if __name__ == "__main__":
     parser = ArgumentParser("TestSuite")
@@ -69,8 +69,8 @@ if __name__ == "__main__":
         )
 
     for category in categories:
-        print(f"Category: {category.name}")
         print(f"{EQUALS}" * 48)
+        print(f"Category: {category.name}")
         for file in category.tests:
             sh_proc = run_shell(binary_path, file)
             sh_ref = run_shell("bash", "--posix", file)
