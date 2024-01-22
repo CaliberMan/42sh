@@ -2,8 +2,8 @@
 
 static int check_builtins(struct exec_arguments command)
 {
-//if (strcmp(command.args[0], "echo") == 0)
-        //return b_echo(command);
+    if (strcmp(command.args[0], "echo") == 0)
+        return b_echo(command);
     if (strcmp(command.args[0], "true") == 0)
         return b_true();
     else if (strcmp(command.args[0], "false") == 0)
@@ -79,6 +79,7 @@ int execute_tree(struct ast *ast, struct exec_arguments describer)
                 }
             }
         }
+        return ans;
         break;
     default:
         return -1;

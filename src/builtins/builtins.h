@@ -10,6 +10,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "../exec/exec.h"
+
 /**
  * @brief builtin returning 0, representing truth
  * @return 0
@@ -26,6 +28,6 @@ int b_false(void);
  * @return Returns -1 if the execution failled,
  * 1 if the output of the excecution is false, 0 if everything went well
  */
-int b_echo(char **args);
+int b_echo(struct exec_arguments command);
 
 #endif /* ! BUILTINS_H */
