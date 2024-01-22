@@ -19,10 +19,7 @@ int exec(struct exec_arguments command)
         if (WIFEXITED(status))
         {
             int ex_st = WEXITSTATUS(status);
-            if (ex_st == 127)
-                return -1;
-            else if (ex_st == 1)
-                return 1;
+            return ex_st;
         }
     }
 

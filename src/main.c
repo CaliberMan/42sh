@@ -120,5 +120,5 @@ int main(int argc, char *argv[])
         fprintf(stderr, "execute_tree error");
         return 1;
     }
-    return 0;
+    return res;
 }
