@@ -12,11 +12,9 @@ enum parser_status parse_simple_command(struct ast **ast, struct lexer *lexer)
         return PARSER_UNKNOWN_TOKEN;
     }
 
-    struct ast *cmd_node = init_ast();
+    struct ast *cmd_node = init_ast(AST_CMD);
     struct ast_cmd *cmd = &cmd_node->data.ast_cmd;
     init_words(cmd);
-
-    cmd_node->type = AST_CMD;
 
     cmd->words[0] = calloc(token->len + 1, sizeof(char));
     cmd->words[0] = strcpy(cmd->words[0], token->data);
@@ -64,11 +62,9 @@ enum parser_status parse_element(struct ast **ast, struct lexer *lexer)
         return PARSER_UNKNOWN_TOKEN;
     }
 
-    struct ast *cmd_node = init_ast();
+    struct ast *cmd_node = init_ast(AST_CMD);
     struct ast_cmd *cmd = &cmd_node->data.ast_cmd;
     init_words(cmd);
-
-    cmd_node->type = AST_CMD;
 
     cmd->words[0] = calloc(token->len + 1, sizeof(char));
     cmd->words[0] = strcpy(cmd->words[0], token->data);

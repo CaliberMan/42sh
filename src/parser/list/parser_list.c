@@ -68,8 +68,7 @@ enum parser_status parse_pipeline(struct ast **ast, struct lexer *lexer)
         pop_duplicates(lexer, TOKEN_NEWLINE);
 
         num_args++;
-        struct ast *pipe_ast = init_ast();
-        pipe_ast->type = AST_PIPE;
+        struct ast *pipe_ast = init_ast(AST_PIPE);
         pipe_ast->data.ast_pipe.left_arg = *ast;
         *ast = pipe_ast;
 
