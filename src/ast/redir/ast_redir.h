@@ -1,6 +1,8 @@
 #ifndef AST_REDIR_H
 #define AST_REDIR_H
 
+#include <stddef.h>
+
 enum redir_type
 {
     STD_IN,
@@ -13,7 +15,7 @@ enum redir_type
 struct ast_redir
 {
     enum redir_type type;
-    char ioNumber;
+    size_t ioNumber;
     struct ast *left;
     struct ast *right;
 };
