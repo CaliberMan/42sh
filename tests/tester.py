@@ -44,7 +44,8 @@ class Category:
     name: str
 
 config = {"categories": ["execution/echo", "execution/for", "execution/if",
-                         "execution/multiple_command", "execution/piping"]}
+                         "execution/multiple_command", "execution/piping",
+                         "syntax/bad"]}
 
 if __name__ == "__main__":
     parser = ArgumentParser("TestSuite")
