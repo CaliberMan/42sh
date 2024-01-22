@@ -65,6 +65,7 @@ enum parser_status parse_pipeline(struct ast **ast, struct lexer *lexer)
         }
 
         lexer_pop(lexer);
+        token_free(token);
         pop_duplicates(lexer, TOKEN_NEWLINE);
 
         num_args++;
