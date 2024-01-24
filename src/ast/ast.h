@@ -7,6 +7,7 @@
 #include "redir/ast_redir.h"
 #include "loop/ast_loop.h"
 #include "operator/ast_operator.h"
+#include "not/ast_not.h"
 
 enum ast_type
 {
@@ -16,7 +17,8 @@ enum ast_type
     AST_REDIR,
     AST_LOOP,
     AST_FILE,
-    AST_OPERATOR
+    AST_OPERATOR,
+    AST_NOT
 };
 
 union ast_union
@@ -28,6 +30,7 @@ union ast_union
     struct ast_file ast_file; // node of type ast_file
     struct ast_loop ast_loop; // node of type ast_loop
     struct ast_operator ast_operator; // node of type ast_operator
+    struct ast_not ast_not; // node of type ast_not
 };
 
 struct ast

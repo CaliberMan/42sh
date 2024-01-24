@@ -50,7 +50,27 @@ enum parser_status parse_and_or(struct ast **ast, struct lexer *lexer)
 
 enum parser_status parse_pipeline(struct ast **ast, struct lexer *lexer)
 {
-    enum parser_status status = parse_command(ast, lexer);
+    struct token *token = lexer_peek(lexer);
+    enum parser_status status = PARSER_OK;
+    if (token->type == TOKEN_NOT)
+    {
+        struct ast *not_ast = init_ast(AST_NOT);
+        struct ast *new_node;
+
+        lexer_pop(lexer);
+
+        status = parse_command(&new_node, lexer);
+        if (status == PARSER_OK)
+        {
+            not_ast->data.ast_not.child = new_node;
+            *ast = not_ast;
+        }
+    }
+    else
+        status = parse_command(ast, lexer);
+
+    token_free(token);
+
     if (status == PARSER_ERROR)
         return PARSER_ERROR;
 
