@@ -42,10 +42,10 @@ enum parser_status get_word(struct ast **ast, struct lexer *lexer)
         // do different things depending on the type
         if (next_word->type == AST_REDIR)
         {
-            next_word->data.ast_redir.left = cmd_node;
+            next_word->data.ast_redir.left = *ast;
             *ast = next_word;
 
-            cmd_node = init_ast(AST_CMD);
+//            cmd_node = init_ast(AST_CMD);
             index = 0;
         }
         else
