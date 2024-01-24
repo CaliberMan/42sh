@@ -17,7 +17,7 @@ enum redir_type
 struct ast_redir
 {
     enum redir_type type;
-    size_t ioNumber;
+    int ioNumber;
     struct ast *left;
     struct ast *right;
 };

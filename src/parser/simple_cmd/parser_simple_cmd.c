@@ -44,8 +44,6 @@ enum parser_status get_word(struct ast **ast, struct lexer *lexer)
         {
             next_word->data.ast_redir.left = *ast;
             *ast = next_word;
-
-//            cmd_node = init_ast(AST_CMD);
             index = 0;
         }
         else
