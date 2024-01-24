@@ -22,7 +22,11 @@ void free_ast(struct ast *ast)
         free_pipe(&ast->data.ast_pipe);
     if (ast->type == AST_REDIR)
         free_redir(&ast->data.ast_redir);
-        
+    if (ast->type == AST_FILE)
+        free_file(&ast->data.ast_file);
+    if (ast->type == AST_LOOP)
+        free_loop(&ast->data.ast_loop);
+
     if (ast->next)
     {
         free_ast(ast->next);

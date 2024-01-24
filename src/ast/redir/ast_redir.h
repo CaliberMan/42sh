@@ -29,4 +29,6 @@ struct ast_file
 
 void free_redir(struct ast_redir *ast);
 
+void free_file(struct ast_file *ast);
+
 #endif /* ! AST_REDIR_H */

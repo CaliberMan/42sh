@@ -40,9 +40,9 @@ enum parser_status get_word(struct ast **ast, struct lexer *lexer)
             return PARSER_ERROR;
 
         // do different things depending on the type
-        if (next_word->type != AST_CMD)
+        if (next_word->type == AST_REDIR)
         {
-            next_word->data.ast_redir.left = *ast;
+            next_word->data.ast_redir.left = cmd_node;
             *ast = next_word;
 
             cmd_node = init_ast(AST_CMD);
@@ -108,7 +108,8 @@ enum parser_status parse_simple_command(struct ast **ast, struct lexer *lexer)
     if (status == PARSER_OK)
     {
         // take care of the tree
-
+        node->data.ast_redir.left = *ast;
+        *ast = node;
         return PARSER_OK;
     }
     else
