@@ -38,7 +38,6 @@ static int exec_if(struct exec_arguments describer, struct ast *ast)
         return execute_tree(ast->next, describer);
     return ans;
 }
-
 static int exec_pipe(struct exec_arguments describer, struct ast *ast)
 {
     // Set up pipe
@@ -59,7 +58,7 @@ static int exec_pipe(struct exec_arguments describer, struct ast *ast)
     {
         close(describer.pipe_fds[0]);
         dup2(describer.pipe_fds[1], STDOUT_FILENO);
-        ans = execute_tree(ast->data.ast_pipe.left_arg, describer);
+        execute_tree(ast->data.ast_pipe.left_arg, describer);
     }
     else
     {
@@ -79,8 +78,28 @@ static int exec_pipe(struct exec_arguments describer, struct ast *ast)
                 ans = execute_tree(ast->data.ast_pipe.right_arg, describer);
             }
         }
+        if (ast->next != NULL)
+            return execute_tree(ast->next, describer);
     }
     return ans;
+}
+
+static int exec_loop(struct exec_arguments describer, struct ast *ast)
+{
+    struct ast_loop loop_struct = ast->data.ast_loop;
+    if (loop_struct.type == WHILE_LOOP)
+    {
+        while (execute_tree(loop_struct.cond, describer) == 0)
+            execute_tree(loop_struct.then_body, describer);
+    }
+    else if (loop_struct.type == UNTIL_LOOP)
+    {
+        while (execute_tree(loop_struct.cond, describer) != 0)
+            execute_tree(loop_struct.then_body, describer);
+    }
+    if (ast->next != NULL)
+        return execute_tree(ast->next, describer);
+    return 0;
 }
 
 int execute_tree(struct ast *ast, struct exec_arguments describer)
@@ -98,6 +117,8 @@ int execute_tree(struct ast *ast, struct exec_arguments describer)
     case AST_PIPE:;
         return exec_pipe(describer, ast);
         break;
+    case AST_LOOP:;
+        return exec_loop(describer, ast);
     default:
         return -1;
         break;
