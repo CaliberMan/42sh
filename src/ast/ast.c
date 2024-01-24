@@ -16,16 +16,18 @@ void free_ast(struct ast *ast)
 
     if (ast->type == AST_CMD)
         free_cmd(&ast->data.ast_cmd);
-    if (ast->type == AST_IF)
+    else if (ast->type == AST_IF)
         free_if(&ast->data.ast_if);
-    if (ast->type == AST_PIPE)
+    else if (ast->type == AST_PIPE)
         free_pipe(&ast->data.ast_pipe);
-    if (ast->type == AST_REDIR)
+    else if (ast->type == AST_REDIR)
         free_redir(&ast->data.ast_redir);
-    if (ast->type == AST_FILE)
+    else if (ast->type == AST_FILE)
         free_file(&ast->data.ast_file);
-    if (ast->type == AST_LOOP)
+    else if (ast->type == AST_LOOP)
         free_loop(&ast->data.ast_loop);
+    else if (ast->type == AST_OPERATOR)
+        free_operator(&ast->data.ast_operator);
 
     if (ast->next)
     {
