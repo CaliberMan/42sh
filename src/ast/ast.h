@@ -6,6 +6,7 @@
 #include "pipe/ast_pipe.h"
 #include "redir/ast_redir.h"
 #include "loop/ast_loop.h"
+#include "operator/ast_operator.h"
 
 enum ast_type
 {
@@ -13,7 +14,9 @@ enum ast_type
     AST_CMD,
     AST_PIPE,
     AST_REDIR,
-    AST_LOOP
+    AST_LOOP,
+    AST_FILE,
+    AST_OPERATOR
 };
 
 union ast_union
@@ -22,7 +25,9 @@ union ast_union
     struct ast_cmd ast_cmd; // node of type ast_cmd
     struct ast_pipe ast_pipe; // node of type ast_pipe
     struct ast_redir ast_redir; // node of type ast_redir
+    struct ast_file ast_file; // node of type ast_file
     struct ast_loop ast_loop; // node of type ast_loop
+    struct ast_operator ast_operator; // node of type ast_operator
 };
 
 struct ast
