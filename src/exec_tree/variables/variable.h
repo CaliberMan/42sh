@@ -57,4 +57,11 @@ int update_variable(char *name, enum var_type, union var_data);
  */
 struct variable *find(char *name);
 
+/**
+ * @brief Unset the previously setted variable
+ * @param the name of the variable you want to unset
+ * @return 0 if it worked and 1 if it didn't find the variable
+ */
+int unset_variable(char *name);
+
 #endif /* ! VARIABLE_H */
