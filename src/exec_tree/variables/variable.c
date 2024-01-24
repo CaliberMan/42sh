@@ -1,4 +1,5 @@
 #include "variable.h"
+#include <string.h>
 
 struct variable_list *begining_list = NULL;
 
@@ -63,6 +64,35 @@ int update_variable(char *name, enum var_type type, union var_data data)
     actual->next = new_l;
     new_l->var = new_var;
     return 0;
+}
+
+int unset_variable(char *name)
+{
+    struct variable_list *actual = begining_list;
+    if (actual && strcmp(actual->var->name, name) == 0)
+    {
+        begining_list = begining_list->next;
+        if (actual->var->type == STR)
+            free(actual->var->data.string);
+        free(actual->var);
+        free(actual);
+        return 0;
+    }
+    while (actual)
+    {
+        if (actual->next && strcmp(actual->next->var->name, name) == 0)
+        {
+            struct variable_list *to_rm = actual->next;
+            actual->next = to_rm->next;
+            if (to_rm->var->type == STR)
+                free(to_rm->var->data.string);
+            free(to_rm->var);
+            free(to_rm);
+            return 0;
+        }
+        actual = actual->next;
+    }
+    return 1;
 }
 
 struct variable *find(char *name)
