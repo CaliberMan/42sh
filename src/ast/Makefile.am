@@ -12,7 +12,7 @@ libast_a_CFLAGS = -Wall -Wextra -Werror -std=c99 -pedantic
 libast_a_CPPFLAGS = -I$(top_srcdir)/src
 
 clean-local:
-	rm -rf .deps cmd/.deps if/.deps pipe/.deps redir/.deps loop/.deps
+	rm -rf .deps cmd/.deps if/.deps pipe/.deps redir/.deps loop/.deps operator/.deps
 
 maintainer-clean-local:
 	rm -rf Makefile Makefile.in

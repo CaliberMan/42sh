@@ -4,7 +4,8 @@
 enum operator_type
 {
     OP_OR,
-    OP_AND
+    OP_AND,
+    OP_NOT
 };
 
 struct ast_operator
