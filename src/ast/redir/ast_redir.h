@@ -9,7 +9,9 @@ enum redir_type
     STD_OUT,
     STD_IN_OUT,
     STD_ERR,
-    STD_OUT_END
+    STD_OUT_END,
+    STD_RIGHT_ARROW_PIPE,
+    STD_LEFT_ARROW_AND
 };
 
 struct ast_redir
@@ -20,7 +22,7 @@ struct ast_redir
     struct ast *right;
 };
 
-struct sfile
+struct ast_file
 {
     char *filename;
 };

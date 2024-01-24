@@ -1,6 +1,7 @@
 #include "parser_list.h"
 
 #include <ctype.h>
+#include <string.h>
 
 enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
 {
@@ -115,13 +116,31 @@ enum parser_status parse_command(struct ast **ast, struct lexer *lexer)
         status = parse_redirection(&redirect_node, lexer); 
         if (status == PARSER_ERROR)
             return PARSER_ERROR;
-        if (status == PARSER_UNKNOWN_TOKEN)
+	if (status == PARSER_UNKNOWN_TOKEN)
             return PARSER_OK;
 
+	redirect_node->data.ast_redir.left = *ast;
         *ast = redirect_node;
     }
 
     return PARSER_OK;
+}
+
+enum redir_type parse_redir_type(char *str)
+{
+    if (strcmp(str, ">>"))
+	return STD_OUT_END;
+    if (strcmp(str, ">|"))
+	return STD_RIGHT_ARROW_PIPE;
+    if (strcmp(str, ">"))
+	return STD_OUT;
+    if (strcmp(str, "<"))
+	return STD_IN;
+    if (strcmp(str, "<>"))
+	return STD_IN_OUT;
+    if (strcmp(str, ">&"))
+	return STD_ERR;
+    return STD_LEFT_ARROW_AND;
 }
 
 enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer)
@@ -130,33 +149,60 @@ enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer)
     struct ast *ast_redir = init_ast(AST_REDIR);
     *ast = ast_redir;
 
+    int io = 0;
+    int total = -1;
+
     struct token *token = lexer_peek(lexer);
     if (token->type == TOKEN_WORD)
     {
+	total = 0;
         for (int i = 0; i < token->len; i++)
         {
             if (!isdigit(token->data[i]))
-                return PARSER_ERROR;
-        }
+	    {
+		token_free(token);
+		return PARSER_UNKNOWN_TOKEN;
+            }
+	    total *= 10;
+	    total += token->data[i] - '0';
+	}
+	io = 1;
+	lexer_pop(lexer);
     }
 
+    (*ast)->data.ast_redir.ioNumber = total;
     token_free(token);
-    lexer_pop(lexer);
 
     // CHECK IF TOKEN IS REDIRECT
-    struct token *token2 = lexer_peek(lexer);
+    token = lexer_peek(lexer);
 
-    if (token2->type != TOKEN_REDIR)
+    if (token->type != TOKEN_REDIR)
+    {
+	token_free(token);
+	if (io)
 	    return PARSER_ERROR;
+	return PARSER_UNKNOWN_TOKEN;
+    }
+
+    (*ast)->data.ast_redir.type = parse_redir_type(token->data);
 
     token_free(token);
     lexer_pop(lexer);
 
     // CHECK IF LAST TOKEN IS WORD, WE DO NOT CARE WHATS AFTER
-    token = lexer_peek(lexer);
+    token = lexer_pop(lexer);
     if (token->type != TOKEN_WORD)
-	    return PARSER_ERROR;
+    {
+	token_free(token);
+	return PARSER_ERROR;
+    }
 
+    struct ast *ast_file = init_ast(AST_FILE);
+    ast_file->data.ast_file.filename = token->data;
+
+    (*ast)->data.ast_redir.right = ast_file;
+
+    free(token);
     return PARSER_OK;
 }
 
