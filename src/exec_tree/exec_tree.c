@@ -148,7 +148,54 @@ static int exec_pipe(struct exec_arguments describer, struct ast *ast)
     }
     return ans;
 }
+static int exec_redir(struct exec_arguments describer, struct ast *ast)
+{
+    int in_fd;
+    int out_fd;
+    int ionumber = ast->data.ast_redir.ioNumber;
+    if (ast->type != AST_REDIR)
+        return -1;
+    switch(ast->data.ast_redir.type)
+    {
+    case STD_OUT:
+    case STD_RIGHT_ARROW_PIPE:
+        in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
+        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+        break;
+    case STD_IN:
+        in_fd = open(ast->data.ast_redir.right->data.ast_file.filename, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+        out_fd = ionumber != -1 ? ionumber : STDIN_FILENO;
+        break;
+    case STD_OUT_END:
+        in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
+        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename, O_APPEND | O_WRONLY, 0644);
+        break;
+    default:
+        printf("Not dealing with it rn good luck\n");
+        return 1;
+    }
 
+    int f = fork();
+    if (f < 0)
+        errx(1, "Bad fork");
+    //child
+    if (f == 0)
+    {
+        dup2(out_fd, in_fd);
+        return execute_tree(ast->data.ast_redir.left, describer);
+    }
+    else
+    {
+        int status;
+        waitpid(f, &status, 0);
+        if (WIFEXITED(status))
+        {
+            int ex_st = WEXITSTATUS(status);
+            return ex_st;
+        }
+    }
+    return 0;
+}
 static int exec_loop(struct exec_arguments describer, struct ast *ast)
 {
     struct ast_loop loop_struct = ast->data.ast_loop;
@@ -184,6 +231,8 @@ int execute_tree(struct ast *ast, struct exec_arguments describer)
         break;
     case AST_LOOP:;
         return exec_loop(describer, ast);
+    case AST_REDIR:
+        return exec_redir(describer, ast);
     default:
         return -1;
         break;
