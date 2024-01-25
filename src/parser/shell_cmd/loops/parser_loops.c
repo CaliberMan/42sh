@@ -26,6 +26,7 @@ enum parser_status parse_while_until(struct ast **ast, struct lexer *lexer, enum
     }
 
     lexer_pop(lexer);
+    token_free(token);
 
     struct ast *then_body;
     ps = parse_compound_list(&then_body, lexer);
@@ -44,5 +45,6 @@ enum parser_status parse_while_until(struct ast **ast, struct lexer *lexer, enum
 
     lexer_pop(lexer);
     token_free(token);
+
     return PARSER_OK;
 }

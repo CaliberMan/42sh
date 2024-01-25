@@ -28,6 +28,8 @@ void free_ast(struct ast *ast)
         free_loop(&ast->data.ast_loop);
     else if (ast->type == AST_OPERATOR)
         free_operator(&ast->data.ast_operator);
+    else if (ast->type == AST_NOT)
+        free_not(&ast->data.ast_not);
 
     if (ast->next)
     {
