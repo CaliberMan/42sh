@@ -181,17 +181,17 @@ enum parser_status parse_command(struct ast **ast, struct lexer *lexer)
 
 enum redir_type parse_redir_type(char *str)
 {
-    if (strcmp(str, ">>"))
+    if (!strcmp(str, ">>"))
         return STD_OUT_END;
-    if (strcmp(str, ">|"))
+    if (!strcmp(str, ">|"))
         return STD_RIGHT_ARROW_PIPE;
-    if (strcmp(str, ">"))
+    if (!strcmp(str, ">"))
         return STD_OUT;
-    if (strcmp(str, "<"))
+    if (!strcmp(str, "<"))
         return STD_IN;
-    if (strcmp(str, "<>"))
+    if (!strcmp(str, "<>"))
         return STD_IN_OUT;
-    if (strcmp(str, ">&"))
+    if (!strcmp(str, ">&"))
         return STD_ERR;
     return STD_LEFT_ARROW_AND;
 }
