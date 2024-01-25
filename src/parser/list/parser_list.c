@@ -166,9 +166,6 @@ enum redir_type parse_redir_type(char *str)
 enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer)
 {
     // CHECK IONUMBER 0 or 1 count
-    struct ast *ast_redir = init_ast(AST_REDIR);
-    *ast = ast_redir;
-
     int io = 0;
     int total = -1;
 
@@ -191,7 +188,6 @@ enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer)
         lexer_pop(lexer);
     }
 
-    (*ast)->data.ast_redir.ioNumber = total;
     token_free(token);
 
     // CHECK IF TOKEN IS REDIRECT
@@ -206,6 +202,10 @@ enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer)
         return PARSER_UNKNOWN_TOKEN;
     }
 
+    struct ast *ast_redir = init_ast(AST_REDIR);
+    *ast = ast_redir;
+
+    (*ast)->data.ast_redir.ioNumber = total;
     (*ast)->data.ast_redir.type = parse_redir_type(token->data);
 
     token_free(token);
