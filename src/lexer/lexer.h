@@ -19,6 +19,8 @@ enum token_type
     TOKEN_DONE,
     TOKEN_EOF,
     TOKEN_START,
+    TOKEN_AND,
+    TOKEN_OR,
     TOKEN_ERROR
 };
 

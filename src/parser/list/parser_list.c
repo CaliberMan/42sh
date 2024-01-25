@@ -45,7 +45,40 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
 
 enum parser_status parse_and_or(struct ast **ast, struct lexer *lexer)
 {
-    return parse_pipeline(ast, lexer);
+    enum parser_status status = parse_pipeline(ast, lexer);
+    if (status != PARSER_OK)
+        return status;
+
+    while (1)
+    {
+        struct token *token = lexer_peek(lexer);
+        if (token->type != TOKEN_AND && token->type != TOKEN_OR)
+        {
+            token_free(token);
+            return PARSER_OK;
+        }
+
+        enum operator_type type = token->type == TOKEN_OR ? OP_OR : OP_AND;
+        token_free(token);
+        lexer_pop(lexer);
+
+        struct ast *op_node = init_ast(AST_OPERATOR);
+        op_node->data.ast_operator.type = type;
+        op_node->data.ast_operator.left = *ast;
+        *ast = op_node;
+
+        pop_duplicates(lexer, TOKEN_NEWLINE);
+
+        struct ast *right;
+        status = parse_pipeline(&right, lexer);
+
+        if (status != PARSER_OK)
+            return PARSER_ERROR;
+
+        op_node->data.ast_operator.right = right;
+    }
+
+    return PARSER_OK;
 }
 
 enum parser_status parse_pipeline(struct ast **ast, struct lexer *lexer)

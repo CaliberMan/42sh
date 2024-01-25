@@ -78,19 +78,19 @@ int init_token(struct lexer *lex, struct token *t)
             t->type = TOKEN_THEN;
         else if (!strcmp("fi", t->data))
             t->type = TOKEN_FI;
-	else if (!strcmp("elif", t->data))
+        else if (!strcmp("elif", t->data))
             t->type = TOKEN_ELIF;
-	else if (!strcmp("!", t->data))
-	    t->type = TOKEN_NOT;
+        else if (!strcmp("!", t->data))
+            t->type = TOKEN_NOT;
         else if (!strcmp("while", t->data))
-	    t->type = TOKEN_WHILE;
-	else if (!strcmp("until", t->data))
-	    t->type = TOKEN_UNTIL;
- 	else if (!strcmp("do", t->data))
-	    t->type = TOKEN_DO;
- 	else if (!strcmp("done", t->data))
-	    t->type = TOKEN_DONE;
-  	else
+            t->type = TOKEN_WHILE;
+        else if (!strcmp("until", t->data))
+            t->type = TOKEN_UNTIL;
+        else if (!strcmp("do", t->data))
+            t->type = TOKEN_DO;
+        else if (!strcmp("done", t->data))
+            t->type = TOKEN_DONE;
+        else
             t->type = TOKEN_WORD;
     }
     else
