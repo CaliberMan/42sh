@@ -1,4 +1,66 @@
 #include "exec_tree.h"
+#include <stdio.h>
+
+static size_t int_size(int x)
+{
+    size_t i = 1;
+    while (x > 0)
+    {
+        x /= 10;
+        i++;
+    }
+    return i;
+}
+
+//returns 0 if everything went well
+//returns 1 if the variable doesn't exist
+//returns -1 if something went really wrong (allocation/type error)
+static int check_variable(struct exec_arguments command)
+{
+    size_t i = 0;
+    while(command.args[i] != NULL)
+    {
+        if (command.args[i][0] == '$')
+        {
+            struct variable *var = find(command.args[i] + 1);
+            if (var == NULL)
+                return 1;
+            free(command.args[i]);
+            switch(var->type)
+            {
+            case STR:
+                command.args[i] = calloc(1, strlen(var->data.string));
+                if (command.args[i] == NULL)
+                    return -1;
+                strcpy(command.args[i], var->data.string);
+                break;
+            case INT:
+                command.args[i] = calloc(1, int_size(var->data.integer) + 1);
+                if (command.args[i] == NULL)
+                    return -1;
+                sprintf(command.args[i], "%d", var->data.integer);
+                break;
+            case CHAR:
+                command.args[i] = calloc(2, 1);
+                if (command.args[i] == NULL)
+                    return -1;
+                command.args[i][0] = var->data.character;
+                break;
+            case FLOAT:
+                command.args[i] = calloc(1, 64); //Default value don't know if
+                                                 //we have to keep the float
+                if (command.args[i] == NULL)
+                    return -1;
+                sprintf(command.args[i], "%f", var->data.floatable);
+                break;
+            default:
+                return -1;
+            }
+        }
+        i++;
+    }
+    return 0;
+}
 
 static int check_builtins(struct exec_arguments command)
 {
@@ -17,6 +79,9 @@ static int exec_cmd(struct exec_arguments describer, struct ast *ast)
     int ans;
     struct ast_cmd cmd_struct = ast->data.ast_cmd;
     describer.args = cmd_struct.words;
+    ans = check_variable(describer);
+    if (ans != 0)
+        return 1;
     ans = check_builtins(describer);
     if (ast->next != NULL)
         return execute_tree(ast->next, describer);
