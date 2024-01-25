@@ -45,6 +45,7 @@ class Category:
 
 config = {"categories": ["execution/echo", "execution/for", "execution/if",
                          "execution/multiple_command", "execution/piping",
+                         "execution/variable",
                          "syntax/bad"]}
 
 if __name__ == "__main__":

@@ -1,4 +1,66 @@
 #include "exec_tree.h"
+#include <stdio.h>
+
+static size_t int_size(int x)
+{
+    size_t i = 1;
+    while (x > 0)
+    {
+        x /= 10;
+        i++;
+    }
+    return i;
+}
+
+//returns 0 if everything went well
+//returns 1 if the variable doesn't exist
+//returns -1 if something went really wrong (allocation/type error)
+static int check_variable(struct exec_arguments command)
+{
+    size_t i = 0;
+    while(command.args[i] != NULL)
+    {
+        if (command.args[i][0] == '$')
+        {
+            struct variable *var = find(command.args[i] + 1);
+            if (var == NULL)
+                return 1;
+            free(command.args[i]);
+            switch(var->type)
+            {
+            case STR:
+                command.args[i] = calloc(1, strlen(var->data.string));
+                if (command.args[i] == NULL)
+                    return -1;
+                strcpy(command.args[i], var->data.string);
+                break;
+            case INT:
+                command.args[i] = calloc(1, int_size(var->data.integer) + 1);
+                if (command.args[i] == NULL)
+                    return -1;
+                sprintf(command.args[i], "%d", var->data.integer);
+                break;
+            case CHAR:
+                command.args[i] = calloc(2, 1);
+                if (command.args[i] == NULL)
+                    return -1;
+                command.args[i][0] = var->data.character;
+                break;
+            case FLOAT:
+                command.args[i] = calloc(1, 64); //Default value don't know if
+                                                 //we have to keep the float
+                if (command.args[i] == NULL)
+                    return -1;
+                sprintf(command.args[i], "%f", var->data.floatable);
+                break;
+            default:
+                return -1;
+            }
+        }
+        i++;
+    }
+    return 0;
+}
 
 static int check_builtins(struct exec_arguments command)
 {
@@ -12,75 +74,116 @@ static int check_builtins(struct exec_arguments command)
         return exec(command);
 }
 
+static int exec_cmd(struct exec_arguments describer, struct ast *ast)
+{
+    int ans;
+    struct ast_cmd cmd_struct = ast->data.ast_cmd;
+    describer.args = cmd_struct.words;
+    ans = check_variable(describer);
+    if (ans != 0)
+        return 1;
+    ans = check_builtins(describer);
+    if (ast->next != NULL)
+        return execute_tree(ast->next, describer);
+    return ans;
+}
+
+static int exec_if(struct exec_arguments describer, struct ast *ast)
+{
+    int ans;
+    struct ast_if if_struct = ast->data.ast_if;
+    ans = execute_tree(if_struct.cond, describer);
+    if (ans == 0)
+        ans = execute_tree(if_struct.then_body, describer);
+    else if (ans == 1)
+        ans = execute_tree(if_struct.else_body, describer);
+    else
+        ans = -1;
+    if (ast->next != NULL)
+        return execute_tree(ast->next, describer);
+    return ans;
+}
+static int exec_pipe(struct exec_arguments describer, struct ast *ast)
+{
+    // Set up pipe
+    int p[2];
+    if (pipe(p) == -1)
+        errx(1, "%s", "Bad pipe");
+
+    // copy the contents of pipe into the struct
+    memcpy(describer.pipe_fds, p, sizeof(p));
+    // set up forking
+    int fork_fd = fork();
+    if (fork_fd < 0)
+        errx(1, "%s\n", "Bad fork");
+
+    int ans;
+    describer.child_process = fork_fd;
+    if (fork_fd == 0)
+    {
+        close(describer.pipe_fds[0]);
+        dup2(describer.pipe_fds[1], STDOUT_FILENO);
+        execute_tree(ast->data.ast_pipe.left_arg, describer);
+    }
+    else
+    {
+        int status;
+        waitpid(fork_fd, &status, 0);
+        if (WIFEXITED(status))
+        {
+            int ex_st = WEXITSTATUS(status);
+            if (ex_st == 127)
+                return -1;
+            else if (ex_st == 1)
+                return 1;
+            else
+            {
+                dup2(describer.pipe_fds[0], STDIN_FILENO);
+                close(describer.pipe_fds[1]);
+                ans = execute_tree(ast->data.ast_pipe.right_arg, describer);
+            }
+        }
+        if (ast->next != NULL)
+            return execute_tree(ast->next, describer);
+    }
+    return ans;
+}
+
+static int exec_loop(struct exec_arguments describer, struct ast *ast)
+{
+    struct ast_loop loop_struct = ast->data.ast_loop;
+    if (loop_struct.type == WHILE_LOOP)
+    {
+        while (execute_tree(loop_struct.cond, describer) == 0)
+            execute_tree(loop_struct.then_body, describer);
+    }
+    else if (loop_struct.type == UNTIL_LOOP)
+    {
+        while (execute_tree(loop_struct.cond, describer) != 0)
+            execute_tree(loop_struct.then_body, describer);
+    }
+    if (ast->next != NULL)
+        return execute_tree(ast->next, describer);
+    return 0;
+}
+
 int execute_tree(struct ast *ast, struct exec_arguments describer)
 {
     if (!ast)
         return 0;
-    int ans;
     switch (ast->type)
     {
     case AST_IF:;
-        struct ast_if if_struct = ast->data.ast_if;
-        ans = execute_tree(if_struct.cond, describer);
-        if (ans == 0)
-            ans = execute_tree(if_struct.then_body, describer);
-        else if (ans == 1)
-            ans = execute_tree(if_struct.else_body, describer);
-        else
-            ans = -1;
-        if (ast->next != NULL)
-            return execute_tree(ast->next, describer);
-        return ans;
+        return exec_if(describer, ast);
         break;
     case AST_CMD:;
-        struct ast_cmd cmd_struct = ast->data.ast_cmd;
-        describer.args = cmd_struct.words;
-        ans = check_builtins(describer);
-        if (ast->next != NULL)
-            return execute_tree(ast->next, describer);
-        return ans;
+        return exec_cmd(describer, ast);
         break;
     case AST_PIPE:;
-        // Set up pipe
-        int p[2];
-        if (pipe(p) == -1)
-            errx(1, "%s", "Bad pipe");
-
-        // copy the contents of pipe into the struct
-        memcpy(describer.pipe_fds, p, sizeof(p));
-        // set up forking
-        int fork_fd = fork();
-        if (fork_fd < 0)
-            errx(1, "%s\n", "Bad fork");
-
-        describer.child_process = fork_fd;
-        if (fork_fd == 0)
-        {
-            close(describer.pipe_fds[0]);
-            dup2(describer.pipe_fds[1], STDOUT_FILENO);
-            ans = execute_tree(ast->data.ast_pipe.left_arg, describer);
-        }
-        else
-        {
-            int status;
-            waitpid(fork_fd, &status, 0);
-            if (WIFEXITED(status))
-            {
-                int ex_st = WEXITSTATUS(status);
-                if (ex_st == 127)
-                    return -1;
-                else if (ex_st == 1)
-                    return 1;
-                else
-                {
-                    dup2(describer.pipe_fds[0], STDIN_FILENO);
-                    close(describer.pipe_fds[1]);
-                    ans = execute_tree(ast->data.ast_pipe.right_arg, describer);
-                }
-            }
-        }
-        return ans;
+        return exec_pipe(describer, ast);
         break;
+    case AST_LOOP:;
+        return exec_loop(describer, ast);
     default:
         return -1;
         break;
