@@ -177,7 +177,6 @@ enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer)
         {
             if (!isdigit(token->data[i]))
             {
-		free_ast(*ast);
                 token_free(token);
                 return PARSER_UNKNOWN_TOKEN;
             }
@@ -195,7 +194,6 @@ enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer)
 
     if (token->type != TOKEN_REDIR)
     {
-	free_ast(*ast);
         token_free(token);
         if (io)
             return PARSER_ERROR;
@@ -215,7 +213,6 @@ enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer)
     token = lexer_peek(lexer);
     if (token->type != TOKEN_WORD)
     {
-	free_ast(*ast);
         token_free(token);
         return PARSER_ERROR;
     }
