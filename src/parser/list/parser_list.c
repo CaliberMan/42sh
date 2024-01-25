@@ -45,12 +45,65 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
 
 enum parser_status parse_and_or(struct ast **ast, struct lexer *lexer)
 {
-    return parse_pipeline(ast, lexer);
+    enum parser_status status = parse_pipeline(ast, lexer);
+    if (status != PARSER_OK)
+        return status;
+
+    while (1)
+    {
+        struct token *token = lexer_peek(lexer);
+        if (token->type != TOKEN_AND && token->type != TOKEN_OR)
+        {
+            token_free(token);
+            return PARSER_OK;
+        }
+
+        enum operator_type type = token->type == TOKEN_OR ? OP_OR : OP_AND;
+        token_free(token);
+        lexer_pop(lexer);
+
+        struct ast *op_node = init_ast(AST_OPERATOR);
+        op_node->data.ast_operator.type = type;
+        op_node->data.ast_operator.left = *ast;
+        *ast = op_node;
+
+        pop_duplicates(lexer, TOKEN_NEWLINE);
+
+        struct ast *right;
+        status = parse_pipeline(&right, lexer);
+
+        if (status != PARSER_OK)
+            return PARSER_ERROR;
+
+        op_node->data.ast_operator.right = right;
+    }
+
+    return PARSER_OK;
 }
 
 enum parser_status parse_pipeline(struct ast **ast, struct lexer *lexer)
 {
-    enum parser_status status = parse_command(ast, lexer);
+    struct token *token = lexer_peek(lexer);
+    enum parser_status status = PARSER_OK;
+    if (token->type == TOKEN_NOT)
+    {
+        struct ast *not_ast = init_ast(AST_NOT);
+        struct ast *new_node;
+
+        lexer_pop(lexer);
+
+        status = parse_command(&new_node, lexer);
+        if (status == PARSER_OK)
+        {
+            not_ast->data.ast_not.child = new_node;
+            *ast = not_ast;
+        }
+    }
+    else
+        status = parse_command(ast, lexer);
+
+    token_free(token);
+
     if (status == PARSER_ERROR)
         return PARSER_ERROR;
 
@@ -146,9 +199,6 @@ enum redir_type parse_redir_type(char *str)
 enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer)
 {
     // CHECK IONUMBER 0 or 1 count
-    struct ast *ast_redir = init_ast(AST_REDIR);
-    *ast = ast_redir;
-
     int io = 0;
     int total = -1;
 
@@ -170,7 +220,6 @@ enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer)
         lexer_pop(lexer);
     }
 
-    (*ast)->data.ast_redir.ioNumber = total;
     token_free(token);
 
     // CHECK IF TOKEN IS REDIRECT
@@ -184,6 +233,10 @@ enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer)
         return PARSER_UNKNOWN_TOKEN;
     }
 
+    struct ast *ast_redir = init_ast(AST_REDIR);
+    *ast = ast_redir;
+
+    (*ast)->data.ast_redir.ioNumber = total;
     (*ast)->data.ast_redir.type = parse_redir_type(token->data);
 
     token_free(token);
