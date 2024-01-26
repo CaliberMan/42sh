@@ -63,6 +63,7 @@ int valid_char(struct lexer *lex, int *index)
 	   c != '<' &&
 	   c != '>' &&
 	   c != '|' &&
+       c != '=' &&
 	   !((c == '&' || c == '|') && lex->input[(*index) + 1] == c);
 }
 
@@ -110,6 +111,8 @@ enum token_type single_char_tokens(struct lexer *lex, struct token *t, int index
 	    tt = TOKEN_EOF;
     else if (lex->input[index] == '|')
 	    tt = TOKEN_PIPE;
+    else if (lex->input[index] == '=')
+        tt = TOKEN_ASSIGN
     else if (lex->input[index] == '<' ||
   	     lex->input[index] == '>')
     {
