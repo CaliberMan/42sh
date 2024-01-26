@@ -92,6 +92,8 @@ int init_token(struct lexer *lex, struct token *t)
         else
             t->type = TOKEN_WORD;
     }
+    else
+        t->type = TOKEN_WORD;
     return 0;
 }
 
