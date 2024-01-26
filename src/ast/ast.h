@@ -8,6 +8,7 @@
 #include "loop/ast_loop.h"
 #include "operator/ast_operator.h"
 #include "not/ast_not.h"
+#include "variable/ast_variable.h"
 
 enum ast_type
 {
@@ -18,7 +19,8 @@ enum ast_type
     AST_LOOP,
     AST_FILE,
     AST_OPERATOR,
-    AST_NOT
+    AST_NOT,
+    AST_VARIABLE
 };
 
 union ast_union
@@ -31,6 +33,7 @@ union ast_union
     struct ast_loop ast_loop; // node of type ast_loop
     struct ast_operator ast_operator; // node of type ast_operator
     struct ast_not ast_not; // node of type ast_not
+    struct ast_variable ast_variable; // node of type ast_variable
 };
 
 struct ast
