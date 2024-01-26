@@ -2,7 +2,7 @@
 
 #include "../ast.h"
 
-void free_variables(struct ast_variable *ast)
+void free_variable(struct ast_variable *ast)
 {
     if (ast->name)
     {

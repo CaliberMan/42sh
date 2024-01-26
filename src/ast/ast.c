@@ -1,7 +1,6 @@
 #include "ast.h"
 
 #include <stdlib.h>
-#include "variables/ast_variables.h"
 
 struct ast *init_ast(enum ast_type type)
 {
