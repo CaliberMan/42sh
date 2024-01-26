@@ -19,3 +19,4 @@ clean-local:
 
 maintainer-clean-local:
 	rm -rf Makefile Makefile.in
+
