@@ -214,6 +214,15 @@ static int exec_loop(struct exec_arguments describer, struct ast *ast)
     return 0;
 }
 
+static int exec_negation(struct exec_arguments describer, struct ast *ast)
+{
+    int ans = execute_tree(ast->data.ast_not.child, describer);
+    if (ans == 0 || ans == 1)
+        return ans == 0 ? 1 : 0;
+    else
+        return ans;
+}
+
 int execute_tree(struct ast *ast, struct exec_arguments describer)
 {
     if (!ast)
@@ -233,6 +242,8 @@ int execute_tree(struct ast *ast, struct exec_arguments describer)
         return exec_loop(describer, ast);
     case AST_REDIR:
         return exec_redir(describer, ast);
+    case AST_NOT:
+        return exec_negation(describer, ast);
     default:
         return -1;
         break;
