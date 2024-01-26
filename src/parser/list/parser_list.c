@@ -10,6 +10,7 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
         return PARSER_ERROR;
 
     struct ast *iterator = *ast;
+    struct ast *prev = NULL;
     struct token *token = lexer_peek(lexer);
 
     // check for token_assign
@@ -25,11 +26,15 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
             return PARSER_ERROR;
 
         assign->data.ast_variable.name =
-            calloc(strlen(iterator->data.ast_cmd.words[0]), sizeof(char));
+            calloc(strlen(iterator->data.ast_cmd.words[0]) + 1, sizeof(char));
         assign->data.ast_variable.name = strcpy(
             assign->data.ast_variable.name, iterator->data.ast_cmd.words[0]);
         free_ast(iterator);
         // find the prev tree and add assign to its next
+        if (!prev)
+            *ast = assign;
+        else
+            prev->next = assign;
 
         struct ast *value;
         status = parse_and_or(&value, lexer);
@@ -55,6 +60,7 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
             return PARSER_ERROR;
 
         // add the next node to the ast
+        prev = iterator;
         iterator->next = next;
         iterator = iterator->next;
 
