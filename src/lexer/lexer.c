@@ -112,7 +112,7 @@ enum token_type single_char_tokens(struct lexer *lex, struct token *t, int index
     else if (lex->input[index] == '|')
 	    tt = TOKEN_PIPE;
     else if (lex->input[index] == '=')
-        tt = TOKEN_ASSIGN
+        tt = TOKEN_ASSIGN;
     else if (lex->input[index] == '<' ||
   	     lex->input[index] == '>')
     {
