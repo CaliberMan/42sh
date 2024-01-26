@@ -95,10 +95,10 @@ static int exec_if(struct exec_arguments describer, struct ast *ast)
     ans = execute_tree(if_struct.cond, describer);
     if (ans == 0)
         ans = execute_tree(if_struct.then_body, describer);
-    else if (ans == 1)
+    else if (if_struct.else_body != NULL)
         ans = execute_tree(if_struct.else_body, describer);
     else
-        ans = -1;
+        ans = 0;
     if (ast->next != NULL)
         return execute_tree(ast->next, describer);
     return ans;
@@ -199,19 +199,20 @@ static int exec_redir(struct exec_arguments describer, struct ast *ast)
 static int exec_loop(struct exec_arguments describer, struct ast *ast)
 {
     struct ast_loop loop_struct = ast->data.ast_loop;
+    int ans = 0;
     if (loop_struct.type == WHILE_LOOP)
     {
         while (execute_tree(loop_struct.cond, describer) == 0)
-            execute_tree(loop_struct.then_body, describer);
+            ans = execute_tree(loop_struct.then_body, describer);
     }
     else if (loop_struct.type == UNTIL_LOOP)
     {
         while (execute_tree(loop_struct.cond, describer) != 0)
-            execute_tree(loop_struct.then_body, describer);
+            ans = execute_tree(loop_struct.then_body, describer);
     }
     if (ast->next != NULL)
         return execute_tree(ast->next, describer);
-    return 0;
+    return ans;
 }
 
 static int exec_negation(struct exec_arguments describer, struct ast *ast)
