@@ -116,6 +116,18 @@ enum parser_status parse_simple_command(struct ast **ast, struct lexer *lexer)
 
 enum parser_status parse_prefix(struct ast **ast, struct lexer *lexer)
 {
+    // check if its an =
+    struct token *token = lexer_peek(lexer);
+    if (token->type == TOKEN_ASSIGN)
+    {
+        struct ast *variable = init_ast(AST_VARIABLE);
+        *ast = variable;
+
+        token_free(token);
+        return PARSER_OK;
+    }
+
+    token_free(token);
     return parse_redirection(ast, lexer);
 }
 

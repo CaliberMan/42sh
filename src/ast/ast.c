@@ -30,6 +30,8 @@ void free_ast(struct ast *ast)
         free_operator(&ast->data.ast_operator);
     else if (ast->type == AST_NOT)
         free_not(&ast->data.ast_not);
+    else if (ast->type == AST_VARIABLE)
+        free_variable(&ast->data.ast_variable);
 
     if (ast->next)
     {
