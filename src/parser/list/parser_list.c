@@ -3,6 +3,37 @@
 #include <ctype.h>
 #include <string.h>
 
+enum parser_status variable_list(struct ast **ast, struct lexer *lexer, struct ast *iterator, struct ast *prev)
+{
+    if (iterator->type != AST_CMD && !iterator->data.ast_cmd.words[1])
+        return PARSER_ERROR;
+
+    struct ast *assign;
+    enum parser_status status = parse_and_or(&assign, lexer);
+    if (status != PARSER_OK)
+        return PARSER_ERROR;
+
+    assign->data.ast_variable.name =
+        calloc(strlen(iterator->data.ast_cmd.words[0]) + 1, sizeof(char));
+    assign->data.ast_variable.name = strcpy(
+        assign->data.ast_variable.name, iterator->data.ast_cmd.words[0]);
+    free_ast(iterator);
+
+    // find the prev tree and add assign to its next
+    if (!prev)
+        *ast = assign;
+    else
+        prev->next = assign;
+
+    struct ast *value;
+    status = parse_and_or(&value, lexer);
+    if (status != PARSER_OK)
+        return PARSER_ERROR;
+
+    assign->data.ast_variable.value = value;
+    return PARSER_OK;
+}
+
 enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
 {
     enum parser_status status = parse_and_or(ast, lexer);
@@ -17,31 +48,8 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
     if (token->type == TOKEN_ASSIGN)
     {
         token_free(token);
-        if (iterator->type != AST_CMD && !iterator->data.ast_cmd.words[1])
+        if (variable_list(ast, lexer, iterator, prev) != PARSER_OK)
             return PARSER_ERROR;
-
-        struct ast *assign;
-        status = parse_and_or(&assign, lexer);
-        if (status != PARSER_OK)
-            return PARSER_ERROR;
-
-        assign->data.ast_variable.name =
-            calloc(strlen(iterator->data.ast_cmd.words[0]) + 1, sizeof(char));
-        assign->data.ast_variable.name = strcpy(
-            assign->data.ast_variable.name, iterator->data.ast_cmd.words[0]);
-        free_ast(iterator);
-        // find the prev tree and add assign to its next
-        if (!prev)
-            *ast = assign;
-        else
-            prev->next = assign;
-
-        struct ast *value;
-        status = parse_and_or(&value, lexer);
-        if (status != PARSER_OK)
-            return PARSER_ERROR;
-
-        assign->data.ast_variable.value = value;
     }
 
     token = lexer_peek(lexer);
@@ -63,6 +71,16 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
         prev = iterator;
         iterator->next = next;
         iterator = iterator->next;
+
+        token = lexer_peek(lexer);
+        if (token->type == TOKEN_ASSIGN)
+        {
+            token_free(token);
+            if (variable_list(ast, lexer, iterator, prev) != PARSER_OK)
+                return PARSER_ERROR;
+        }
+        else
+            token_free(token);
 
         token = lexer_peek(lexer);
     }
