@@ -19,7 +19,7 @@ struct lexer *init_lexer(char *input)
     t->type = TOKEN_START;
     lex->prev_token = t;
     lex->input = input;
-   return lex;
+    return lex;
 }
 
 void *token_free(struct token *t)
@@ -36,7 +36,7 @@ void *token_free(struct token *t)
 void lexer_free(struct lexer *lex)
 {
     if (lex->input)
-	free(lex->input);
+        free(lex->input);
     if (lex->prev_token)
         token_free(lex->prev_token);
     free(lex);
@@ -56,14 +56,9 @@ int increase_capacity(struct token *t)
 int valid_char(struct lexer *lex, int *index)
 {
     char c = lex->input[*index];
-    return c != ' ' &&
-	   c != ';' &&
-	   c != '\n' &&
-	   c != 0 &&
-	   c != '<' &&
-	   c != '>' &&
-	   c != '|' &&
-	   !((c == '&' || c == '|') && lex->input[(*index) + 1] == c);
+    return c != ' ' && c != ';' && c != '\n' && c != 0 && c != '<' && c != '>'
+        && c != '|'
+        && !((c == '&' || c == '|') && lex->input[(*index) + 1] == c);
 }
 
 int init_token(struct lexer *lex, struct token *t)
@@ -83,26 +78,25 @@ int init_token(struct lexer *lex, struct token *t)
         else if (!strcmp("!", t->data))
             t->type = TOKEN_NOT;
         else if (!strcmp("while", t->data))
-	    t->type = TOKEN_WHILE;
-	else if (!strcmp("until", t->data))
-	    t->type = TOKEN_UNTIL;
- 	else if (!strcmp("do", t->data))
-	    t->type = TOKEN_DO;
-   	else if (!strcmp("done", t->data))
-	    t->type = TOKEN_DONE;
-  	else if (!strcmp("for", t->data))
-	    t->type = TOKEN_FOR;
-  	else if (!strcmp("in", t->data))
-	    t->type = TOKEN_IN;
-  	else
+            t->type = TOKEN_WHILE;
+        else if (!strcmp("until", t->data))
+            t->type = TOKEN_UNTIL;
+        else if (!strcmp("do", t->data))
+            t->type = TOKEN_DO;
+        else if (!strcmp("done", t->data))
+            t->type = TOKEN_DONE;
+        else if (!strcmp("for", t->data))
+            t->type = TOKEN_FOR;
+        else if (!strcmp("in", t->data))
+            t->type = TOKEN_IN;
+        else
             t->type = TOKEN_WORD;
     }
-    else
-        t->type = TOKEN_WORD;
     return 0;
 }
 
-enum token_type single_char_tokens(struct lexer *lex, struct token *t, int index)
+enum token_type single_char_tokens(struct lexer *lex, struct token *t,
+                                   int index)
 {
     t->data[0] = lex->input[index];
     enum token_type tt = TOKEN_ERROR;
@@ -111,22 +105,18 @@ enum token_type single_char_tokens(struct lexer *lex, struct token *t, int index
     else if (lex->input[index] == '\n')
         tt = TOKEN_NEWLINE;
     else if (lex->input[index] == 0)
-	    tt = TOKEN_EOF;
+        tt = TOKEN_EOF;
     else if (lex->input[index] == '|')
-	    tt = TOKEN_PIPE;
-    else if (lex->input[index] == '<' ||
-  	     lex->input[index] == '>')
+        tt = TOKEN_PIPE;
+    else if (lex->input[index] == '<' || lex->input[index] == '>')
     {
-        if (lex->input[index + 1] == '>' ||
-	    lex->input[index + 1] == '&' ||
-	    (lex->input[index] == '>' &&
-	     lex->input[index + 1] == '|'))
-	    t->data[1] = lex->input[index + 1];
-	tt = TOKEN_REDIR;
+        if (lex->input[index + 1] == '>' || lex->input[index + 1] == '&'
+            || (lex->input[index] == '>' && lex->input[index + 1] == '|'))
+            t->data[1] = lex->input[index + 1];
+        tt = TOKEN_REDIR;
     }
-    else if ((lex->input[index] == '&' ||
-	      lex->input[index] == '|') &&
-	     lex->input[index + 1] == lex->input[index]) 
+    else if ((lex->input[index] == '&' || lex->input[index] == '|')
+             && lex->input[index + 1] == lex->input[index])
         t->data[1] = lex->input[index];
     t->len = strlen(t->data);
     return tt;
@@ -138,17 +128,15 @@ int pop_traverse(struct lexer *lex, struct token *t, int *index)
         (*index)++;
     if (lex->input[*index] == '#')
     {
-	    while (lex->input[*index] != '\n' && lex->input[*index])
-		    (*index)++;
+        while (lex->input[*index] != '\n' && lex->input[*index])
+            (*index)++;
     }
     while (valid_char(lex, index))
     {
-	
         if (lex->input[*index] == '\'')
         {
             (*index)++;
-            while (lex->input[*index] != '\''
-                   && lex->input[*index] != 0)
+            while (lex->input[*index] != '\'' && lex->input[*index] != 0)
             {
                 t->data[t->len] = lex->input[*index];
                 t->len++;
@@ -190,11 +178,11 @@ struct token *lexer_pop(struct lexer *lex)
     t->capacity = 10;
     int res = pop_traverse(lex, t, &(lex->index));
     if (res)
-	return token_free(t);
+        return token_free(t);
     if (t->data[0] == 0)
     {
         t->type = single_char_tokens(lex, t, lex->index);
-    	lex->index += t->len;
+        lex->index += t->len;
     }
     else
     {
@@ -219,7 +207,7 @@ struct token *lexer_peek(struct lexer *lex)
     int index = lex->index;
     int res = pop_traverse(lex, t, &index);
     if (res)
-	return token_free(t);
+        return token_free(t);
     if (t->data[0] == 0)
         t->type = single_char_tokens(lex, t, index);
     else
