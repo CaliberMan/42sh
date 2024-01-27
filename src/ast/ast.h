@@ -1,6 +1,8 @@
 #ifndef AST_H
 #define AST_H
 
+#include <stdlib.h>
+
 #include "cmd/ast_cmd.h"
 #include "if/ast_if.h"
 #include "pipe/ast_pipe.h"

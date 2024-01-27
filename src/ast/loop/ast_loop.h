@@ -1,7 +1,7 @@
 #ifndef AST_LOOP_H
 #define AST_LOOP_H
 
-#include "../../exec_tree/variables/variable.h"
+#include "../variable/ast_variable.h"
 
 enum loop_type
 {
@@ -13,7 +13,7 @@ enum loop_type
 struct ast_loop
 {
     enum loop_type type;
-    struct variable *var;
+    struct ast_variable *var;
     struct ast *cond;
     struct ast *then_body;
 };

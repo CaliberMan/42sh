@@ -3,6 +3,8 @@
 #include <ctype.h>
 #include <string.h>
 
+#include "stdlib.h"
+
 enum parser_status variable_list(struct ast **ast, struct lexer *lexer, struct ast *iterator, struct ast *prev)
 {
     if (iterator->type != AST_CMD && !iterator->data.ast_cmd.words[1])
@@ -21,9 +23,15 @@ enum parser_status variable_list(struct ast **ast, struct lexer *lexer, struct a
 
     // find the prev tree and add assign to its next
     if (!prev)
+    {
         *ast = assign;
+        iterator = assign;
+    }
     else
+    {
         prev->next = assign;
+        iterator = assign;
+    }
 
     struct ast *value;
     status = parse_and_or(&value, lexer);
@@ -51,6 +59,8 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
         if (variable_list(ast, lexer, iterator, prev) != PARSER_OK)
             return PARSER_ERROR;
     }
+    else
+        token_free(token);
 
     token = lexer_peek(lexer);
     while (token->type == TOKEN_COLON || token->type == TOKEN_NEWLINE)
@@ -344,32 +354,37 @@ enum parser_status parse_compound_list_rep(struct ast **ast,
     enum parser_status status = PARSER_OK;
     struct token *token;
     struct ast *iterator = *ast;
+    struct ast *prev = NULL;
+
     while (status == PARSER_OK)
     {
         // the (';' | '\n')
         token = lexer_peek(lexer);
-
         if (token->type == TOKEN_COLON || token->type == TOKEN_NEWLINE)
             lexer_pop(lexer);
 
-        token_free(token);
-
         // the {'\n'}
         pop_duplicates(lexer, TOKEN_NEWLINE);
+        token_free(token);
 
-        // the ast_node
         struct ast *node;
         status = parse_and_or(&node, lexer);
         if (status != PARSER_OK)
             return status;
-        // if (status == PARSER_ERROR)
-        //     return PARSER_ERROR;
 
-        // if (status == PARSER_UNKNOWN_TOKEN)
-        //     return PARSER_OK;
-
+        prev = iterator;
         iterator->next = node;
         iterator = iterator->next;
+
+        token = lexer_peek(lexer);
+        if (token->type == TOKEN_ASSIGN)
+        {
+            token_free(token);
+            if (variable_list(ast, lexer, iterator, prev) != PARSER_OK)
+                return PARSER_ERROR;
+        }
+        else
+            token_free(token);
     }
 
     return PARSER_OK;
