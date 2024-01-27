@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 import termcolor
 
-OK_TAG = f"[{termcolor.colored('OK', 'green')}]"
+OK_TAG = f"[{termcolor.colored('ok', 'green')}]"
 KO_TAG = f"[{termcolor.colored('KO', 'red')}]"
 EQUALS  = f"{termcolor.colored('=', 'blue')}"
 
@@ -44,8 +44,11 @@ class Category:
     name: str
 
 config = {"categories": ["execution/echo", "execution/for", "execution/if",
-                         "execution/multiple_command", "execution/piping",
-                         "syntax/bad"]}
+                         "execution/multiple_command",
+                         "execution/not",
+                         "syntax/bad",
+                         "execution/variable",
+                         "execution/piping"]}
 
 if __name__ == "__main__":
     parser = ArgumentParser("TestSuite")
@@ -68,7 +71,8 @@ if __name__ == "__main__":
                     category,
                 )
         )
-
+    passed = 0
+    failed = 0
     for category in categories:
         print(f"{EQUALS}" * 48)
         print(f"Category: {category.name}")
@@ -80,6 +84,11 @@ if __name__ == "__main__":
                 perform_checks(sh_ref, sh_proc)
             except AssertionError as err:
                 print(f"{KO_TAG} {file}\n{err}")
+                failed += 1
             else:
                 print(f"{OK_TAG} {file}")
+                passed += 1
                 pass
+    print(f"{EQUALS}" * 48)
+    print(f"{termcolor.colored('passed ','green')} " + str(passed) + f" {termcolor.colored('failed ', 'red')}" + str(failed))
+

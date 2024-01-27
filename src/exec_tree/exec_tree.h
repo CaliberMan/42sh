@@ -3,10 +3,14 @@
 
 #include <string.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <stddef.h>
+#include <stdlib.h>
 
 #include "../ast/ast.h"
 #include "../builtins/builtins.h"
 #include "../exec/exec.h"
+#include "variables/variable.h"
 
 /**
  * @brief Executes the given tree

@@ -1,4 +1,5 @@
 #include "exec.h"
+#include <stdio.h>
 
 int exec(struct exec_arguments command)
 {
@@ -10,7 +11,10 @@ int exec(struct exec_arguments command)
     if (f == 0)
     {
         if (execvp(command.args[0], command.args) == -1)
+        {
+            fprintf(stderr, "%s: command not found", command.args[0]);
             exit(127);
+        }
     }
     else
     {
@@ -19,10 +23,7 @@ int exec(struct exec_arguments command)
         if (WIFEXITED(status))
         {
             int ex_st = WEXITSTATUS(status);
-            if (ex_st == 127)
-                return -1;
-            else if (ex_st == 1)
-                return 1;
+            return ex_st;
         }
     }
 
