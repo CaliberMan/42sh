@@ -1,5 +1,6 @@
 #include "exec_tree.h"
 #include <stdio.h>
+#include <unistd.h>
 
 static size_t int_size(int x)
 {
@@ -148,6 +149,13 @@ static int exec_pipe(struct exec_arguments describer, struct ast *ast)
     }
     return ans;
 }
+
+static int wrong_file(char *name)
+{
+    fprintf(stderr, "%s: No such file or directory", name);
+    return 1;
+}
+
 static int exec_redir(struct exec_arguments describer, struct ast *ast)
 {
     int in_fd;
@@ -163,17 +171,27 @@ static int exec_redir(struct exec_arguments describer, struct ast *ast)
         out_fd = open(ast->data.ast_redir.right->data.ast_file.filename, O_CREAT | O_TRUNC | O_WRONLY, 0644);
         break;
     case STD_IN:
-        in_fd = open(ast->data.ast_redir.right->data.ast_file.filename, O_CREAT | O_TRUNC | O_WRONLY, 0644);
-        out_fd = ionumber != -1 ? ionumber : STDIN_FILENO;
+        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename, O_RDONLY);
+        in_fd = ionumber != -1 ? ionumber : STDIN_FILENO;
         break;
     case STD_OUT_END:
         in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
         out_fd = open(ast->data.ast_redir.right->data.ast_file.filename, O_APPEND | O_WRONLY, 0644);
         break;
+    case STD_IN_OUT:
+        in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
+        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename, O_CREAT | O_RDWR, 0666);
+        break;
+    case STD_ERR:
+        in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
+        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        break;
     default:
         printf("Not dealing with it rn good luck\n");
         return 1;
     }
+    if (out_fd == -1)
+        return wrong_file(ast->data.ast_redir.right->data.ast_file.filename);
 
     int f = fork();
     if (f < 0)
@@ -182,15 +200,23 @@ static int exec_redir(struct exec_arguments describer, struct ast *ast)
     if (f == 0)
     {
         dup2(out_fd, in_fd);
+        if (ast->data.ast_redir.type == STD_IN_OUT)
+            dup2(out_fd, STDIN_FILENO);
+        if (ast->data.ast_redir.type == STD_ERR)
+            dup2(out_fd, STD_ERR);
+        close(out_fd);
         return execute_tree(ast->data.ast_redir.left, describer);
     }
     else
     {
         int status;
         waitpid(f, &status, 0);
+        close(out_fd);
         if (WIFEXITED(status))
         {
             int ex_st = WEXITSTATUS(status);
+            if (ast->next != NULL)
+                return execute_tree(ast->next, describer);
             return ex_st;
         }
     }
