@@ -13,7 +13,7 @@ enum loop_type
 struct ast_loop
 {
     enum loop_type type;
-    struct ast_variable *var;
+    char *var_name;
     struct ast *cond;
     struct ast *then_body;
 };

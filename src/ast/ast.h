@@ -11,6 +11,7 @@
 #include "operator/ast_operator.h"
 #include "not/ast_not.h"
 #include "variable/ast_variable.h"
+#include "list/ast_list.h"
 
 enum ast_type
 {
@@ -22,7 +23,8 @@ enum ast_type
     AST_FILE,
     AST_OPERATOR,
     AST_NOT,
-    AST_VARIABLE
+    AST_VARIABLE,
+    AST_LIST
 };
 
 union ast_union
@@ -36,6 +38,7 @@ union ast_union
     struct ast_operator ast_operator; // node of type ast_operator
     struct ast_not ast_not; // node of type ast_not
     struct ast_variable ast_variable; // node of type ast_variable
+    struct ast_list ast_list;
 };
 
 struct ast
