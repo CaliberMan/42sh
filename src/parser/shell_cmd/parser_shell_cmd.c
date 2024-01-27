@@ -2,6 +2,7 @@
 
 #include "if/parser_if.h"
 #include "loops/parser_loops.h"
+#include "loops/parser_for.h"
 
 enum parser_status parse_shell_command(struct ast **ast, struct lexer *lexer)
 {
@@ -22,6 +23,12 @@ enum parser_status parse_shell_command(struct ast **ast, struct lexer *lexer)
     {
         token_free(token);
         return parse_while_until(ast, lexer, UNTIL_LOOP);
+    }
+
+    if (token->type == TOKEN_FOR)
+    {
+        token_free(token);
+        return parse_for(ast, lexer);
     }
 
     token_free(token);

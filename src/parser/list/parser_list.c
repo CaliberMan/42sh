@@ -3,6 +3,45 @@
 #include <ctype.h>
 #include <string.h>
 
+#include "stdlib.h"
+
+enum parser_status variable_list(struct ast **ast, struct lexer *lexer, struct ast *iterator, struct ast *prev)
+{
+    if (iterator->type != AST_CMD && !iterator->data.ast_cmd.words[1])
+        return PARSER_ERROR;
+
+    struct ast *assign;
+    enum parser_status status = parse_and_or(&assign, lexer);
+    if (status != PARSER_OK)
+        return PARSER_ERROR;
+
+    assign->data.ast_variable.name =
+        calloc(strlen(iterator->data.ast_cmd.words[0]) + 1, sizeof(char));
+    assign->data.ast_variable.name = strcpy(
+        assign->data.ast_variable.name, iterator->data.ast_cmd.words[0]);
+    free_ast(iterator);
+
+    // find the prev tree and add assign to its next
+    if (!prev)
+    {
+        *ast = assign;
+        iterator = assign;
+    }
+    else
+    {
+        prev->next = assign;
+        iterator = assign;
+    }
+
+    struct ast *value;
+    status = parse_and_or(&value, lexer);
+    if (status != PARSER_OK)
+        return PARSER_ERROR;
+
+    assign->data.ast_variable.value = value;
+    return PARSER_OK;
+}
+
 enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
 {
     enum parser_status status = parse_and_or(ast, lexer);
@@ -10,32 +49,49 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
         return PARSER_ERROR;
 
     struct ast *iterator = *ast;
-
+    struct ast *prev = NULL;
     struct token *token = lexer_peek(lexer);
+
+    // check for token_assign
+    if (token->type == TOKEN_ASSIGN)
+    {
+        token_free(token);
+        if (variable_list(ast, lexer, iterator, prev) != PARSER_OK)
+            return PARSER_ERROR;
+    }
+    else
+        token_free(token);
+
+    token = lexer_peek(lexer);
     while (token->type == TOKEN_COLON || token->type == TOKEN_NEWLINE)
     {
         lexer_pop(lexer);
+        token_free(token);
 
         struct ast *next;
         status = parse_and_or(&next, lexer);
 
         // means the next token is not in and_or rule
         if (status == PARSER_UNKNOWN_TOKEN)
-        {
-            token_free(token);
             return PARSER_OK;
-        }
         if (status == PARSER_ERROR)
-        {
-            token_free(token);
             return PARSER_ERROR;
-        }
 
         // add the next node to the ast
+        prev = iterator;
         iterator->next = next;
         iterator = iterator->next;
 
-        token_free(token);
+        token = lexer_peek(lexer);
+        if (token->type == TOKEN_ASSIGN)
+        {
+            token_free(token);
+            if (variable_list(ast, lexer, iterator, prev) != PARSER_OK)
+                return PARSER_ERROR;
+        }
+        else
+            token_free(token);
+
         token = lexer_peek(lexer);
     }
 
@@ -148,7 +204,7 @@ enum parser_status parse_pipeline(struct ast **ast, struct lexer *lexer)
 enum parser_status parse_command(struct ast **ast, struct lexer *lexer)
 {
     struct token *token = lexer_peek(lexer);
-    if (token->type == TOKEN_WORD)
+    if (token->type == TOKEN_WORD || token->type == TOKEN_ASSIGN)
     {
         enum parser_status status = parse_simple_command(ast, lexer);
         if (status != PARSER_UNKNOWN_TOKEN)
@@ -298,32 +354,37 @@ enum parser_status parse_compound_list_rep(struct ast **ast,
     enum parser_status status = PARSER_OK;
     struct token *token;
     struct ast *iterator = *ast;
+    struct ast *prev = NULL;
+
     while (status == PARSER_OK)
     {
         // the (';' | '\n')
         token = lexer_peek(lexer);
-
         if (token->type == TOKEN_COLON || token->type == TOKEN_NEWLINE)
             lexer_pop(lexer);
 
-        token_free(token);
-
         // the {'\n'}
         pop_duplicates(lexer, TOKEN_NEWLINE);
+        token_free(token);
 
-        // the ast_node
         struct ast *node;
         status = parse_and_or(&node, lexer);
         if (status != PARSER_OK)
             return status;
-        // if (status == PARSER_ERROR)
-        //     return PARSER_ERROR;
 
-        // if (status == PARSER_UNKNOWN_TOKEN)
-        //     return PARSER_OK;
-
+        prev = iterator;
         iterator->next = node;
         iterator = iterator->next;
+
+        token = lexer_peek(lexer);
+        if (token->type == TOKEN_ASSIGN)
+        {
+            token_free(token);
+            if (variable_list(ast, lexer, iterator, prev) != PARSER_OK)
+                return PARSER_ERROR;
+        }
+        else
+            token_free(token);
     }
 
     return PARSER_OK;
