@@ -4,10 +4,18 @@
 
 #include "../../list/parser_list.h"
 
-void copy_word(char *src, char *dest, int length)
+void copy_word(struct token *token, struct ast *dest, int index)
 {
-    src = calloc(length, sizeof(char));
-    src = strcpy(src, dest);
+    if (dest->type == AST_CMD)
+    {
+        dest->data.ast_cmd.words[index] = calloc(token->len + 1, sizeof(char));
+        dest->data.ast_cmd.words[index] = strcpy(dest->data.ast_cmd.words[index], token->data);
+    }
+    else if (dest->type == AST_LOOP)
+    {
+        dest->data.ast_loop.var_name = calloc(token->len + 1, sizeof(char));
+        dest->data.ast_loop.var_name = strcpy(dest->data.ast_loop.var_name, token->data);
+    }
 }
 
 enum parser_status rule1(struct lexer *lexer)
@@ -44,7 +52,7 @@ enum parser_status rule2(struct ast **ast, struct lexer *lexer)
     while (token->type == TOKEN_WORD)
     {
         lexer_pop(lexer);
-        copy_word(token->data, word_list->data.ast_cmd.words[index], token->len);
+        copy_word(token, word_list, index);
 
         token_free(token);
         lexer_peek(lexer);
@@ -72,15 +80,16 @@ enum parser_status parse_for(struct ast **ast, struct lexer *lexer)
         return PARSER_ERROR;
     }
 
-    token_free(token);
     lexer_pop(lexer);
 
     struct ast *for_loop = init_ast(AST_LOOP);
     for_loop->data.ast_loop.type = FOR_LOOP;
 
     // got variable name
-    copy_word(token->data, for_loop->data.ast_loop.var_name, token->len + 1);
+    copy_word(token, for_loop, -1);
     *ast = for_loop;
+
+    token_free(token);
 
     // check rule1
     enum parser_status status = rule1(lexer);
