@@ -5,9 +5,16 @@
 
 #include "stdlib.h"
 
-enum parser_status variable_list(struct ast **ast, struct lexer *lexer, struct ast *iterator, struct ast *prev)
+enum parser_status variable_list(struct ast **ast, struct lexer *lexer,
+                                 size_t index)
 {
-    if (iterator->type != AST_CMD && !iterator->data.ast_cmd.words[1])
+    if (index == 0)
+        return PARSER_ERROR;
+
+    struct ast_list *ast_list = &(*ast)->data.ast_list;
+
+    if (ast_list->list[index - 1]->type != AST_CMD
+        && !ast_list->list[index - 1]->data.ast_cmd.words[1])
         return PARSER_ERROR;
 
     struct ast *assign;
@@ -16,22 +23,15 @@ enum parser_status variable_list(struct ast **ast, struct lexer *lexer, struct a
         return PARSER_ERROR;
 
     assign->data.ast_variable.name =
-        calloc(strlen(iterator->data.ast_cmd.words[0]) + 1, sizeof(char));
-    assign->data.ast_variable.name = strcpy(
-        assign->data.ast_variable.name, iterator->data.ast_cmd.words[0]);
-    free_ast(iterator);
+        calloc(strlen(ast_list->list[index - 1]->data.ast_cmd.words[0]) + 1,
+               sizeof(char));
+    assign->data.ast_variable.name =
+        strcpy(assign->data.ast_variable.name,
+               ast_list->list[index - 1]->data.ast_cmd.words[0]);
+    free_ast(ast_list->list[index - 1]);
 
-    // find the prev tree and add assign to its next
-    if (!prev)
-    {
-        *ast = assign;
-        iterator = assign;
-    }
-    else
-    {
-        prev->next = assign;
-        iterator = assign;
-    }
+    // add it to the list
+    ast_list->list[index - 1] = assign;
 
     struct ast *value;
     status = parse_and_or(&value, lexer);
@@ -48,15 +48,17 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
     if (status == PARSER_ERROR)
         return PARSER_ERROR;
 
-    struct ast *iterator = *ast;
-    struct ast *prev = NULL;
-    struct token *token = lexer_peek(lexer);
+    // create an ast list
+    size_t index = 0;
+    struct ast *ast_list = init_ast(AST_LIST);
+    ast_list->data.ast_list.list[index++] = *ast;
+    *ast = ast_list;
 
-    // check for token_assign
+    struct token *token = lexer_peek(lexer);
     if (token->type == TOKEN_ASSIGN)
     {
         token_free(token);
-        if (variable_list(ast, lexer, iterator, prev) != PARSER_OK)
+        if (variable_list(ast, lexer, index) != PARSER_OK)
             return PARSER_ERROR;
     }
     else
@@ -77,16 +79,17 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
         if (status == PARSER_ERROR)
             return PARSER_ERROR;
 
-        // add the next node to the ast
-        prev = iterator;
-        iterator->next = next;
-        iterator = iterator->next;
+        // increase the size if needed
+        if (index == ast_list->data.ast_list.capacity)
+            double_list_size(&ast_list->data.ast_list);
+
+        ast_list->data.ast_list.list[index++] = next;
 
         token = lexer_peek(lexer);
         if (token->type == TOKEN_ASSIGN)
         {
             token_free(token);
-            if (variable_list(ast, lexer, iterator, prev) != PARSER_OK)
+            if (variable_list(ast, lexer, index) != PARSER_OK)
                 return PARSER_ERROR;
         }
         else
@@ -353,8 +356,12 @@ enum parser_status parse_compound_list_rep(struct ast **ast,
 {
     enum parser_status status = PARSER_OK;
     struct token *token;
-    struct ast *iterator = *ast;
-    struct ast *prev = NULL;
+
+    // create an ast list
+    size_t index = 0;
+    struct ast *ast_list = init_ast(AST_LIST);
+    ast_list->data.ast_list.list[index++] = *ast;
+    *ast = ast_list;
 
     while (status == PARSER_OK)
     {
@@ -372,15 +379,16 @@ enum parser_status parse_compound_list_rep(struct ast **ast,
         if (status != PARSER_OK)
             return status;
 
-        prev = iterator;
-        iterator->next = node;
-        iterator = iterator->next;
+        if (index == ast_list->data.ast_list.capacity)
+            double_list_size(&ast_list->data.ast_list);
+
+        ast_list->data.ast_list.list[index++] = node;
 
         token = lexer_peek(lexer);
         if (token->type == TOKEN_ASSIGN)
         {
             token_free(token);
-            if (variable_list(ast, lexer, iterator, prev) != PARSER_OK)
+            if (variable_list(ast, lexer, index) != PARSER_OK)
                 return PARSER_ERROR;
         }
         else

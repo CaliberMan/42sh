@@ -16,7 +16,6 @@ enum parser_status get_word(struct ast **ast, struct lexer *lexer)
 
     struct ast *cmd_node = init_ast(AST_CMD);
     struct ast_cmd *cmd = &cmd_node->data.ast_cmd;
-    init_words(cmd);
 
     cmd->words[0] = calloc(token->len + 1, sizeof(char));
     cmd->words[0] = strcpy(cmd->words[0], token->data);
@@ -150,7 +149,6 @@ enum parser_status parse_element(struct ast **ast, struct lexer *lexer)
 
     struct ast *cmd_node = init_ast(AST_CMD);
     struct ast_cmd *cmd = &cmd_node->data.ast_cmd;
-    init_words(cmd);
 
     cmd->words[0] = calloc(token->len + 1, sizeof(char));
     cmd->words[0] = strcpy(cmd->words[0], token->data);

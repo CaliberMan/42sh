@@ -6,6 +6,12 @@ struct ast *init_ast(enum ast_type type)
 {
     struct ast *ast = calloc(1, sizeof(struct ast));
     ast->type = type;
+
+    if (type == AST_CMD)
+        init_words(&ast->data.ast_cmd);
+    else if (type == AST_LIST)
+        init_list(&ast->data.ast_list);
+
     return ast;
 }
 
@@ -32,6 +38,8 @@ void free_ast(struct ast *ast)
         free_not(&ast->data.ast_not);
     else if (ast->type == AST_VARIABLE)
         free_variable(&ast->data.ast_variable);
+    else if (ast->type == AST_LIST)
+        free_ast_list(&ast->data.ast_list);
 
     if (ast->next)
     {
