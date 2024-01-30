@@ -23,8 +23,15 @@ enum token_type
     TOKEN_START,
     TOKEN_AND,
     TOKEN_OR,
+    TOKEN_IONUM,
     TOKEN_ASSIGN,
     TOKEN_ERROR
+};
+
+enum lexer_status
+{
+    LEXER_OK,
+    LEXER_FOR
 };
 
 struct token
@@ -41,6 +48,7 @@ struct lexer
     char *input;
     int index;
     struct token *prev_token;
+    enum lexer_status status;
 };
 
 /**

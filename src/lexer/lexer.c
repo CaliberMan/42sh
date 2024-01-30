@@ -19,6 +19,7 @@ struct lexer *init_lexer(char *input)
     t->type = TOKEN_START;
     lex->prev_token = t;
     lex->input = input;
+    lex->status = LEXER_OK;
     return lex;
 }
 
@@ -92,11 +93,17 @@ int init_token(struct lexer *lex, struct token *t)
         else if (!strcmp("done", t->data))
             t->type = TOKEN_DONE;
         else if (!strcmp("for", t->data))
+        {
+            lex->status = LEXER_FOR;
             t->type = TOKEN_FOR;
-        else if (!strcmp("in", t->data))
-            t->type = TOKEN_IN;
+        }
         else
             t->type = TOKEN_WORD;
+    }
+    else if (lex->status == LEXER_FOR)
+    {
+        if (!strcmp("in", t->data))
+            t->type = TOKEN_IN;
     }
     else
         t->type = TOKEN_WORD;
@@ -133,6 +140,53 @@ enum token_type single_char_tokens(struct lexer *lex, struct token *t,
     return tt;
 }
 
+int lex_string(struct lexer *lex, struct token *t, int *index)
+{
+    if (lex->input[*index] == '\'')
+    {
+        (*index)++;
+        while (lex->input[*index] != '\'' && lex->input[*index] != 0)
+        {
+            t->data[t->len] = lex->input[*index];
+            t->len++;
+            if (t->len == t->capacity)
+            {
+                int res = increase_capacity(t);
+                if (res)
+                    return 1;
+            }
+            (*index)++;
+        }
+        if (lex->input[*index] == 0)
+            return 1;
+    }
+    else
+    {
+        (*index)++;
+        while (lex->input[*index] != '"' && lex->input[*index] != 0)
+        {
+            if (lex->input[*index] == '\\')
+            {
+                (*index)++;
+                if (lex->input[*index] == 0)
+                    return 1;
+            }
+            t->data[t->len] = lex->input[*index];
+            t->len++;
+            if (t->len == t->capacity)
+            {
+                int res = increase_capacity(t);
+                if (res)
+                    return 1;
+            }
+            (*index)++;
+        }
+        if (lex->input[*index] == 0)
+            return 1;
+    }
+    return 0;
+}
+
 int pop_traverse(struct lexer *lex, struct token *t, int *index)
 {
     while (lex->input[*index] == ' ')
@@ -144,23 +198,11 @@ int pop_traverse(struct lexer *lex, struct token *t, int *index)
     }
     while (valid_char(lex, index))
     {
-        if (lex->input[*index] == '\'')
+        if (lex->input[*index] == '\'' || lex->input[*index] == '"')
         {
-            (*index)++;
-            while (lex->input[*index] != '\'' && lex->input[*index] != 0)
-            {
-                t->data[t->len] = lex->input[*index];
-                t->len++;
-                if (t->len == t->capacity)
-                {
-                    int res = increase_capacity(t);
-                    if (res)
-                        return 1;
-                }
-                (*index)++;
-            }
-            if (lex->input[*index] == 0)
-                return 1;
+            int res = lex_string(lex, t, index);
+            if (res)
+                return res;
         }
         else
         {
@@ -197,6 +239,18 @@ struct token *lexer_pop(struct lexer *lex)
     }
     else
     {
+        if (lex->input[lex->index] == '>' || lex->input[lex->index] == '<')
+        {
+            int io = 1;
+            for (int i = 0; i < t->len; i++)
+                if (t->data[i] > '9' && t->data[i] < '0')
+                    io = 0;
+            if (io)
+            {
+                t->type = TOKEN_IONUM;
+                return t;
+            }
+        }
         int res = init_token(lex, t);
         if (res)
             return NULL;
@@ -223,6 +277,18 @@ struct token *lexer_peek(struct lexer *lex)
         t->type = single_char_tokens(lex, t, index);
     else
     {
+        if (lex->input[index] == '>' || lex->input[index] == '<')
+        {
+            int io = 1;
+            for (int i = 0; i < t->len; i++)
+                if (t->data[i] > '9' && t->data[i] < '0')
+                    io = 0;
+            if (io)
+            {
+                t->type = TOKEN_IONUM;
+                return t;
+            }
+        }
         int res = init_token(lex, t);
         if (res)
             return NULL;
