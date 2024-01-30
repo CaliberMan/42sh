@@ -11,8 +11,5 @@ void free_loop(struct ast_loop *ast)
     ast->then_body = NULL;
 
     if (ast->type == FOR_LOOP)
-    {
-//        free_variable(ast->var);
-//        ast->var = NULL;
-    }
+        free(ast->var_name);
 }
