@@ -17,6 +17,7 @@ enum parser_status parse_rule_if_elif(struct ast **ast, struct lexer *lexer,
     token_free(token);
 
     struct ast *if_ast = init_ast(AST_IF);
+    *ast = if_ast;
 
     // check for the CONDITION
     struct ast *cond;
@@ -53,7 +54,6 @@ enum parser_status parse_rule_if_elif(struct ast **ast, struct lexer *lexer,
     if (status == PARSER_OK)
         if_ast->data.ast_if.else_body = if_false;
 
-    *ast = if_ast;
     return PARSER_OK;
 }
 
@@ -91,7 +91,10 @@ enum parser_status parse_else_clause(struct ast **ast, struct lexer *lexer)
         struct ast *ast_else;
         enum parser_status status = parse_compound_list(&ast_else, lexer);
         if (status == PARSER_ERROR)
+        {
+            token_free(token);
             return PARSER_ERROR;
+        }
 
         *ast = ast_else;
     }
@@ -101,7 +104,10 @@ enum parser_status parse_else_clause(struct ast **ast, struct lexer *lexer)
         enum parser_status status =
             parse_rule_if_elif(&ast_elif, lexer, TOKEN_ELIF);
         if (status == PARSER_ERROR)
+        {
+            token_free(token);
             return status;
+        }
 
         *ast = ast_elif;
     }
