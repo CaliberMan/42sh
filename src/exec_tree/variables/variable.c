@@ -5,68 +5,7 @@
 
 struct variable_list *begining_list = NULL;
 
-static size_t int_size(int x)
-{
-    size_t i = 1;
-    while (x > 0)
-    {
-        x /= 10;
-        i++;
-    }
-    return i;
-}
-
-//returns 0 if everything went well
-//returns 1 if the variable doesn't exist
-//returns -1 if something went really wrong (allocation/type error)
-int check_variable(struct exec_arguments command)
-{
-    size_t i = 0;
-    while(command.args[i] != NULL)
-    {
-        if (command.args[i][0] == '$')
-        {
-            struct variable *var = find(command.args[i] + 1);
-            if (var == NULL)
-                return 1;
-            free(command.args[i]);
-            switch(var->type)
-            {
-            case STR:
-                command.args[i] = calloc(1, strlen(var->data.string));
-                if (command.args[i] == NULL)
-                    return -1;
-                strcpy(command.args[i], var->data.string);
-                break;
-            case INT:
-                command.args[i] = calloc(1, int_size(var->data.integer) + 1);
-                if (command.args[i] == NULL)
-                    return -1;
-                sprintf(command.args[i], "%d", var->data.integer);
-                break;
-            case CHAR:
-                command.args[i] = calloc(2, 1);
-                if (command.args[i] == NULL)
-                    return -1;
-                command.args[i][0] = var->data.character;
-                break;
-            case FLOAT:
-                command.args[i] = calloc(1, 64); //Default value don't know if
-                                                 //we have to keep the float
-                if (command.args[i] == NULL)
-                    return -1;
-                sprintf(command.args[i], "%f", var->data.floatable);
-                break;
-            default:
-                return -1;
-            }
-        }
-        i++;
-    }
-    return 0;
-}
-
-void free_list(void)
+void free_list_variables(void)
 {
     if (begining_list == NULL)
         return;
@@ -76,6 +15,7 @@ void free_list(void)
         struct variable_list *next = actual->next;
         if (actual->var->type == STR)
             free(actual->var->data.string);
+        free(actual->var->name);
         free(actual->var);
         free(actual);
         actual = next;
@@ -96,11 +36,18 @@ int update_variable(char *name, enum var_type type, union var_data data)
         if (!new)
             return 1;
         new->data = data;
+        if (type == STR)
+        {
+            size_t len_var = strlen(data.string);
+            new->data.string = calloc(1, len_var + 1);
+            memcpy(new->data.string, data.string, len_var);
+            free(data.string);
+        }
         new->type = type;
         new->name = calloc(1, len);
         strncpy(new->name, name, len);
-
         begining_list->var = new;
+        return 0;
     }
     struct variable_list *actual = begining_list;
     while (actual->next)
@@ -122,8 +69,8 @@ int update_variable(char *name, enum var_type type, union var_data data)
         return 1;
     new_var->data = data;
     new_var->type = type;
-    new_var->name = calloc(1, len);
-    strncpy(new_var->name, name, len);
+    new_var->name = calloc(1, len + 1);
+    memcpy(new_var->name, name, len);
     actual->next = new_l;
     new_l->var = new_var;
     return 0;
@@ -180,43 +127,55 @@ static size_t get_longest_valid_name(char *str, size_t i)
 
 void init_variables(void)
 {
-
-    char *t = calloc(1, 10);
-    sprintf(t, "%d", getpid());
+    char *base_str1 = calloc(1, 16);
+    sprintf(base_str1, "%d", getpid());
     union var_data x;
-    x.string = t;
+    x.string = base_str1;
     update_variable("$", STR, x);
+    char *base_str2 = calloc(1, 16);
+    base_str2[0] = '0';
+    union var_data y;
+    y.string = base_str2;
+    update_variable("?", STR, y);
 }
 
 static char *replace_str(char *ptr, char *str, size_t before_declaration, char * after_word)
 {
     if (*after_word == '}')
         after_word++;
-    char *new_guy = calloc(1, strlen(ptr) + strlen(str));
+    size_t ptr_len = strlen(ptr);
+    size_t str_len = strlen(str);
+    size_t after_len = strlen(after_word);
+    char *new_guy = calloc(1, ptr_len + str_len);
     memcpy(new_guy, str, before_declaration);
-    memcpy(new_guy + before_declaration, ptr, strlen(ptr));
-    memcpy(new_guy + before_declaration + strlen(ptr), after_word, strlen(after_word));
+    memcpy(new_guy + before_declaration, ptr, ptr_len);
+    memcpy(new_guy + before_declaration + ptr_len, after_word, after_len);
     return new_guy;
 }
 
-static int expand_special(char *str, size_t j)
+static int expand_special(char *str, size_t j, struct exec_arguments *command, size_t str_pos)
 {
-    switch (str[j+1])
+    char *special_args[] = {"@", "*", "?", "$", "#"};
+    if (str[j+1] == '{')
+            j++;
+    for (size_t i = 0; i < 5; i++)
     {
-        case '@':
-            break;
-        case '*':
-            break;
-        case '?':
-            break;
-        case '$':
-            break;
-        case '#':
-            break;
-        default:
-            break;
+        if (str[j+1] == *special_args[i])
+        {
+            struct variable *ptr = find(special_args[i]);
+            char *tmp = calloc(1,1);
+            char *new = NULL;
+            if (ptr)
+                new = replace_str(ptr->data.string, str, j, str + j+2);
+            else
+                new = replace_str(tmp, str, j, str + j+2);
+            free(tmp);
+            free(command->args[str_pos]);
+            command->args[str_pos] = new;
+            return 0;
+        }
     }
-    return 0;
+    return 1;
 }
 
 
@@ -232,8 +191,9 @@ int variable_expansion(struct exec_arguments command)
             continue;
 
         // special variables
-        if (expand_special(str, j))
-            continue;
+        int ans;
+        if ((ans = expand_special(str, j, &command, i)) == 0)
+            return ans;
 
         // environment variables
         size_t before_declaration = j;
@@ -241,6 +201,7 @@ int variable_expansion(struct exec_arguments command)
         j++;
         if (str[j] == '{')
             j++;
+
         const char *env_var[] = {"OLDPWD", "PWD", "IFS"};
         size_t variable_size = get_longest_valid_name(str, j);
         char *ptr = NULL;
@@ -266,8 +227,16 @@ int variable_expansion(struct exec_arguments command)
         if (out == 1)
             continue;
         // TEMPORARY CODE FOR OTHER VARIABLE
+        char *get_var = calloc(1, variable_size + 1);
+        memcpy(get_var, str + j, variable_size);
+        struct variable *p = find(get_var);
+        free(get_var);
         char *tmp = calloc(1,1);
-        char *new = replace_str(tmp, str, before_declaration, after_word);
+        char *new = NULL;
+        if (ptr)
+            new = replace_str(p->data.string, str, j, str + j+2);
+        else
+            new = replace_str(tmp, str, j, str + j+2);
         free(tmp);
         free(command.args[i]);
         command.args[i] = new;

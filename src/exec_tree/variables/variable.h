@@ -45,7 +45,7 @@ struct variable_list
  * @brief Frees the list of variables
  * @return Nothing
  */
-void free_list(void);
+void free_list_variables(void);
 
 /**
  * @brief Adds or update the variable given
@@ -68,7 +68,6 @@ struct variable *find(char *name);
  */
 int unset_variable(char *name);
 
-//int check_variable(struct exec_arguments command);
 int variable_expansion(struct exec_arguments command);
 void init_variables(void);
 

@@ -10,7 +10,7 @@
 #include "../ast/ast.h"
 #include "../builtins/builtins.h"
 #include "../exec/exec.h"
-#include "variables/variable.h"
+#include "./variables/variable.h"
 
 /**
  * @brief Executes the given tree
