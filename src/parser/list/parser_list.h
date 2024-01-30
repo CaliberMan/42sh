@@ -53,12 +53,26 @@ enum parser_status parse_compound_list_rep(struct ast **ast,
                                            struct lexer *lexer);
 
 /**
+ * @brief Parse functions
+ *
+ * funcdec = WORD '(' ')' {'\n'} shell_command
+ *          ;
+ */
+enum parser_status parse_funcdec(struct ast **ast, struct lexer *lexer);
+
+/**
+ * @brief Parse redirection
+ *
+ * redirection = [IONUMBER] ( '>' | '<' | '>>' | '>&' | '<&' | '>|' | '<>' ) WORD
+ *              ;
+ */
+enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer);
+
+/**
  * @brief Popping concecutive tokens of type type
  * @param lexer The lexer
  * @param type Type to be popped
  */
 void pop_duplicates(struct lexer *lexer, enum token_type type);
-
-enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer);
 
 #endif /* ! PARSER_LIST_H */

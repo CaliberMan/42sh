@@ -12,6 +12,7 @@
 #include "not/ast_not.h"
 #include "variable/ast_variable.h"
 #include "list/ast_list.h"
+#include "func/ast_func.h"
 
 enum ast_type
 {
@@ -24,21 +25,23 @@ enum ast_type
     AST_OPERATOR,
     AST_NOT,
     AST_VARIABLE,
-    AST_LIST
+    AST_LIST,
+    AST_FUNCTION
 };
 
 union ast_union
 {
-    struct ast_if ast_if; // node of type ast_if
-    struct ast_cmd ast_cmd; // node of type ast_cmd
-    struct ast_pipe ast_pipe; // node of type ast_pipe
-    struct ast_redir ast_redir; // node of type ast_redir
-    struct ast_file ast_file; // node of type ast_file
-    struct ast_loop ast_loop; // node of type ast_loop
-    struct ast_operator ast_operator; // node of type ast_operator
-    struct ast_not ast_not; // node of type ast_not
-    struct ast_variable ast_variable; // node of type ast_variable
+    struct ast_if ast_if;
+    struct ast_cmd ast_cmd;
+    struct ast_pipe ast_pipe;
+    struct ast_redir ast_redir;
+    struct ast_file ast_file;
+    struct ast_loop ast_loop;
+    struct ast_operator ast_operator;
+    struct ast_not ast_not;
+    struct ast_variable ast_variable;
     struct ast_list ast_list;
+    struct ast_func ast_func;
 };
 
 struct ast

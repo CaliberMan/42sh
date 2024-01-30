@@ -1,9 +1,8 @@
 #include "parser_list.h"
 
 #include <ctype.h>
+#include <stdlib.h>
 #include <string.h>
-
-#include "stdlib.h"
 
 enum parser_status variable_list(struct ast **ast, struct lexer *lexer,
                                  size_t index)
@@ -209,9 +208,97 @@ enum parser_status parse_pipeline(struct ast **ast, struct lexer *lexer)
     return PARSER_OK;
 }
 
-enum parser_status parse_command(struct ast **ast, struct lexer *lexer)
+enum parser_status redirect_loop(struct ast **ast, struct lexer *lexer)
+{
+    while (1)
+    {
+        struct ast *redirect_node;
+        enum parser_status status = parse_redirection(&redirect_node, lexer);
+        if (status == PARSER_ERROR)
+            return PARSER_ERROR;
+        if (status == PARSER_UNKNOWN_TOKEN)
+            return PARSER_OK;
+
+        redirect_node->data.ast_redir.left = *ast;
+        *ast = redirect_node;
+    }
+
+    return PARSER_OK;
+}
+
+enum parser_status parse_funcdec(struct ast **ast, struct lexer *lexer)
 {
     struct token *token = lexer_peek(lexer);
+    if (token->type != TOKEN_WORD)
+    {
+        token_free(token);
+        return PARSER_UNKNOWN_TOKEN;
+    }
+
+    struct ast *ast_func = init_ast(AST_FUNCTION);
+    struct ast_func *func = &ast_func->data.ast_func;
+
+    func->name = calloc(token->len + 1, sizeof(char));
+    func->name = strcpy(func->name, token->data);
+    
+    lexer_pop(lexer);
+    token_free(token);
+
+    lexer_peek(lexer);
+    if (token->type != TOKEN_BRACKET_OPEN)
+    {
+        free_ast(ast_func);
+        token_free(token);
+        return PARSER_UNKNOWN_TOKEN;
+    }
+
+    lexer_pop(lexer);
+    token_free(token);
+    *ast = ast_func;
+
+    lexer_peek(lexer);
+    if (token->type != TOKEN_BRACKET_CLOSE)
+    {
+        token_free(token);
+        return PARSER_ERROR;
+    }
+
+    lexer_pop(lexer);
+    token_free(token);
+
+    pop_duplicates(lexer, TOKEN_NEWLINE);
+
+    struct ast *body;
+    enum parser_status status = parse_shell_command(&body, lexer);
+    if (status != PARSER_OK)
+        return PARSER_ERROR;
+
+    func->body = body;
+    return PARSER_OK;
+}
+
+enum parser_status func_aux(struct ast **ast, struct lexer *lexer)
+{
+    enum parser_status status = parse_funcdec(ast, lexer);
+    if (status != PARSER_OK)
+        return status;
+
+    return redirect_loop(ast, lexer);
+}
+
+enum parser_status parse_command(struct ast **ast, struct lexer *lexer)
+{
+    // functions
+    struct token *token = lexer_peek(lexer);
+    enum parser_status status = func_aux(ast, lexer);
+
+    if (status != PARSER_UNKNOWN_TOKEN)
+    {
+        token_free(token);
+        return status;
+    }
+
+    // simple command
     if (token->type == TOKEN_WORD || token->type == TOKEN_ASSIGN)
     {
         enum parser_status status = parse_simple_command(ast, lexer);
@@ -223,27 +310,14 @@ enum parser_status parse_command(struct ast **ast, struct lexer *lexer)
     }
 
     token_free(token);
-    enum parser_status status = parse_shell_command(ast, lexer);
 
-    // add functions
+    // shell commands
+    status = parse_shell_command(ast, lexer);
 
-    if (status != PARSER_OK)
+    if (status != PARSER_ERROR)
         return status;
 
-    while (1)
-    {
-        struct ast *redirect_node;
-        status = parse_redirection(&redirect_node, lexer);
-        if (status == PARSER_ERROR)
-            return PARSER_ERROR;
-        if (status == PARSER_UNKNOWN_TOKEN)
-            return PARSER_OK;
-
-        redirect_node->data.ast_redir.left = *ast;
-        *ast = redirect_node;
-    }
-
-    return PARSER_OK;
+    return redirect_loop(ast, lexer);
 }
 
 enum redir_type parse_redir_type(char *str)

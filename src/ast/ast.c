@@ -40,6 +40,8 @@ void free_ast(struct ast *ast)
         free_variable(&ast->data.ast_variable);
     else if (ast->type == AST_LIST)
         free_ast_list(&ast->data.ast_list);
+    else if (ast->type == AST_FUNCTION)
+        free_func(&ast->data.ast_func);
 
     free(ast);
 }

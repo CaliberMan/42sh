@@ -9,7 +9,8 @@ libast_a_SOURCES = ast.c ast.h \
 				   operator/ast_operator.h operator/ast_operator.c \
 				   not/ast_not.h not/ast_not.c \
 				   variable/ast_variable.h variable/ast_variable.c \
-				   list/ast_list.h list/ast_list.c
+				   list/ast_list.h list/ast_list.c \
+				   func/ast_func.h func/ast_func.c
 
 libast_a_CFLAGS = -Wall -Wextra -Werror -std=c99 -pedantic
 libast_a_CPPFLAGS = -I$(top_srcdir)/src
@@ -17,7 +18,7 @@ libast_a_CPPFLAGS = -I$(top_srcdir)/src
 clean-local:
 	rm -rf .deps cmd/.deps if/.deps pipe/.deps redir/.deps \
 		loop/.deps operator/.deps not/.deps variable/.deps \
-		list/.deps
+		list/.deps func/.deps
 
 maintainer-clean-local:
 	rm -rf Makefile Makefile.in
