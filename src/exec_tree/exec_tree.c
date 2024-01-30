@@ -189,6 +189,41 @@ static int exec_negation(struct exec_arguments describer, struct ast *ast)
         return ans;
 }
 
+static int exec_operator(struct exec_arguments describer, struct ast *ast)
+{
+    int ans = execute_tree(ast->data.ast_operator.left, describer);
+    if (ast->data.ast_operator.type == OP_OR)
+    {
+        if (ans == 0)
+        {
+            if (ast->next != NULL)
+                return execute_tree(ast->next, describer);
+            return ans;
+        }
+        else
+        {
+            ans = execute_tree(ast->data.ast_operator.right, describer);
+            if (ast->next != NULL)
+                return execute_tree(ast->next, describer);
+            return ans;
+        }
+    }
+    else
+    {
+        ans = execute_tree(ast->data.ast_operator.left, describer);
+        if (ans != 0)
+        {
+            if (ast->next != NULL)
+                return execute_tree(ast->next, describer);
+            return ans;
+        }
+        ans = execute_tree(ast->data.ast_operator.left, describer);
+        if (ast->next != NULL)
+            return execute_tree(ast->next, describer);
+        return ans;
+    }
+}
+
 int execute_tree(struct ast *ast, struct exec_arguments describer)
 {
     if (!ast)
@@ -210,6 +245,8 @@ int execute_tree(struct ast *ast, struct exec_arguments describer)
         return exec_redir(describer, ast);
     case AST_NOT:
         return exec_negation(describer, ast);
+    case AST_OPERATOR:
+        return exec_operator(describer, ast);
     default:
         return -1;
         break;
