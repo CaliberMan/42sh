@@ -366,6 +366,8 @@ enum parser_status parse_compound_list_rep(struct ast **ast,
     size_t index = 0;
     struct ast *ast_list = init_ast(AST_LIST);
     ast_list->data.ast_list.list[index++] = *ast;
+    ast_list->data.ast_list.nb_nodes++;
+
     *ast = ast_list;
 
     while (status == PARSER_OK)
@@ -388,6 +390,7 @@ enum parser_status parse_compound_list_rep(struct ast **ast,
             double_list_size(&ast_list->data.ast_list);
 
         ast_list->data.ast_list.list[index++] = node;
+        ast_list->data.ast_list.nb_nodes++;
 
         token = lexer_peek(lexer);
         if (token->type == TOKEN_ASSIGN)
