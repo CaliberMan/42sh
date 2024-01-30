@@ -7,6 +7,7 @@ struct ast_list
 {
     struct ast **list;
     size_t capacity;
+    size_t nb_nodes;
 };
 
 /**

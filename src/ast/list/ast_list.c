@@ -7,17 +7,16 @@ void init_list(struct ast_list *ast)
 {
     ast->list = calloc(5, sizeof(struct ast *));
     ast->capacity = 5;
+    ast->nb_nodes = 0;
 }
 
 void free_ast_list(struct ast_list *list)
 {
-    for (size_t i = 0; i < list->capacity; i++)
-    {
-        if (!list->list[i])
-            free(list->list[i]);
-        else
-            free_ast(list->list[i]);
-    }
+    for (size_t i = 0; i < list->nb_nodes; i++)
+        free_ast(list->list[i]);
+
+    for (size_t i = list->nb_nodes; i < list->capacity; i++)
+        free(list->list[i]);
 
     free(list);
 }

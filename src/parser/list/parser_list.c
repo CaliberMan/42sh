@@ -39,6 +39,8 @@ enum parser_status variable_list(struct ast **ast, struct lexer *lexer,
         return PARSER_ERROR;
 
     assign->data.ast_variable.value = value;
+    ast_list->nb_nodes++;
+
     return PARSER_OK;
 }
 
@@ -52,6 +54,8 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
     size_t index = 0;
     struct ast *ast_list = init_ast(AST_LIST);
     ast_list->data.ast_list.list[index++] = *ast;
+    ast_list->data.ast_list.nb_nodes++;
+
     *ast = ast_list;
 
     struct token *token = lexer_peek(lexer);
@@ -84,6 +88,7 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
             double_list_size(&ast_list->data.ast_list);
 
         ast_list->data.ast_list.list[index++] = next;
+        ast_list->data.ast_list.nb_nodes++;
 
         token = lexer_peek(lexer);
         if (token->type == TOKEN_ASSIGN)
