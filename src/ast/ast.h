@@ -45,7 +45,6 @@ struct ast
 {
     enum ast_type type; // type of node
     union ast_union data; // the union of all types of nodes
-    struct ast *next; // the next ast
 };
 
 /**

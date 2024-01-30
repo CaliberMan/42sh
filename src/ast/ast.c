@@ -41,11 +41,5 @@ void free_ast(struct ast *ast)
     else if (ast->type == AST_LIST)
         free_ast_list(&ast->data.ast_list);
 
-    if (ast->next)
-    {
-        free_ast(ast->next);
-        ast->next = NULL;
-    }
-
     free(ast);
 }
