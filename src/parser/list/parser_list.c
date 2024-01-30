@@ -279,11 +279,16 @@ enum parser_status parse_funcdec(struct ast **ast, struct lexer *lexer)
 
 enum parser_status func_aux(struct ast **ast, struct lexer *lexer)
 {
-    enum parser_status status = parse_funcdec(ast, lexer);
-    if (status != PARSER_OK)
-        return status;
+    if (!lexer)
+    {
+        enum parser_status status = parse_funcdec(ast, lexer);
+        if (status != PARSER_OK)
+            return status;
 
-    return redirect_loop(ast, lexer);
+        return redirect_loop(ast, lexer);
+    }
+
+    return PARSER_UNKNOWN_TOKEN;
 }
 
 enum parser_status parse_command(struct ast **ast, struct lexer *lexer)
