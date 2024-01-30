@@ -1,4 +1,5 @@
 #include "exec_tree.h"
+#include <stddef.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -23,8 +24,6 @@ static int exec_cmd(struct exec_arguments describer, struct ast *ast)
     if (ans != 0)
         return 1;
     ans = check_builtins(describer);
-    if (ast->next != NULL)
-        return execute_tree(ast->next, describer);
     return ans;
 }
 
@@ -39,8 +38,6 @@ static int exec_if(struct exec_arguments describer, struct ast *ast)
         ans = execute_tree(if_struct.else_body, describer);
     else
         ans = 0;
-    if (ast->next != NULL)
-        return execute_tree(ast->next, describer);
     return ans;
 }
 static int exec_pipe(struct exec_arguments describer, struct ast *ast)
@@ -83,8 +80,6 @@ static int exec_pipe(struct exec_arguments describer, struct ast *ast)
                 ans = execute_tree(ast->data.ast_pipe.right_arg, describer);
             }
         }
-        if (ast->next != NULL)
-            return execute_tree(ast->next, describer);
     }
     return ans;
 }
@@ -154,8 +149,6 @@ static int exec_redir(struct exec_arguments describer, struct ast *ast)
         if (WIFEXITED(status))
         {
             int ex_st = WEXITSTATUS(status);
-            if (ast->next != NULL)
-                return execute_tree(ast->next, describer);
             return ex_st;
         }
     }
@@ -175,8 +168,6 @@ static int exec_loop(struct exec_arguments describer, struct ast *ast)
         while (execute_tree(loop_struct.cond, describer) != 0)
             ans = execute_tree(loop_struct.then_body, describer);
     }
-    if (ast->next != NULL)
-        return execute_tree(ast->next, describer);
     return ans;
 }
 
@@ -187,6 +178,16 @@ static int exec_negation(struct exec_arguments describer, struct ast *ast)
         return ans == 0 ? 1 : 0;
     else
         return ans;
+}
+
+static int exec_list(struct exec_arguments describer, struct ast *ast)
+{
+    int ans = 0;
+    for (size_t i = 0; i < ast->data.ast_list.nb_nodes; i++)
+    {
+        ans = execute_tree(ast->data.ast_list.list[i], describer);
+    }
+    return ans;
 }
 
 int execute_tree(struct ast *ast, struct exec_arguments describer)
@@ -210,6 +211,8 @@ int execute_tree(struct ast *ast, struct exec_arguments describer)
         return exec_redir(describer, ast);
     case AST_NOT:
         return exec_negation(describer, ast);
+    case AST_LIST:
+        return exec_list(describer, ast);
     default:
         return -1;
         break;
