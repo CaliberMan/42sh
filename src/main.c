@@ -34,7 +34,10 @@ struct lexer *file_to_lexer(char *filename)
         fclose(f);
     }
     else
+    {
+        fprintf(stderr, "no file????? BOMBOCLAT!!!\n");
         return NULL;
+    }
     struct lexer *lexer = init_lexer(buffer);
     return lexer;
 }

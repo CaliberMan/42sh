@@ -119,6 +119,16 @@ enum token_type single_char_tokens(struct lexer *lex, struct token *t,
         tt = TOKEN_COLON;
     else if (lex->input[index] == '\n')
         tt = TOKEN_NEWLINE;
+    else if (lex->input[index] == '&' && lex->input[index + 1] == '&')
+    {
+        t->data[1] = lex->input[index];
+        tt = TOKEN_AND;
+    }
+    else if (lex->input[index] == '|' && lex->input[index + 1] == '|')
+    {
+        t->data[1] = lex->input[index];
+        tt = TOKEN_OR;
+    }
     else if (lex->input[index] == 0)
         tt = TOKEN_EOF;
     else if (lex->input[index] == '|')
@@ -133,9 +143,6 @@ enum token_type single_char_tokens(struct lexer *lex, struct token *t,
             t->data[1] = lex->input[index + 1];
         tt = TOKEN_REDIR;
     }
-    else if ((lex->input[index] == '&' || lex->input[index] == '|')
-             && lex->input[index + 1] == lex->input[index])
-        t->data[1] = lex->input[index];
     t->len = strlen(t->data);
     return tt;
 }
@@ -295,3 +302,17 @@ struct token *lexer_peek(struct lexer *lex)
     }
     return t;
 }
+/*
+
+int main(void)
+{
+    struct lexer *lex = init_lexer("if true || false && true; then echo 1 | wow; else echo 2; fi");
+    struct token *t = lexer_peek(lex);
+    while (t->type != TOKEN_EOF)
+    {
+        t = lexer_peek(lex);
+        printf("BOMBOCLAT\n");
+        lexer_pop(lex);
+    }
+    return 0;
+}*/
