@@ -1,1 +1,0 @@
-echo -E 'Hello World'

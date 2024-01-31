@@ -1,1 +1,0 @@
-echo -ne 'Hello world'

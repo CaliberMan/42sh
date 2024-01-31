@@ -1,1 +1,0 @@
-echo -nnnneeEEeeEEEeEEee hi
