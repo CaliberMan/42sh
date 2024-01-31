@@ -1,11 +1,11 @@
 #ifndef EXEC_TREE_H
 #define EXEC_TREE_H
 
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <stdio.h>
-#include <stddef.h>
-#include <stdlib.h>
 
 #include "../ast/ast.h"
 #include "../builtins/builtins.h"

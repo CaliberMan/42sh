@@ -24,24 +24,43 @@ struct lexer *init_lexer(char *input)
     return lex;
 }
 
+int better_len(char *str)
+{
+    int count = 0;
+    for (int i = 0; str[i]; i++)
+        count++;
+    return count;
+}
+
 struct token *token_copy(struct token *t)
 {
-    char *str = calloc(t->capacity, sizeof(char));
-    if (!str)
-        return NULL;
-    for (int i = 0; t->data[i]; i++)
-        str[i] = t->data[i];
     struct token *new = calloc(1, sizeof(struct token));
-    new->data = str;
+    if (!new)
+        return NULL;
+    if (t->data)
+    {
+        int len = better_len(t->data);
+        char *str = calloc(len + 1, sizeof(char));
+        if (!str)
+        {
+            token_free(new);
+            return NULL;
+        }
+        for (int i = 0; t->data[i]; i++)
+            str[i] = t->data[i];
+        new->data = str;
+        new->len = len;
+    }
+    else
+        new->data = NULL;
     new->capacity = t->capacity;
-    new->len = t->len;
     new->type = t->type;
     return new;
 }
 
 struct lexer *lexer_copy(struct lexer *lex)
 {
-    char *str = calloc(strlen(lex->input) + 1, sizeof(char));
+    char *str = calloc(better_len(lex->input) + 1, sizeof(char));
     if (!str)
         return NULL;
     for (int i = 0; lex->input[i]; i++)
@@ -100,13 +119,12 @@ int valid_char(struct lexer *lex, int *index)
            c != '<' &&
            c != '>' &&
            c != '|' &&
-           c != '=' &&
            c != '(' &&
            c != ')' &&
            !((c == '&' || c == '|') && lex->input[(*index) + 1] == c);
 }
 
-void init_token_2(struct lexer *lex, struct token *t)
+void init_token_2(struct lexer *lex, struct token *t, int pop)
 {
     if (!strcmp("if", t->data))
         t->type = TOKEN_IF;
@@ -118,7 +136,8 @@ void init_token_2(struct lexer *lex, struct token *t)
         t->type = TOKEN_FI;
     else if (!strcmp("in", t->data))
     {
-        lex->status = LEXER_DO;
+        if (pop)
+            lex->status = LEXER_OK;
         t->type = TOKEN_IN;
     }
     else if (!strcmp("elif", t->data))
@@ -130,51 +149,34 @@ void init_token_2(struct lexer *lex, struct token *t)
     else if (!strcmp("}", t->data))
         t->type = TOKEN_CURLY_CLOSE;
     else if (!strcmp("while", t->data))
-    {
-        lex->status = LEXER_DO;
         t->type = TOKEN_WHILE;
-    }
     else if (!strcmp("until", t->data))
-    {
-        lex->status = LEXER_DO;
         t->type = TOKEN_UNTIL;
-    }
     else if (!strcmp("do", t->data))
-    {
-        lex->status = LEXER_OK;
         t->type = TOKEN_DO;
-    }
     else if (!strcmp("done", t->data))
         t->type = TOKEN_DONE;
     else if (!strcmp("for", t->data))
     {
-        lex->status = LEXER_IN;
+        if (pop)
+            lex->status = LEXER_IN;
         t->type = TOKEN_FOR;
     }
     else
         t->type = TOKEN_WORD;
 }
 
-int init_token(struct lexer *lex, struct token *t)
+int init_token(struct lexer *lex, struct token *t, int pop)
 {
     if (lex->prev_token->type != TOKEN_WORD)
-        init_token_2(lex, t);
+        init_token_2(lex, t, pop);
     else if (lex->status == LEXER_IN)
     {
         if (!strcmp("in", t->data))
         {
-            lex->status = LEXER_DO;
+            if (pop)
+                lex->status = LEXER_OK;
             t->type = TOKEN_IN;
-        }
-        else
-            t->type = TOKEN_WORD;
-    }
-    else if (lex->status == LEXER_DO)
-    {
-        if (!strcmp("do", t->data))
-        {
-            lex->status = LEXER_OK;
-            t->type = TOKEN_DO;
         }
         else
             t->type = TOKEN_WORD;
@@ -207,8 +209,6 @@ enum token_type single_char_tokens(struct lexer *lex, struct token *t,
         tt = TOKEN_EOF;
     else if (lex->input[index] == '|')
         tt = TOKEN_PIPE;
-    else if (lex->input[index] == '=')
-        tt = TOKEN_ASSIGN;
     else if (lex->input[index] == '(')
         tt = TOKEN_BRACKET_OPEN;
     else if (lex->input[index] == ')')
@@ -284,6 +284,25 @@ int pop_traverse(struct lexer *lex, struct token *t, int *index)
     }
     while (valid_char(lex, index))
     {
+        if (lex->input[*index] == '=' && t->len > 0 &&
+                lex->prev_token->type != TOKEN_WORD)
+        {
+            int valid = 1;
+            if (!(isalpha(t->data[0]) || t->data[0] == '_'))
+                valid = 0;
+            else
+            {
+                for (int i = 1; t->data[i]; i++)
+                    if (!(isalnum(t->data[i]) || t->data[i] == '_'))
+                        valid = 0;
+            }
+            if (valid)
+            {
+                (*index)++;
+                t->type = TOKEN_ASSIGNMENT_WORD;
+                return 0;
+            }
+        }
         if (lex->input[*index] == '\'' || lex->input[*index] == '"')
         {
             int res = lex_string(lex, t, index);
@@ -323,7 +342,7 @@ struct token *lexer_pop(struct lexer *lex)
         t->type = single_char_tokens(lex, t, lex->index);
         lex->index += t->len;
     }
-    else
+    else if (t->type != TOKEN_ASSIGNMENT_WORD)
     {
         if (lex->input[lex->index] == '>' || lex->input[lex->index] == '<')
         {
@@ -337,22 +356,7 @@ struct token *lexer_pop(struct lexer *lex)
                 return t;
             }
         }
-        else if (lex->input[lex->index] == '=')
-        {
-            if (!isdigit(t->data[0]))
-            {
-                int valid = 1;
-                for (int i = 0; i < t->len; i++)
-                    if (!isalnum(t->data[i]) && t->data[i] != '_')
-                        valid = 0;
-                if (valid)
-                {
-                    t->type = TOKEN_ASSIGNMENT_WORD;
-                    return t;
-                }
-            }
-        }
-        int res = init_token(lex, t);
+        int res = init_token(lex, t, 1);
         if (res)
             return NULL;
     }
@@ -376,7 +380,7 @@ struct token *lexer_peek(struct lexer *lex)
         return token_free(t);
     if (t->data[0] == 0)
         t->type = single_char_tokens(lex, t, index);
-    else
+    else if (t->type != TOKEN_ASSIGNMENT_WORD)
     {
         if (lex->input[index] == '>' || lex->input[index] == '<')
         {
@@ -390,22 +394,7 @@ struct token *lexer_peek(struct lexer *lex)
                 return t;
             }
         }
-        else if (lex->input[index] == '=')
-        {
-            if (!isdigit(t->data[0]))
-            {
-                int valid = 1;
-                for (int i = 0; i < t->len; i++)
-                    if (!isalnum(t->data[i]) && t->data[i] != '_')
-                        valid = 0;
-                if (valid)
-                {
-                    t->type = TOKEN_ASSIGNMENT_WORD;
-                    return t;
-                }
-            }
-        }
-        int res = init_token(lex, t);
+        int res = init_token(lex, t, 0);
         if (res)
             return NULL;
     }

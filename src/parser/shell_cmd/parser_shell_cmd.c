@@ -26,6 +26,7 @@ enum parser_status parse_brackets(struct ast **ast, struct lexer *lexer)
         return PARSER_ERROR;
     }
 
+    token_free(token);
     lexer_pop(lexer);
     if (type == TOKEN_BRACKET_CLOSE)
     {

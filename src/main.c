@@ -29,7 +29,7 @@ struct lexer *file_to_lexer(char *filename)
         fseek(f, 0, SEEK_END);
         length = ftell(f);
         fseek(f, 0, SEEK_SET);
-        buffer = malloc(length);
+        buffer = calloc(length + 1, sizeof(char));
         if (buffer)
             fread(buffer, 1, length, f);
         fclose(f);
@@ -108,6 +108,11 @@ int main(int argc, char *argv[])
     struct lexer *lexer = create_lexer(argc, argv);
     if (!lexer)
         return 2;
+    if (lexer->input[0] == 0)
+    {
+        lexer_free(lexer);
+        return 0;
+    }
     struct ast *ast;
     enum parser_status ps = parse_input(&ast, lexer);
     if (ps == PARSER_ERROR)

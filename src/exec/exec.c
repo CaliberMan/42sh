@@ -1,4 +1,5 @@
 #include "exec.h"
+
 #include <stdio.h>
 
 int exec(struct exec_arguments command)
@@ -26,7 +27,6 @@ int exec(struct exec_arguments command)
             return ex_st;
         }
     }
-
 
     return 0;
 }

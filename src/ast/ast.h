@@ -4,15 +4,15 @@
 #include <stdlib.h>
 
 #include "cmd/ast_cmd.h"
+#include "func/ast_func.h"
 #include "if/ast_if.h"
+#include "list/ast_list.h"
+#include "loop/ast_loop.h"
+#include "not/ast_not.h"
+#include "operator/ast_operator.h"
 #include "pipe/ast_pipe.h"
 #include "redir/ast_redir.h"
-#include "loop/ast_loop.h"
-#include "operator/ast_operator.h"
-#include "not/ast_not.h"
 #include "variable/ast_variable.h"
-#include "list/ast_list.h"
-#include "func/ast_func.h"
 #include "subshells/ast_sub.h"
 
 enum ast_type
@@ -51,7 +51,6 @@ struct ast
 {
     enum ast_type type; // type of node
     union ast_union data; // the union of all types of nodes
-    struct ast *next;
 };
 
 /**

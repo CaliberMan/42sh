@@ -63,7 +63,8 @@ enum parser_status parse_funcdec(struct ast **ast, struct lexer *lexer);
 /**
  * @brief Parse redirection
  *
- * redirection = [IONUMBER] ( '>' | '<' | '>>' | '>&' | '<&' | '>|' | '<>' ) WORD
+ * redirection = [IONUMBER] ( '>' | '<' | '>>' | '>&' | '<&' | '>|' | '<>' )
+ * WORD
  *              ;
  */
 enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer);

@@ -6,8 +6,7 @@
 #include "../list/parser_list.h"
 
 enum parser_status get_word(struct ast **ast, struct lexer *lexer)
-{
-    struct token *token = lexer_peek(lexer);
+{ struct token *token = lexer_peek(lexer);
     if (token->type != TOKEN_WORD)
     {
         token_free(token);
@@ -54,7 +53,6 @@ enum parser_status get_word(struct ast **ast, struct lexer *lexer)
             free_ast(next_word);
             index++;
         }
-
     }
 
     return PARSER_OK;
@@ -118,12 +116,16 @@ enum parser_status parse_simple_command(struct ast **ast, struct lexer *lexer)
 
 enum parser_status parse_prefix(struct ast **ast, struct lexer *lexer)
 {
-    // check if its an =
+    // check if its an "var="
     struct token *token = lexer_peek(lexer);
-    if (token->type == TOKEN_ASSIGN)
+    if (token->type == TOKEN_ASSIGNMENT_WORD)
     {
         lexer_pop(lexer);
         struct ast *variable = init_ast(AST_VARIABLE);
+        struct ast_variable *var = &variable->data.ast_variable;
+        var->name = calloc(token->len + 1, sizeof(char));
+        var->name = strcpy(var->name, token->data);
+
         *ast = variable;
 
         token_free(token);

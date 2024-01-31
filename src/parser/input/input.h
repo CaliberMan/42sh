@@ -15,4 +15,4 @@
  */
 enum parser_status parse_input(struct ast **ast, struct lexer *lexer);
 
-#endif /* ! UTILS_H */
+#endif /* ! INPUT_H */

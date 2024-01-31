@@ -1,6 +1,6 @@
-#include <stdio.h>
-
 #include "pretty_print.h"
+
+#include <stdio.h>
 
 void tab_print(int x)
 {
