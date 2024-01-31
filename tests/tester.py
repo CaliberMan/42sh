@@ -110,5 +110,6 @@ if __name__ == "__main__":
         print(f"{termcolor.colored('_','green',attrs=['bold'])}" * int(dw[i] * 48), end='')
         print(f"{termcolor.colored('_','red',attrs=['bold'])}" * int((1 - dw[i]) * 48))
         i += 1
+        print(" ")
     print(f"{termcolor.colored('_','magenta',attrs=['blink', 'bold'])}" * 48)
 

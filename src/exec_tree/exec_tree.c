@@ -232,7 +232,7 @@ static struct ret_msg exec_negation(struct exec_arguments describer, struct ast 
 {
     struct ret_msg ans;
     ans = execute_tree(ast->data.ast_not.child, describer);
-    if (ans.type == VAL)
+    if (ans.type == VAL || ans.type == ERR)
     {
         ans.value = ans.value == 0 ? 1 : 0;
         return ans;

@@ -44,4 +44,11 @@ int b_unset(struct exec_arguments command);
  */
 int b_cd(struct exec_arguments command);
 
+/**
+ * @brief simulate exit
+ * @param number returned
+ * @return Returns number given
+ */
+int b_exit(struct exec_arguments command);
+
 #endif /* ! BUILTINS_H */
