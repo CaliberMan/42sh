@@ -389,7 +389,16 @@ enum parser_status parse_compound_list(struct ast **ast, struct lexer *lexer)
     if (status != PARSER_OK)
         return PARSER_ERROR;
 
-    *ast = and_or_ast;
+    struct ast *ast_list = init_ast(AST_LIST);
+    ast_list->data.ast_list.list[0] = and_or_ast;
+    ast_list->data.ast_list.nb_nodes++;
+    *ast = ast_list;
+
+    if (and_or_ast->type == AST_VARIABLE)
+    {
+        if (variable_list(ast, lexer, 0) != PARSER_OK)
+            return PARSER_ERROR;
+    }
 
     // the COMMAND_LIST_REP
     status = parse_compound_list_rep(ast, lexer);
@@ -417,13 +426,8 @@ enum parser_status parse_compound_list_rep(struct ast **ast,
     struct token *token;
 
     // create an ast list
-    size_t index = 0;
-    struct ast *ast_list = init_ast(AST_LIST);
-    ast_list->data.ast_list.list[index++] = *ast;
-    ast_list->data.ast_list.nb_nodes++;
-
-    *ast = ast_list;
-
+    size_t index = 1;
+    struct ast *ast_list = *ast;
     while (status == PARSER_OK)
     {
         // the (';' | '\n')
