@@ -39,7 +39,8 @@ enum parser_status rule2(struct ast **ast, struct lexer *lexer)
 {
     pop_duplicates(lexer, TOKEN_NEWLINE);
 
-    struct token *token = lexer_pop(lexer);
+    struct token *token = lexer_peek(lexer);
+    lexer_pop(lexer);
     if (token->type != TOKEN_IN)
     {
         token_free(token);

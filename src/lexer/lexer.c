@@ -42,15 +42,18 @@ struct token *token_copy(struct token *t)
         int len = better_len(t->data);
         char *str = calloc(len + 1, sizeof(char));
         if (!str)
+        {
+            token_free(new);
             return NULL;
+        }
         for (int i = 0; t->data[i]; i++)
             str[i] = t->data[i];
         new->data = str;
+        new->len = len;
     }
     else
         new->data = NULL;
     new->capacity = t->capacity;
-    new->len = t->len;
     new->type = t->type;
     return new;
 }
