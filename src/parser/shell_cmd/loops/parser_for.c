@@ -31,6 +31,13 @@ enum parser_status rule1(struct lexer *lexer)
         return PARSER_OK;
     }
 
+    if (token->type == TOKEN_NEWLINE)
+    {
+        token_free(token);
+        pop_duplicates(lexer, TOKEN_NEWLINE);
+        return PARSER_OK;
+    }
+
     token_free(token);
     return PARSER_UNKNOWN_TOKEN;
 }
