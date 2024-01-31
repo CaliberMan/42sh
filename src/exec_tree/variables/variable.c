@@ -42,7 +42,7 @@ static struct variable_list *make_variable(char *name, char *new_value)
     var->value = calloc(1, len_var + 1);
     memcpy(var->value, new_value, len_var);
     var->name = calloc(1, name_len + 1);
-    strncpy(var->name, name, name_len);
+    memcpy(var->name, name, name_len);
     list->var = var;
 
     return list;
