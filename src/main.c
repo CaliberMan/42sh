@@ -74,7 +74,7 @@ struct lexer *create_lexer(int argc, char *argv[])
     }
     if (argc == 3)
     {
-        if (strcmp("-c", argv[1]))
+        if (strcmp("-c", argv[1]) && strcmp("-p", argv[1]))
         {
             fprintf(stderr, "invalid arguments");
             return NULL;
@@ -117,7 +117,11 @@ int main(int argc, char *argv[])
 
     // copy the contents of pipe into the struct
     memcpy(command.pipe_fds, default_fds, sizeof(default_fds));
-    int res = execute_tree(ast, command);
+    int res = 0;
+    if (strcmp("-p", argv[1]) == 0)
+        pretty_print(ast, 0);
+    else
+        res = execute_tree(ast, command);
     lexer_free(lexer);
     free_ast(ast);
     free_list_variables();
