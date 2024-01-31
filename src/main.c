@@ -123,18 +123,20 @@ int main(int argc, char *argv[])
 
     // copy the contents of pipe into the struct
     memcpy(command.pipe_fds, default_fds, sizeof(default_fds));
-    int res = 0;
+    struct ret_msg ans;
+    ans.type = VAL;
+    ans.value = 0;
     if (strcmp("-p", argv[1]) == 0 || (argc == 3 &&  strcmp("-p", argv[2]) == 0))
         pretty_print(ast, 0);
     else
-        res = execute_tree(ast, command);
+        ans = execute_tree(ast, command);
     lexer_free(lexer);
     free_ast(ast);
     free_list_variables();
-    if (res == -1)
+    if (ans.value == -1)
     {
         fprintf(stderr, "execute_tree error");
         return 1;
     }
-    return res;
+    return ans.value;
 }
