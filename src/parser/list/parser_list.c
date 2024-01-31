@@ -44,6 +44,7 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
     while (token->type == TOKEN_COLON || token->type == TOKEN_NEWLINE)
     {
         lexer_pop(lexer);
+        pop_duplicates(lexer, TOKEN_NEWLINE);
         token_free(token);
 
         struct ast *next;
