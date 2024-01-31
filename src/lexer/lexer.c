@@ -24,7 +24,7 @@ struct lexer *init_lexer(char *input)
     return lex;
 }
 
-int better_len(char *str)
+static int better_len(char *str)
 {
     int count = 0;
     for (int i = 0; str[i]; i++)
@@ -98,7 +98,7 @@ void lexer_free(struct lexer *lex)
     free(lex);
 }
 
-int increase_capacity(struct token *t)
+static int increase_capacity(struct token *t)
 {
     t->data = realloc(t->data, sizeof(char) * t->capacity * 2);
     if (!t->data)
@@ -109,7 +109,7 @@ int increase_capacity(struct token *t)
     return 0;
 }
 
-int valid_char(struct lexer *lex, int *index)
+static int valid_char(struct lexer *lex, int *index)
 {
     char c = lex->input[*index];
     return c != ' ' &&
@@ -124,7 +124,7 @@ int valid_char(struct lexer *lex, int *index)
            !((c == '&' || c == '|') && lex->input[(*index) + 1] == c);
 }
 
-void init_token_2(struct lexer *lex, struct token *t, int pop)
+static void init_token_2(struct lexer *lex, struct token *t, int pop)
 {
     if (!strcmp("if", t->data))
         t->type = TOKEN_IF;
@@ -166,7 +166,7 @@ void init_token_2(struct lexer *lex, struct token *t, int pop)
         t->type = TOKEN_WORD;
 }
 
-int init_token(struct lexer *lex, struct token *t, int pop)
+static int init_token(struct lexer *lex, struct token *t, int pop)
 {
     if (lex->prev_token->type != TOKEN_WORD)
         init_token_2(lex, t, pop);
@@ -186,7 +186,7 @@ int init_token(struct lexer *lex, struct token *t, int pop)
     return 0;
 }
 
-enum token_type single_char_tokens(struct lexer *lex, struct token *t,
+static enum token_type single_char_tokens(struct lexer *lex, struct token *t,
                                    int index)
 {
     t->data[0] = lex->input[index];
@@ -226,7 +226,7 @@ enum token_type single_char_tokens(struct lexer *lex, struct token *t,
     return tt;
 }
 
-int lex_string(struct lexer *lex, struct token *t, int *index)
+static int lex_string(struct lexer *lex, struct token *t, int *index)
 {
     if (lex->input[*index] == '\'')
     {
@@ -273,7 +273,7 @@ int lex_string(struct lexer *lex, struct token *t, int *index)
     return 0;
 }
 
-int pop_traverse(struct lexer *lex, struct token *t, int *index)
+static int pop_traverse(struct lexer *lex, struct token *t, int *index)
 {
     while (lex->input[*index] == ' ')
         (*index)++;

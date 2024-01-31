@@ -45,7 +45,7 @@ class Category:
 
 config = {"categories": ["execution/echo", "execution/for", "execution/if",
                          "execution/multiple_command",
-                         "execution/not",
+                         "execution/not","lexer",
                          "syntax/bad",
                          "execution/variable",
                          "execution/operator",
