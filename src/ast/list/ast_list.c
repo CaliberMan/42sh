@@ -18,7 +18,7 @@ void free_ast_list(struct ast_list *list)
     for (size_t i = list->nb_nodes; i < list->capacity; i++)
         free(list->list[i]);
 
-    free(list);
+    free(list->list);
 }
 
 void double_list_size(struct ast_list *ast)
