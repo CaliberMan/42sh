@@ -74,9 +74,11 @@ if __name__ == "__main__":
         )
     passed = 0
     failed = 0
+    category_nb = []
     for category in categories:
         print(f"{EQUALS}" * 48)
         print(f"Category: {category.name}")
+        int_pass = 0
         for file in category.tests:
             print(file)
             sh_proc = run_shell(binary_path, file)
@@ -90,7 +92,15 @@ if __name__ == "__main__":
             else:
                 print(f"{OK_TAG} {file}")
                 passed += 1
+                int_pass += 1
                 pass
+        if int(int_pass/len(category.tests) * 100) >= 80:
+            category_nb.append(f"{termcolor.colored(f'{category.name}','yellow')} {termcolor.colored(f'{int(int_pass/len(category.tests) * 100)}%', 'green')}")
+        else:
+            category_nb.append(f"{termcolor.colored(f'{category.name}','yellow')} {termcolor.colored(f'{int(int_pass/len(category.tests) * 100)}%','red')}")
     print(f"{EQUALS}" * 48)
     print(f"{termcolor.colored('passed ','green')} " + str(passed) + f" {termcolor.colored('failed ', 'red')}" + str(failed))
+    i = 0
+    for category in category_nb:
+        print(category)
 
