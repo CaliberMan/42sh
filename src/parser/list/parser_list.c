@@ -234,6 +234,7 @@ enum parser_status parse_funcdec(struct ast **ast, struct lexer *lexer)
     if (token->type != TOKEN_WORD)
     {
         token_free(token);
+        lexer_free(lexer_cp);
         return PARSER_UNKNOWN_TOKEN;
     }
 
