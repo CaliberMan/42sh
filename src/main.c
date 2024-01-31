@@ -5,6 +5,7 @@
 #include "ast/ast.h"
 #include "exec/exec.h"
 #include "exec_tree/exec_tree.h"
+#include "exec_tree/variables/variable.h"
 #include "lexer/lexer.h"
 #include "pretty_print/pretty_print.h"
 #include "parser/input/input.h"
@@ -73,14 +74,20 @@ struct lexer *create_lexer(int argc, char *argv[])
     }
     if (argc == 3)
     {
-        if (strcmp("-c", argv[1]))
+        if (strcmp("-p", argv[2]) == 0)
+        {
+            struct lexer *lexer = file_to_lexer(argv[1]);
+            return lexer;
+        }
+        if (strcmp("-c", argv[1]) && strcmp("-p", argv[1]))
         {
             fprintf(stderr, "invalid arguments");
             return NULL;
         }
-        char *buffer = calloc(strlen(argv[2]) + 1, sizeof(char));
-        for (int i = 0; argv[2][i]; i++)
-            buffer[i] = argv[2][i];
+        
+	char *buffer = calloc(strlen(argv[2]) + 1, sizeof(char));
+	for (int i = 0; argv[2][i]; i++)
+		buffer[i] = argv[2][i];
         struct lexer *lexer = init_lexer(buffer);
         return lexer;
     }
@@ -115,18 +122,26 @@ int main(int argc, char *argv[])
         lexer_free(lexer);
         return 2;
     }
+    init_variables();
     int default_fds[2] = { STDIN_FILENO, STDOUT_FILENO };
     struct exec_arguments command;
 
     // copy the contents of pipe into the struct
     memcpy(command.pipe_fds, default_fds, sizeof(default_fds));
-    int res = execute_tree(ast, command);
+    struct ret_msg ans;
+    ans.type = VAL;
+    ans.value = 0;
+    if (strcmp("-p", argv[1]) == 0 || (argc == 3 &&  strcmp("-p", argv[2]) == 0))
+        pretty_print(ast, 0);
+    else
+        ans = execute_tree(ast, command);
     lexer_free(lexer);
     free_ast(ast);
-    if (res == -1)
+    free_list_variables();
+    if (ans.value == -1)
     {
         fprintf(stderr, "execute_tree error");
         return 1;
     }
-    return res;
+    return ans.value;
 }

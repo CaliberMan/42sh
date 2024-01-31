@@ -1,48 +1,65 @@
 #include "exec_tree.h"
-
+#include "variables/variable.h"
 #include <stddef.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 static int check_builtins(struct exec_arguments command)
 {
     if (strcmp(command.args[0], "echo") == 0)
         return b_echo(command);
-    if (strcmp(command.args[0], "true") == 0)
+    else if (strcmp(command.args[0], "true") == 0)
         return b_true();
     else if (strcmp(command.args[0], "false") == 0)
         return b_false();
+    else if (strcmp(command.args[0], "unset") == 0)
+        return b_unset(command);
+    else if (strcmp(command.args[0], "cd") == 0)
+        return b_cd(command);
     else
         return exec(command);
 }
 
-static int exec_cmd(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_cmd(struct exec_arguments describer, struct ast *ast)
 {
-    int ans;
+    struct ret_msg ans;
+    ans.type = VAL;
     struct ast_cmd cmd_struct = ast->data.ast_cmd;
     describer.args = cmd_struct.words;
-    ans = variable_expansion(describer);
-    if (ans != 0)
-        return 1;
-    ans = check_builtins(describer);
+    ans.value = variable_expansion(describer);
+    if (ans.value != 0)
+    {
+        ans.type = ERR;
+        ans.value = 1;
+        return ans;
+    }
+    ans.value = check_builtins(describer);
+    if (ans.value != 0 && ans.value != 1)
+        ans.type = ERR;
     return ans;
 }
 
-static int exec_if(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_if(struct exec_arguments describer, struct ast *ast)
 {
-    int ans;
+    struct ret_msg ans;
+    ans.type = VAL;
     struct ast_if if_struct = ast->data.ast_if;
     ans = execute_tree(if_struct.cond, describer);
-    if (ans == 0)
+    if (ans.value == 0)
         ans = execute_tree(if_struct.then_body, describer);
     else if (if_struct.else_body != NULL)
         ans = execute_tree(if_struct.else_body, describer);
     else
-        ans = 0;
+        ans.value = 0;
     return ans;
 }
-static int exec_pipe(struct exec_arguments describer, struct ast *ast)
+
+static struct ret_msg exec_pipe(struct exec_arguments describer, struct ast *ast)
 {
+    struct ret_msg ans;
+    ans.type = VAL;
+    ans.value = 0;
     // Set up pipe
     int p[2];
     if (pipe(p) == -1)
@@ -55,7 +72,6 @@ static int exec_pipe(struct exec_arguments describer, struct ast *ast)
     if (fork_fd < 0)
         errx(1, "%s\n", "Bad fork");
 
-    int ans;
     describer.child_process = fork_fd;
     if (fork_fd == 0)
     {
@@ -71,9 +87,15 @@ static int exec_pipe(struct exec_arguments describer, struct ast *ast)
         {
             int ex_st = WEXITSTATUS(status);
             if (ex_st == 127)
-                return -1;
+            {
+                ans.type = ERR;
+                ans.value = 127;
+            }
             else if (ex_st == 1)
-                return 1;
+            {
+                ans.value = 1;
+                return ans;
+            }
             else
             {
                 dup2(describer.pipe_fds[0], STDIN_FILENO);
@@ -85,20 +107,24 @@ static int exec_pipe(struct exec_arguments describer, struct ast *ast)
     return ans;
 }
 
-static int wrong_file(char *name)
+static struct ret_msg wrong_file(char *name)
 {
     fprintf(stderr, "%s: No such file or directory", name);
-    return 1;
+    struct ret_msg ans;
+    ans.type = VAL;
+    ans.value = 1;
+    return ans;
 }
 
-static int exec_redir(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_redir(struct exec_arguments describer, struct ast *ast)
 {
+    struct ret_msg ans;
+    ans.type = VAL;
+    ans.value = 0;
     int in_fd;
     int out_fd;
     int ionumber = ast->data.ast_redir.ioNumber;
-    if (ast->type != AST_REDIR)
-        return -1;
-    switch (ast->data.ast_redir.type)
+    switch(ast->data.ast_redir.type)
     {
     case STD_OUT:
     case STD_RIGHT_ARROW_PIPE:
@@ -127,8 +153,9 @@ static int exec_redir(struct exec_arguments describer, struct ast *ast)
                       O_WRONLY | O_CREAT | O_TRUNC, 0666);
         break;
     default:
-        printf("Not dealing with it rn good luck\n");
-        return 1;
+        ans.value = 1;
+        ans.type = ERR;
+        return ans;
     }
     if (out_fd == -1)
         return wrong_file(ast->data.ast_redir.right->data.ast_file.filename);
@@ -154,41 +181,71 @@ static int exec_redir(struct exec_arguments describer, struct ast *ast)
         close(out_fd);
         if (WIFEXITED(status))
         {
-            int ex_st = WEXITSTATUS(status);
-            return ex_st;
+            ans.value = WEXITSTATUS(status);
+            if (ans.value != 0 && ans.value != 1)
+            {
+                ans.type = ERR;
+            }
+            return ans;
         }
     }
-    return 0;
+    return ans;
 }
-static int exec_loop(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_loop(struct exec_arguments describer, struct ast *ast)
 {
     struct ast_loop loop_struct = ast->data.ast_loop;
-    int ans = 0;
+    struct ret_msg ans;
+    ans.type = VAL;
+    ans.value = 0;
     if (loop_struct.type == WHILE_LOOP)
     {
-        while (execute_tree(loop_struct.cond, describer) == 0)
+        struct ret_msg ret = execute_tree(loop_struct.cond, describer);
+        while (ret.type == VAL && ret.value == 0)
+        {
             ans = execute_tree(loop_struct.then_body, describer);
+            ret = execute_tree(loop_struct.cond, describer);
+        }
     }
     else if (loop_struct.type == UNTIL_LOOP)
     {
-        while (execute_tree(loop_struct.cond, describer) != 0)
+        struct ret_msg ret = execute_tree(loop_struct.cond, describer);
+        while (ret.type == VAL && ret.value == 0)
+        {
             ans = execute_tree(loop_struct.then_body, describer);
+            ret = execute_tree(loop_struct.cond, describer);
+        }
+    }
+    else
+    {
+        // for looop
+        update_variable(loop_struct.var_name, "");
+        for (size_t i = 0; loop_struct.cond->data.ast_cmd.words[i]; i++)
+        {
+            update_variable(loop_struct.var_name, loop_struct.cond->data.ast_cmd.words[i]);
+            execute_tree(loop_struct.then_body, describer);
+        }
     }
     return ans;
 }
 
-static int exec_negation(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_negation(struct exec_arguments describer, struct ast *ast)
 {
-    int ans = execute_tree(ast->data.ast_not.child, describer);
-    if (ans == 0 || ans == 1)
-        return ans == 0 ? 1 : 0;
+    struct ret_msg ans;
+    ans = execute_tree(ast->data.ast_not.child, describer);
+    if (ans.type == VAL)
+    {
+        ans.value = ans.value == 0 ? 1 : 0;
+        return ans;
+    }
     else
         return ans;
 }
 
-static int exec_list(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_list(struct exec_arguments describer, struct ast *ast)
 {
-    int ans = 0;
+    struct ret_msg ans;
+    ans.value = 0;
+    ans.type = VAL;
     for (size_t i = 0; i < ast->data.ast_list.nb_nodes; i++)
     {
         ans = execute_tree(ast->data.ast_list.list[i], describer);
@@ -196,10 +253,30 @@ static int exec_list(struct exec_arguments describer, struct ast *ast)
     return ans;
 }
 
-int execute_tree(struct ast *ast, struct exec_arguments describer)
+static struct ret_msg exec_operator(struct exec_arguments describer, struct ast *ast)
 {
+    struct ret_msg ans = execute_tree(ast->data.ast_operator.left, describer);
+    if (ast->data.ast_operator.type == OP_OR)
+        return ans.value == 0 ? ans : execute_tree(ast->data.ast_operator.right, describer);
+    return ans.value != 0 ? ans : execute_tree(ast->data.ast_operator.right, describer);
+}
+static struct ret_msg exec_variable(struct ast *ast)
+{
+    struct ast_variable variable_struct = ast->data.ast_variable;
+    update_variable(variable_struct.name, variable_struct.value->data.ast_cmd.words[0]);
+    struct ret_msg ans;
+    ans.value = 0;
+    ans.type = VAL;
+    return ans;
+}
+
+struct ret_msg execute_tree(struct ast *ast, struct exec_arguments describer)
+{
+    struct ret_msg ans;
+    ans.type = VAL;
+    ans.value = 0;
     if (!ast)
-        return 0;
+        return ans;
     switch (ast->type)
     {
     case AST_IF:;
@@ -219,9 +296,14 @@ int execute_tree(struct ast *ast, struct exec_arguments describer)
         return exec_negation(describer, ast);
     case AST_LIST:
         return exec_list(describer, ast);
+    case AST_OPERATOR:
+        return exec_operator(describer, ast);
+    case AST_VARIABLE:
+        return exec_variable(ast);
     default:
-        return -1;
+        ans.type = ERR;
+        ans.value = -1;
+        return ans;
         break;
     }
-    return -1;
 }

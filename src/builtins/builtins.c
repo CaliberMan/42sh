@@ -1,4 +1,13 @@
 #include "builtins.h"
+#include "stdlib.h"
+
+static size_t get_arr_len(char **arr)
+{
+    size_t i = 0;
+    while (arr[i])
+        i++;
+    return i;
+}
 
 int b_true(void)
 {
@@ -8,6 +17,37 @@ int b_true(void)
 int b_false(void)
 {
     return 1;
+}
+
+int b_cd(struct exec_arguments command)
+{
+    char **args = command.args;
+    if (get_arr_len(args) != 2)
+    {
+        fprintf(stderr, "%s\n", "Dont you dare do something like that");
+        return 1;
+    }
+    char cur_dir[1028];
+    getcwd(cur_dir, 1028);
+    if (strcmp(args[1], "-") == 0)
+    {
+        struct variable *var = find("OLDPWD");
+        if (!var || chdir(var->value) == -1)
+        {
+            fprintf(stderr, "%s\n", "Dont you dare do something like that");
+            return 1;
+        }
+    }
+    else if (chdir(args[1]) == -1)
+    {
+        fprintf(stderr, "%s\n", "Dont you dare do something like that");
+        return 1;
+    }
+    char new_dir[1028];
+    getcwd(new_dir, 1028);
+    update_variable("PWD", new_dir);
+    update_variable("OLDPWD", cur_dir);
+    return 0;
 }
 
 int b_echo(struct exec_arguments command)
@@ -61,5 +101,35 @@ int b_echo(struct exec_arguments command)
     if (newline)
         printf("\n");
 
+    return 0;
+}
+
+int b_unset(struct exec_arguments command)
+{
+    size_t i = 1;
+    if (strcmp("-v", command.args[i]) == 0)
+    {
+        i++;
+        for (; command.args[i]; i++)
+        {
+            unset_variable(command.args[i]);
+        }
+    }
+    else if (strcmp("-f", command.args[i]) == 0)
+    {
+        i++;
+        //TODO fix once the functions are working
+    }
+    else
+    {
+        for (; command.args[i]; i++)
+        {
+            int ans = unset_variable(command.args[i]);
+            if (ans == 1)
+            {
+                //TODO fix once the functions are working
+            }
+        }
+    }
     return 0;
 }

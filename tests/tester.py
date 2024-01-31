@@ -8,8 +8,8 @@ from dataclasses import dataclass
 
 import termcolor
 
-OK_TAG = f"[{termcolor.colored('ok', 'green')}]"
-KO_TAG = f"[{termcolor.colored('KO', 'red')}]"
+OK_TAG = f"[{termcolor.colored('ok', 'green', attrs=['bold'])}]"
+KO_TAG = f"[{termcolor.colored('KO', 'red', attrs=['bold'])}]"
 EQUALS  = f"{termcolor.colored('=', 'blue')}"
 
 binary = "../src/42sh"
@@ -74,9 +74,12 @@ if __name__ == "__main__":
         )
     passed = 0
     failed = 0
+    category_nb = []
+    dw = []
     for category in categories:
         print(f"{EQUALS}" * 48)
         print(f"Category: {category.name}")
+        int_pass = 0
         for file in category.tests:
             print(file)
             sh_proc = run_shell(binary_path, file)
@@ -90,7 +93,22 @@ if __name__ == "__main__":
             else:
                 print(f"{OK_TAG} {file}")
                 passed += 1
+                int_pass += 1
                 pass
+        if int(int_pass/len(category.tests) * 100) >= 80:
+            category_nb.append(f"{termcolor.colored(f'{category.name}','yellow')} {termcolor.colored(f'{int(int_pass/len(category.tests) * 100)}%', 'green')}")
+        else:
+            category_nb.append(f"{termcolor.colored(f'{category.name}','yellow')} {termcolor.colored(f'{int(int_pass/len(category.tests) * 100)}%','red')}")
+        dw.append(int_pass/len(category.tests))
     print(f"{EQUALS}" * 48)
-    print(f"{termcolor.colored('passed ','green')} " + str(passed) + f" {termcolor.colored('failed ', 'red')}" + str(failed))
+    print(f"                     {termcolor.colored('Total','blue')} {passed + failed}")
+    print(f"             {termcolor.colored('Passed ','green')} " + str(passed) + f"     {termcolor.colored('Failed ', 'red')}" + str(failed))
+    i = 0
+    print(f"{termcolor.colored('_','magenta',attrs=['blink', 'bold'])}" * 48)
+    for category in category_nb:
+        print(category)
+        print(f"{termcolor.colored('_','green',attrs=['bold'])}" * int(dw[i] * 48), end='')
+        print(f"{termcolor.colored('_','red',attrs=['bold'])}" * int((1 - dw[i]) * 48))
+        i += 1
+    print(f"{termcolor.colored('_','magenta',attrs=['blink', 'bold'])}" * 48)
 

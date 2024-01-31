@@ -8,29 +8,11 @@
 
 #include "../../exec/exec.h"
 
-// Diferent type of data for a variable
-enum var_type
-{
-    INT,
-    CHAR,
-    STR,
-    FLOAT
-};
-
-union var_data
-{
-    int integer;
-    char character;
-    float floatable;
-    char *string;
-};
-
-// variable struct
+//variable struct
 struct variable
 {
     char *name;
-    enum var_type type;
-    union var_data data;
+    char *value;
 };
 
 // linked list of variables
@@ -51,13 +33,14 @@ void free_list_variables(void);
  * @param the name of the variable, it's type and it's data
  * @return 0 if it worked 1 if it failed
  */
-int update_variable(char *name, enum var_type, union var_data);
+int update_variable(char *name, char *new_value);
 
 /**
  * @brief Find the variable by the name
  * @param the name of the variable
  * @return the variable pointer or NULL if it doesn't exist
  */
+
 struct variable *find(char *name);
 
 /**
@@ -66,7 +49,6 @@ struct variable *find(char *name);
  * @return 0 if it worked and 1 if it didn't find the variable
  */
 int unset_variable(char *name);
-
 int variable_expansion(struct exec_arguments command);
 void init_variables(void);
 
