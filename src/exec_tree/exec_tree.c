@@ -2,6 +2,7 @@
 #include "variables/variable.h"
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -56,8 +57,19 @@ static struct ret_msg exec_cmd(struct exec_arguments describer, struct ast *ast)
 {
     struct ret_msg ans;
     ans.type = VAL;
-    struct ast_cmd cmd_struct = ast->data.ast_cmd;
-    describer.args = cmd_struct.words;
+    char **args = ast->data.ast_cmd.words;
+    // copy commands for expansion
+    size_t len_to_pass = 0;
+    for (size_t i = 0; args[i]; i++)
+        len_to_pass++;
+    char **to_pass = calloc(len_to_pass + 1, sizeof(char *));
+    for (size_t i = 0; args[i]; i++)
+    {
+        char *ar = calloc(1, strlen(args[i]) + 1);
+        memcpy(ar, args[i], strlen(args[i]));
+        to_pass[i] = ar;
+    }
+    describer.args = to_pass;
     ans.value = variable_expansion(describer);
     if (ans.value != 0)
     {
@@ -65,7 +77,14 @@ static struct ret_msg exec_cmd(struct exec_arguments describer, struct ast *ast)
         ans.value = 1;
         return ans;
     }
+
     ans = check_builtins(describer);
+    for (size_t i = 0; to_pass[i]; i++)
+        free(to_pass[i]);
+    free(to_pass);
+
+    if (ans.value != 0 && ans.value != 1)
+        ans.type = ERR;
     return ans;
 }
 
@@ -270,12 +289,16 @@ static struct ret_msg exec_loop(struct exec_arguments describer, struct ast *ast
     {
         // for looop
         update_variable(loop_struct.var_name, "");
-        for (size_t i = 0; loop_struct.cond->data.ast_cmd.words[i]; i++)
+        // actully something inside
+        if (loop_struct.cond)
         {
-            update_variable(loop_struct.var_name, loop_struct.cond->data.ast_cmd.words[i]);
-            ans = execute_tree(loop_struct.then_body, describer);
-            if (ans.type == EXT)
-                return ans;
+            for (size_t i = 0; loop_struct.cond->data.ast_cmd.words[i]; i++)
+            {
+                update_variable(loop_struct.var_name, loop_struct.cond->data.ast_cmd.words[i]);
+                ans = execute_tree(loop_struct.then_body, describer);
+                if (ans.type == EXT)
+                    return ans;
+            }
         }
     }
     return ans;
