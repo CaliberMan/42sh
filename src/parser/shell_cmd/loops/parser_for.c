@@ -56,13 +56,13 @@ enum parser_status rule2(struct ast **ast, struct lexer *lexer)
     while (token->type == TOKEN_WORD)
     {
         lexer_pop(lexer);
-        copy_word(token, word_list, index);
+        copy_word(token, word_list, index++);
 
         token_free(token);
         lexer_peek(lexer);
     }
 
-    if (token->type != TOKEN_COLON || token->type != TOKEN_NEWLINE)
+    if (token->type != TOKEN_COLON && token->type != TOKEN_NEWLINE)
     {
         token_free(token);
         return PARSER_ERROR;
