@@ -1,6 +1,6 @@
-#include <stdio.h>
-
 #include "pretty_print.h"
+
+#include <stdio.h>
 
 void tab_print(int x)
 {
@@ -99,6 +99,13 @@ int pretty_print(struct ast *ast, int x)
         pretty_print(ast->data.ast_operator.right, x + 1);
         tab_print(x);
         printf("}\n");
+        break;
+    case AST_VARIABLE:
+        tab_print(x);
+        printf("VAR { ");
+        printf("%s = ", ast->data.ast_variable.name);
+        pretty_print(ast->data.ast_variable.value, x);
+        printf(" }\n");
         break;
     default:
         printf("\nYou shouldn't be here\n");

@@ -1,11 +1,10 @@
 #ifndef VARIABLE_H
 #define VARIABLE_H
 
+#include <ctype.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include <stdlib.h>
 
 #include "../../exec/exec.h"
 
@@ -16,7 +15,7 @@ struct variable
     char *value;
 };
 
-//linked list of variables
+// linked list of variables
 struct variable_list
 {
     struct variable *var;

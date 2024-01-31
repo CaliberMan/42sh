@@ -135,7 +135,8 @@ void init_variables(void)
     update_variable("OLDPWD", base_str3);
 }
 
-static char *replace_str(char *ptr, char *str, size_t before_declaration, char * after_word)
+static char *replace_str(char *ptr, char *str, size_t before_declaration,
+                         char *after_word)
 {
     if (*after_word == '}')
         after_word++;
@@ -149,22 +150,23 @@ static char *replace_str(char *ptr, char *str, size_t before_declaration, char *
     return new_guy;
 }
 
-static int expand_special(char *str, size_t j, struct exec_arguments *command, size_t str_pos)
+static int expand_special(char *str, size_t j, struct exec_arguments *command,
+                          size_t str_pos)
 {
     char *special_args[] = {"@", "*", "?", "$", "#"};
     if (str[j+1] == '{')
         j++;
     for (size_t i = 0; i < 5; i++)
     {
-        if (str[j+1] == *special_args[i])
+        if (str[j + 1] == *special_args[i])
         {
             struct variable *ptr = find(special_args[i]);
-            char *tmp = calloc(1,1);
+            char *tmp = calloc(1, 1);
             char *new = NULL;
             if (ptr)
                 new = replace_str(ptr->value, str, j, str + j+2);
             else
-                new = replace_str(tmp, str, j, str + j+2);
+                new = replace_str(tmp, str, j, str + j + 2);
             free(tmp);
             free(command->args[str_pos]);
             command->args[str_pos] = new;
@@ -173,7 +175,6 @@ static int expand_special(char *str, size_t j, struct exec_arguments *command, s
     }
     return 1;
 }
-
 
 int variable_expansion(struct exec_arguments command)
 {
@@ -205,7 +206,7 @@ int variable_expansion(struct exec_arguments command)
         memcpy(get_var, str + j, variable_size);
         struct variable *p = find(get_var);
         free(get_var);
-        char *tmp = calloc(1,1);
+        char *tmp = calloc(1, 1);
         char *new = NULL;
         if (p)
             new = replace_str(p->value, str, before_declaration, after_word);

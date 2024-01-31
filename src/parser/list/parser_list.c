@@ -7,37 +7,14 @@
 enum parser_status variable_list(struct ast **ast, struct lexer *lexer,
                                  size_t index)
 {
-    if (index == 0)
-        return PARSER_ERROR;
-
+    // get the value
     struct ast_list *ast_list = &(*ast)->data.ast_list;
-
-    if (ast_list->list[index - 1]->type != AST_CMD
-        && !ast_list->list[index - 1]->data.ast_cmd.words[1])
-        return PARSER_ERROR;
-
-    struct ast *assign;
-    enum parser_status status = parse_and_or(&assign, lexer);
-    if (status != PARSER_OK)
-        return PARSER_ERROR;
-
-    assign->data.ast_variable.name =
-        calloc(strlen(ast_list->list[index - 1]->data.ast_cmd.words[0]) + 1,
-               sizeof(char));
-    assign->data.ast_variable.name =
-        strcpy(assign->data.ast_variable.name,
-               ast_list->list[index - 1]->data.ast_cmd.words[0]);
-    free_ast(ast_list->list[index - 1]);
-
-    // add it to the list
-    ast_list->list[index - 1] = assign;
-
     struct ast *value;
-    status = parse_and_or(&value, lexer);
+    enum parser_status status = parse_and_or(&value, lexer);
     if (status != PARSER_OK)
         return PARSER_ERROR;
 
-    assign->data.ast_variable.value = value;
+    ast_list->list[index]->data.ast_variable.value = value;
     ast_list->nb_nodes++;
 
     return PARSER_OK;
@@ -57,20 +34,17 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
 
     *ast = ast_list;
 
-    struct token *token = lexer_peek(lexer);
-    if (token->type == TOKEN_ASSIGN)
+    if (ast_list->data.ast_list.list[0]->type == AST_VARIABLE)
     {
-        token_free(token);
-        if (variable_list(ast, lexer, index) != PARSER_OK)
+        if (variable_list(ast, lexer, index - 1) != PARSER_OK)
             return PARSER_ERROR;
     }
-    else
-        token_free(token);
 
-    token = lexer_peek(lexer);
+    struct token *token = lexer_peek(lexer);
     while (token->type == TOKEN_COLON || token->type == TOKEN_NEWLINE)
     {
         lexer_pop(lexer);
+        pop_duplicates(lexer, TOKEN_NEWLINE);
         token_free(token);
 
         struct ast *next;
@@ -89,15 +63,11 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
         ast_list->data.ast_list.list[index++] = next;
         ast_list->data.ast_list.nb_nodes++;
 
-        token = lexer_peek(lexer);
-        if (token->type == TOKEN_ASSIGN)
+        if (ast_list->data.ast_list.list[index - 1]->type == AST_VARIABLE)
         {
-            token_free(token);
-            if (variable_list(ast, lexer, index) != PARSER_OK)
+            if (variable_list(ast, lexer, index - 1) != PARSER_OK)
                 return PARSER_ERROR;
         }
-        else
-            token_free(token);
 
         token = lexer_peek(lexer);
     }
@@ -208,7 +178,7 @@ enum parser_status parse_pipeline(struct ast **ast, struct lexer *lexer)
     return PARSER_OK;
 }
 
-enum parser_status redirect_loop(struct ast **ast, struct lexer *lexer)
+static enum parser_status redirect_loop(struct ast **ast, struct lexer *lexer)
 {
     while (1)
     {
@@ -228,10 +198,13 @@ enum parser_status redirect_loop(struct ast **ast, struct lexer *lexer)
 
 enum parser_status parse_funcdec(struct ast **ast, struct lexer *lexer)
 {
-    struct token *token = lexer_peek(lexer);
+    struct lexer *lexer_cp = lexer_copy(lexer);
+
+    struct token *token = lexer_peek(lexer_cp);
     if (token->type != TOKEN_WORD)
     {
         token_free(token);
+        lexer_free(lexer_cp);
         return PARSER_UNKNOWN_TOKEN;
     }
 
@@ -240,19 +213,23 @@ enum parser_status parse_funcdec(struct ast **ast, struct lexer *lexer)
 
     func->name = calloc(token->len + 1, sizeof(char));
     func->name = strcpy(func->name, token->data);
-    
-    lexer_pop(lexer);
+
+    lexer_pop(lexer_cp);
     token_free(token);
 
-    token = lexer_peek(lexer);
+    token = lexer_peek(lexer_cp);
     if (token->type != TOKEN_BRACKET_OPEN)
     {
         free_ast(ast_func);
         token_free(token);
+        lexer_free(lexer_cp);
         return PARSER_UNKNOWN_TOKEN;
     }
 
-    lexer_pop(lexer);
+    lexer_free(lexer_cp);
+    lexer_pop(lexer); // word
+    lexer_pop(lexer); // bracket
+
     token_free(token);
     *ast = ast_func;
 
@@ -277,18 +254,13 @@ enum parser_status parse_funcdec(struct ast **ast, struct lexer *lexer)
     return PARSER_OK;
 }
 
-enum parser_status func_aux(struct ast **ast, struct lexer *lexer)
+static enum parser_status func_aux(struct ast **ast, struct lexer *lexer)
 {
-    if (!lexer)
-    {
-        enum parser_status status = parse_funcdec(ast, lexer);
-        if (status != PARSER_OK)
-            return status;
+    enum parser_status status = parse_funcdec(ast, lexer);
+    if (status != PARSER_OK)
+        return status;
 
-        return redirect_loop(ast, lexer);
-    }
-
-    return PARSER_UNKNOWN_TOKEN;
+    return redirect_loop(ast, lexer);
 }
 
 enum parser_status parse_command(struct ast **ast, struct lexer *lexer)
@@ -304,7 +276,7 @@ enum parser_status parse_command(struct ast **ast, struct lexer *lexer)
     }
 
     // simple command
-    if (token->type == TOKEN_WORD || token->type == TOKEN_ASSIGN)
+    if (token->type == TOKEN_WORD || token->type == TOKEN_ASSIGNMENT_WORD)
     {
         enum parser_status status = parse_simple_command(ast, lexer);
         if (status != PARSER_UNKNOWN_TOKEN)
@@ -325,7 +297,7 @@ enum parser_status parse_command(struct ast **ast, struct lexer *lexer)
     return redirect_loop(ast, lexer);
 }
 
-enum redir_type parse_redir_type(char *str)
+static enum redir_type parse_redir_type(char *str)
 {
     if (!strcmp(str, ">>"))
         return STD_OUT_END;
@@ -349,7 +321,7 @@ enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer)
     int total = -1;
 
     struct token *token = lexer_peek(lexer);
-    if (token->type == TOKEN_WORD)
+    if (token->type == TOKEN_IONUM)
     {
         total = 0;
         for (int i = 0; i < token->len; i++)
@@ -474,15 +446,12 @@ enum parser_status parse_compound_list_rep(struct ast **ast,
         ast_list->data.ast_list.list[index++] = node;
         ast_list->data.ast_list.nb_nodes++;
 
-        token = lexer_peek(lexer);
-        if (token->type == TOKEN_ASSIGN)
+
+        if (ast_list->data.ast_list.list[index - 1]->type == AST_VARIABLE)
         {
-            token_free(token);
-            if (variable_list(ast, lexer, index) != PARSER_OK)
+            if (variable_list(ast, lexer, index - 1) != PARSER_OK)
                 return PARSER_ERROR;
         }
-        else
-            token_free(token);
     }
 
     return PARSER_OK;

@@ -166,23 +166,28 @@ static struct ret_msg exec_redir(struct exec_arguments describer, struct ast *as
     case STD_OUT:
     case STD_RIGHT_ARROW_PIPE:
         in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
-        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
+                      O_CREAT | O_TRUNC | O_WRONLY, 0644);
         break;
     case STD_IN:
-        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename, O_RDONLY);
+        out_fd =
+            open(ast->data.ast_redir.right->data.ast_file.filename, O_RDONLY);
         in_fd = ionumber != -1 ? ionumber : STDIN_FILENO;
         break;
     case STD_OUT_END:
         in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
-        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename, O_APPEND | O_WRONLY, 0644);
+        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
+                      O_APPEND | O_WRONLY, 0644);
         break;
     case STD_IN_OUT:
         in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
-        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename, O_CREAT | O_RDWR, 0666);
+        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
+                      O_CREAT | O_RDWR, 0666);
         break;
     case STD_ERR:
         in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
-        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
+                      O_WRONLY | O_CREAT | O_TRUNC, 0666);
         break;
     default:
         ans.value = 1;
@@ -195,7 +200,7 @@ static struct ret_msg exec_redir(struct exec_arguments describer, struct ast *as
     int f = fork();
     if (f < 0)
         errx(1, "Bad fork");
-    //child
+    // child
     if (f == 0)
     {
         dup2(out_fd, in_fd);
@@ -278,7 +283,7 @@ static struct ret_msg exec_negation(struct exec_arguments describer, struct ast 
 {
     struct ret_msg ans;
     ans = execute_tree(ast->data.ast_not.child, describer);
-    if (ans.type == VAL)
+    if (ans.type == VAL || ans.type == ERR)
     {
         ans.value = ans.value == 0 ? 1 : 0;
         return ans;

@@ -1,4 +1,5 @@
 #include "parser_for.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -9,12 +10,14 @@ void copy_word(struct token *token, struct ast *dest, int index)
     if (dest->type == AST_CMD)
     {
         dest->data.ast_cmd.words[index] = calloc(token->len + 1, sizeof(char));
-        dest->data.ast_cmd.words[index] = strcpy(dest->data.ast_cmd.words[index], token->data);
+        dest->data.ast_cmd.words[index] =
+            strcpy(dest->data.ast_cmd.words[index], token->data);
     }
     else if (dest->type == AST_LOOP)
     {
         dest->data.ast_loop.var_name = calloc(token->len + 1, sizeof(char));
-        dest->data.ast_loop.var_name = strcpy(dest->data.ast_loop.var_name, token->data);
+        dest->data.ast_loop.var_name =
+            strcpy(dest->data.ast_loop.var_name, token->data);
     }
 }
 
@@ -36,7 +39,8 @@ enum parser_status rule2(struct ast **ast, struct lexer *lexer)
 {
     pop_duplicates(lexer, TOKEN_NEWLINE);
 
-    struct token *token = lexer_pop(lexer);
+    struct token *token = lexer_peek(lexer);
+    lexer_pop(lexer);
     if (token->type != TOKEN_IN)
     {
         token_free(token);
@@ -52,13 +56,13 @@ enum parser_status rule2(struct ast **ast, struct lexer *lexer)
     while (token->type == TOKEN_WORD)
     {
         lexer_pop(lexer);
-        copy_word(token, word_list, index);
+        copy_word(token, word_list, index++);
 
         token_free(token);
-        lexer_peek(lexer);
+        token = lexer_peek(lexer);
     }
 
-    if (token->type != TOKEN_COLON || token->type != TOKEN_NEWLINE)
+    if (token->type != TOKEN_COLON && token->type != TOKEN_NEWLINE)
     {
         token_free(token);
         return PARSER_ERROR;

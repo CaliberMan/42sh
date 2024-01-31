@@ -3,6 +3,7 @@
 
 #include "../../utils.h"
 
-enum parser_status parse_while_until(struct ast **ast, struct lexer *lexer, enum loop_type type);
+enum parser_status parse_while_until(struct ast **ast, struct lexer *lexer,
+                                     enum loop_type type);
 
 #endif /* ! PARSER_LOOPS_H */
