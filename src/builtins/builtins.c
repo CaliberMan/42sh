@@ -1,5 +1,6 @@
 #include "builtins.h"
 #include "stdlib.h"
+#include <stdio.h>
 
 static size_t get_arr_len(char **arr)
 {
@@ -132,4 +133,18 @@ int b_unset(struct exec_arguments command)
         }
     }
     return 0;
+}
+
+int b_exit(struct exec_arguments command)
+{
+    size_t i = 1;
+    int ans = 0;
+    if (command.args[i])
+        ans = atoi(command.args[i++]);
+    if (command.args[i])
+    {
+        fprintf(stderr, "exit: too many arguments");
+        return -1;
+    }
+    return ans > 0 ? 256 + (ans % 256) : ans % 256 ;
 }

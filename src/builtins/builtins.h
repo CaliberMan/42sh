@@ -43,5 +43,10 @@ int b_unset(struct exec_arguments command);
  * @return Returns 1 if the execution failed.
  */
 int b_cd(struct exec_arguments command);
-
+/**
+ * @brief simulate exit
+ * @param arguments exit
+ * @return Returns whatever the user wants or 0, and -1 if to many args
+ */
+int b_exit(struct exec_arguments command);
 #endif /* ! BUILTINS_H */
