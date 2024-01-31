@@ -190,6 +190,14 @@ static int exec_list(struct exec_arguments describer, struct ast *ast)
     return ans;
 }
 
+static int exec_operator(struct exec_arguments describer, struct ast *ast)
+{
+    int ans = execute_tree(ast->data.ast_operator.left, describer);
+    if (ast->data.ast_operator.type == OP_OR)
+        return ans == 0 ? ans : execute_tree(ast->data.ast_operator.right, describer);
+    return ans != 0 ? ans : execute_tree(ast->data.ast_operator.right, describer);
+}
+
 int execute_tree(struct ast *ast, struct exec_arguments describer)
 {
     if (!ast)
@@ -213,6 +221,8 @@ int execute_tree(struct ast *ast, struct exec_arguments describer)
         return exec_negation(describer, ast);
     case AST_LIST:
         return exec_list(describer, ast);
+    case AST_OPERATOR:
+        return exec_operator(describer, ast);
     default:
         return -1;
         break;
