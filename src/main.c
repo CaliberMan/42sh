@@ -6,8 +6,8 @@
 #include "exec/exec.h"
 #include "exec_tree/exec_tree.h"
 #include "lexer/lexer.h"
-#include "parser/input/input.h"
 #include "pretty_print/pretty_print.h"
+#include "parser/input/input.h"
 #include "unistd.h"
 
 int is_valid_file(const char *path)
@@ -101,6 +101,11 @@ int main(int argc, char *argv[])
     struct lexer *lexer = create_lexer(argc, argv);
     if (!lexer)
         return 2;
+    if (lexer->input[0] == 0)
+    {
+        lexer_free(lexer);
+        return 0;
+    }
     struct ast *ast;
     enum parser_status ps = parse_input(&ast, lexer);
     if (ps == PARSER_ERROR)

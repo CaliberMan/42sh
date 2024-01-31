@@ -26,13 +26,20 @@ struct lexer *init_lexer(char *input)
 
 struct token *token_copy(struct token *t)
 {
-    char *str = calloc(t->capacity, sizeof(char));
-    if (!str)
-        return NULL;
-    for (int i = 0; t->data[i]; i++)
-        str[i] = t->data[i];
     struct token *new = calloc(1, sizeof(struct token));
-    new->data = str;
+    if (!new)
+        return NULL;
+    if (t->data)
+    {
+        char *str = calloc(t->capacity, sizeof(char));
+        if (!str)
+            return NULL;
+        for (int i = 0; t->data[i]; i++)
+            str[i] = t->data[i];
+        new->data = str;
+    }
+    else
+        new->data = NULL;
     new->capacity = t->capacity;
     new->len = t->len;
     new->type = t->type;
@@ -93,9 +100,17 @@ int increase_capacity(struct token *t)
 int valid_char(struct lexer *lex, int *index)
 {
     char c = lex->input[*index];
-    return c != ' ' && c != ';' && c != '\n' && c != 0 && c != '<' && c != '>'
-        && c != '|' && c != '=' && c != '(' && c != ')'
-        && !((c == '&' || c == '|') && lex->input[(*index) + 1] == c);
+    return c != ' ' &&
+           c != ';' &&
+           c != '\n' &&
+           c != 0 &&
+           c != '<' &&
+           c != '>' &&
+           c != '|' &&
+           c != '=' &&
+           c != '(' &&
+           c != ')' &&
+           !((c == '&' || c == '|') && lex->input[(*index) + 1] == c);
 }
 
 void init_token_2(struct lexer *lex, struct token *t)
@@ -205,8 +220,9 @@ enum token_type single_char_tokens(struct lexer *lex, struct token *t,
         tt = TOKEN_BRACKET_OPEN;
     else if (lex->input[index] == ')')
         tt = TOKEN_BRACKET_CLOSE;
-
-    else if (lex->input[index] == '<' || lex->input[index] == '>')
+ 
+    else if (lex->input[index] == '<' ||
+            lex->input[index] == '>')
     {
         if (lex->input[index + 1] == '>' || lex->input[index + 1] == '&'
             || (lex->input[index] == '>' && lex->input[index + 1] == '|'))
