@@ -29,7 +29,16 @@ int b_cd(struct exec_arguments command)
     }
     char cur_dir[1028];
     getcwd(cur_dir, 1028);
-    if (chdir(args[1]) == -1)
+    if (strcmp(args[1], "-") == 0)
+    {
+        struct variable *var = find("OLDPWD");
+        if (!var || chdir(var->value) == -1)
+        {
+            fprintf(stderr, "%s\n", "Dont you dare do something like that");
+            return 1;
+        }
+    }
+    else if (chdir(args[1]) == -1)
     {
         fprintf(stderr, "%s\n", "Dont you dare do something like that");
         return 1;
