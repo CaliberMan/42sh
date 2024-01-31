@@ -228,7 +228,9 @@ static enum parser_status redirect_loop(struct ast **ast, struct lexer *lexer)
 
 enum parser_status parse_funcdec(struct ast **ast, struct lexer *lexer)
 {
-    struct token *token = lexer_peek(lexer);
+    struct lexer *lexer_cp = lexer_copy(lexer);
+
+    struct token *token = lexer_peek(lexer_cp);
     if (token->type != TOKEN_WORD)
     {
         token_free(token);
@@ -241,18 +243,22 @@ enum parser_status parse_funcdec(struct ast **ast, struct lexer *lexer)
     func->name = calloc(token->len + 1, sizeof(char));
     func->name = strcpy(func->name, token->data);
 
-    lexer_pop(lexer);
+    lexer_pop(lexer_cp);
     token_free(token);
 
-    token = lexer_peek(lexer);
+    token = lexer_peek(lexer_cp);
     if (token->type != TOKEN_BRACKET_OPEN)
     {
         free_ast(ast_func);
         token_free(token);
+        lexer_free(lexer_cp);
         return PARSER_UNKNOWN_TOKEN;
     }
 
-    lexer_pop(lexer);
+    lexer_free(lexer_cp);
+    lexer_pop(lexer); // word
+    lexer_pop(lexer); // bracket
+
     token_free(token);
     *ast = ast_func;
 
@@ -279,16 +285,11 @@ enum parser_status parse_funcdec(struct ast **ast, struct lexer *lexer)
 
 static enum parser_status func_aux(struct ast **ast, struct lexer *lexer)
 {
-    if (!lexer)
-    {
-        enum parser_status status = parse_funcdec(ast, lexer);
-        if (status != PARSER_OK)
-            return status;
+    enum parser_status status = parse_funcdec(ast, lexer);
+    if (status != PARSER_OK)
+        return status;
 
-        return redirect_loop(ast, lexer);
-    }
-
-    return PARSER_UNKNOWN_TOKEN;
+    return redirect_loop(ast, lexer);
 }
 
 enum parser_status parse_command(struct ast **ast, struct lexer *lexer)
