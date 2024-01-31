@@ -107,13 +107,12 @@ int valid_char(struct lexer *lex, int *index)
            c != '<' &&
            c != '>' &&
            c != '|' &&
-           c != '=' &&
            c != '(' &&
            c != ')' &&
            !((c == '&' || c == '|') && lex->input[(*index) + 1] == c);
 }
 
-void init_token_2(struct lexer *lex, struct token *t)
+void init_token_2(struct lexer *lex, struct token *t, int pop)
 {
     if (!strcmp("if", t->data))
         t->type = TOKEN_IF;
@@ -125,7 +124,8 @@ void init_token_2(struct lexer *lex, struct token *t)
         t->type = TOKEN_FI;
     else if (!strcmp("in", t->data))
     {
-        lex->status = LEXER_DO;
+        if (pop)
+            lex->status = LEXER_OK;
         t->type = TOKEN_IN;
     }
     else if (!strcmp("elif", t->data))
@@ -137,51 +137,34 @@ void init_token_2(struct lexer *lex, struct token *t)
     else if (!strcmp("}", t->data))
         t->type = TOKEN_CURLY_CLOSE;
     else if (!strcmp("while", t->data))
-    {
-        lex->status = LEXER_DO;
         t->type = TOKEN_WHILE;
-    }
     else if (!strcmp("until", t->data))
-    {
-        lex->status = LEXER_DO;
         t->type = TOKEN_UNTIL;
-    }
     else if (!strcmp("do", t->data))
-    {
-        lex->status = LEXER_OK;
         t->type = TOKEN_DO;
-    }
     else if (!strcmp("done", t->data))
         t->type = TOKEN_DONE;
     else if (!strcmp("for", t->data))
     {
-        lex->status = LEXER_IN;
+        if (pop)
+            lex->status = LEXER_IN;
         t->type = TOKEN_FOR;
     }
     else
         t->type = TOKEN_WORD;
 }
 
-int init_token(struct lexer *lex, struct token *t)
+int init_token(struct lexer *lex, struct token *t, int pop)
 {
     if (lex->prev_token->type != TOKEN_WORD)
-        init_token_2(lex, t);
+        init_token_2(lex, t, pop);
     else if (lex->status == LEXER_IN)
     {
         if (!strcmp("in", t->data))
         {
-            lex->status = LEXER_DO;
+            if (pop)
+                lex->status = LEXER_OK;
             t->type = TOKEN_IN;
-        }
-        else
-            t->type = TOKEN_WORD;
-    }
-    else if (lex->status == LEXER_DO)
-    {
-        if (!strcmp("do", t->data))
-        {
-            lex->status = LEXER_OK;
-            t->type = TOKEN_DO;
         }
         else
             t->type = TOKEN_WORD;
@@ -214,8 +197,6 @@ enum token_type single_char_tokens(struct lexer *lex, struct token *t,
         tt = TOKEN_EOF;
     else if (lex->input[index] == '|')
         tt = TOKEN_PIPE;
-    else if (lex->input[index] == '=')
-        tt = TOKEN_ASSIGN;
     else if (lex->input[index] == '(')
         tt = TOKEN_BRACKET_OPEN;
     else if (lex->input[index] == ')')
@@ -344,22 +325,7 @@ struct token *lexer_pop(struct lexer *lex)
                 return t;
             }
         }
-        else if (lex->input[lex->index] == '=')
-        {
-            if (!isdigit(t->data[0]))
-            {
-                int valid = 1;
-                for (int i = 0; i < t->len; i++)
-                    if (!isalnum(t->data[i]) && t->data[i] != '_')
-                        valid = 0;
-                if (valid)
-                {
-                    t->type = TOKEN_ASSIGNMENT_WORD;
-                    return t;
-                }
-            }
-        }
-        int res = init_token(lex, t);
+        int res = init_token(lex, t, 1);
         if (res)
             return NULL;
     }
@@ -397,22 +363,7 @@ struct token *lexer_peek(struct lexer *lex)
                 return t;
             }
         }
-        else if (lex->input[index] == '=')
-        {
-            if (!isdigit(t->data[0]))
-            {
-                int valid = 1;
-                for (int i = 0; i < t->len; i++)
-                    if (!isalnum(t->data[i]) && t->data[i] != '_')
-                        valid = 0;
-                if (valid)
-                {
-                    t->type = TOKEN_ASSIGNMENT_WORD;
-                    return t;
-                }
-            }
-        }
-        int res = init_token(lex, t);
+        int res = init_token(lex, t, 0);
         if (res)
             return NULL;
     }
