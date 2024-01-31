@@ -1,4 +1,6 @@
 #include "builtins.h"
+#include "../exec_tree/variables/variable.h"
+#include <string.h>
 
 int b_true(void)
 {
@@ -61,5 +63,35 @@ int b_echo(struct exec_arguments command)
     if (newline)
         printf("\n");
 
+    return 0;
+}
+
+int b_unset(struct exec_arguments command)
+{
+    size_t i = 1;
+    if (strcmp("-v", command.args[i]) == 0)
+    {
+        i++;
+        for (; command.args[i]; i++)
+        {
+            unset_variable(command.args[i]);
+        }
+    }
+    else if (strcmp("-f", command.args[i]) == 0)
+    {
+        i++;
+        //TODO fix once the functions are working
+    }
+    else
+    {
+        for (; command.args[i]; i++)
+        {
+            int ans = unset_variable(command.args[i]);
+            if (ans == 1)
+            {
+                //TODO fix once the functions are working
+            }
+        }
+    }
     return 0;
 }

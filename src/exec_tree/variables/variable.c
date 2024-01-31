@@ -1,4 +1,5 @@
 #include "variable.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -81,8 +82,7 @@ int unset_variable(char *name)
     if (actual && strcmp(actual->var->name, name) == 0)
     {
         begining_list = begining_list->next;
-        free(actual->var);
-        free(actual);
+        free_single_var(actual);
         return 0;
     }
     while (actual)
@@ -91,8 +91,7 @@ int unset_variable(char *name)
         {
             struct variable_list *to_rm = actual->next;
             actual->next = to_rm->next;
-            free(to_rm->var);
-            free(to_rm);
+            free_single_var(to_rm);
             return 0;
         }
         actual = actual->next;
@@ -128,6 +127,12 @@ void init_variables(void)
     char base_str2[16] = {0};
     base_str2[0] = '0';
     update_variable("?", base_str2);
+    char base_str3[1028] = {0};
+    getcwd(base_str3, 1028);
+    update_variable("PWD", base_str3);
+    char base_str4[1028] = {0};
+    getcwd(base_str4, 1028);
+    update_variable("OLDPWD", base_str3);
 }
 
 static char *replace_str(char *ptr, char *str, size_t before_declaration, char * after_word)
@@ -193,31 +198,8 @@ int variable_expansion(struct exec_arguments command)
         if (str[j] == '{')
             j++;
 
-        const char *env_var[] = {"OLDPWD", "PWD", "IFS"};
         size_t variable_size = get_longest_valid_name(str, j);
-        char *ptr = NULL;
         char *after_word = str + variable_size + j;
-        int out = 0;
-        for (size_t k = 0; k < 3; k++)
-        {
-            if (strlen(env_var[k]) == variable_size &&
-                    strncmp(str + j, env_var[k], variable_size) == 0)
-            {
-                char *tmp = calloc(1,1);
-                char *new = NULL;
-                if ((ptr = getenv(env_var[k])))
-                    new = replace_str(ptr, str, before_declaration, after_word);
-                else
-                    new = replace_str(tmp, str, before_declaration, after_word);
-                free(tmp);
-                free(command.args[i]);
-                command.args[i] = new;
-                out = 1;
-                break;
-            }
-        }
-        if (out == 1)
-            continue;
         // TEMPORARY CODE FOR OTHER VARIABLE
         char *get_var = calloc(1, variable_size + 1);
         memcpy(get_var, str + j, variable_size);
@@ -225,7 +207,7 @@ int variable_expansion(struct exec_arguments command)
         free(get_var);
         char *tmp = calloc(1,1);
         char *new = NULL;
-        if (ptr)
+        if (p)
             new = replace_str(p->value, str, before_declaration, after_word);
         else
             new = replace_str(tmp, str, before_declaration, after_word);
