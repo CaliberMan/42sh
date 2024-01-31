@@ -5,6 +5,7 @@
 #include "ast/ast.h"
 #include "exec/exec.h"
 #include "exec_tree/exec_tree.h"
+#include "exec_tree/variables/variable.h"
 #include "lexer/lexer.h"
 #include "pretty_print/pretty_print.h"
 #include "parser/input/input.h"
@@ -110,6 +111,7 @@ int main(int argc, char *argv[])
         lexer_free(lexer);
         return 2;
     }
+    init_variables();
     int default_fds[2] = { STDIN_FILENO, STDOUT_FILENO };
     struct exec_arguments command;
 
@@ -118,6 +120,7 @@ int main(int argc, char *argv[])
     int res = execute_tree(ast, command);
     lexer_free(lexer);
     free_ast(ast);
+    free_list_variables();
     if (res == -1)
     {
         fprintf(stderr, "execute_tree error");
