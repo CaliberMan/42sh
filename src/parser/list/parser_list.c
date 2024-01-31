@@ -319,7 +319,7 @@ enum parser_status parse_command(struct ast **ast, struct lexer *lexer)
     // shell commands
     status = parse_shell_command(ast, lexer);
 
-    if (status != PARSER_ERROR)
+    if (status != PARSER_OK)
         return status;
 
     return redirect_loop(ast, lexer);
