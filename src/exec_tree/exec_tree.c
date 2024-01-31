@@ -5,20 +5,49 @@
 #include <string.h>
 #include <unistd.h>
 
-static int check_builtins(struct exec_arguments command)
+static struct ret_msg check_builtins(struct exec_arguments command)
 {
+    struct ret_msg ans;
+    ans.type = VAL;
     if (strcmp(command.args[0], "echo") == 0)
-        return b_echo(command);
+    {
+        ans.value = b_echo(command);
+        return ans;
+    }
     else if (strcmp(command.args[0], "true") == 0)
-        return b_true();
+    {
+        ans.value = b_true();
+        return ans;
+    }
     else if (strcmp(command.args[0], "false") == 0)
-        return b_false();
+    {
+        ans.value = b_false();
+        return ans;
+    }
     else if (strcmp(command.args[0], "unset") == 0)
-        return b_unset(command);
+    {
+        ans.value = b_unset(command);
+        return ans;
+    }
     else if (strcmp(command.args[0], "cd") == 0)
-        return b_cd(command);
+    {
+        ans.value = b_cd(command);
+        return ans;
+    }
+    else if (strcmp(command.args[0], "exit") == 0)
+    {
+        ans.value = b_exit(command);
+        if (ans.value == -1)
+            ans.value = 1;
+        return ans;
+    }
     else
-        return exec(command);
+    {
+        ans.value = exec(command);
+        if (ans.value != 0 && ans.value != 1)
+            ans.type = ERR;
+        return ans;
+    }
 }
 
 static struct ret_msg exec_cmd(struct exec_arguments describer, struct ast *ast)
@@ -34,9 +63,7 @@ static struct ret_msg exec_cmd(struct exec_arguments describer, struct ast *ast)
         ans.value = 1;
         return ans;
     }
-    ans.value = check_builtins(describer);
-    if (ans.value != 0 && ans.value != 1)
-        ans.type = ERR;
+    ans = check_builtins(describer);
     return ans;
 }
 
@@ -46,10 +73,20 @@ static struct ret_msg exec_if(struct exec_arguments describer, struct ast *ast)
     ans.type = VAL;
     struct ast_if if_struct = ast->data.ast_if;
     ans = execute_tree(if_struct.cond, describer);
+    if (ans.type == EXT)
+        return ans;
     if (ans.value == 0)
+    {
         ans = execute_tree(if_struct.then_body, describer);
+        if (ans.type == EXT)
+            return ans;
+    }
     else if (if_struct.else_body != NULL)
+    {
+        if (ans.type == EXT)
+            return ans;
         ans = execute_tree(if_struct.else_body, describer);
+    }
     else
         ans.value = 0;
     return ans;
@@ -200,19 +237,31 @@ static struct ret_msg exec_loop(struct exec_arguments describer, struct ast *ast
     if (loop_struct.type == WHILE_LOOP)
     {
         struct ret_msg ret = execute_tree(loop_struct.cond, describer);
+        if (ret.type == EXT)
+            return ret;
         while (ret.type == VAL && ret.value == 0)
         {
             ans = execute_tree(loop_struct.then_body, describer);
+            if (ans.type == EXT)
+                return ans;
             ret = execute_tree(loop_struct.cond, describer);
+            if (ret.type == EXT)
+                return ret;
         }
     }
     else if (loop_struct.type == UNTIL_LOOP)
     {
         struct ret_msg ret = execute_tree(loop_struct.cond, describer);
+        if (ret.type == EXT)
+            return ret;
         while (ret.type == VAL && ret.value == 0)
         {
             ans = execute_tree(loop_struct.then_body, describer);
+            if (ans.type == EXT)
+                return ans;
             ret = execute_tree(loop_struct.cond, describer);
+            if (ret.type == EXT)
+                return ret;
         }
     }
     else
@@ -222,7 +271,9 @@ static struct ret_msg exec_loop(struct exec_arguments describer, struct ast *ast
         for (size_t i = 0; loop_struct.cond->data.ast_cmd.words[i]; i++)
         {
             update_variable(loop_struct.var_name, loop_struct.cond->data.ast_cmd.words[i]);
-            execute_tree(loop_struct.then_body, describer);
+            ans = execute_tree(loop_struct.then_body, describer);
+            if (ans.type == EXT)
+                return ans;
         }
     }
     return ans;
@@ -249,6 +300,8 @@ static struct ret_msg exec_list(struct exec_arguments describer, struct ast *ast
     for (size_t i = 0; i < ast->data.ast_list.nb_nodes; i++)
     {
         ans = execute_tree(ast->data.ast_list.list[i], describer);
+        if (ans.type == EXT)
+            return ans;
     }
     return ans;
 }
@@ -256,6 +309,8 @@ static struct ret_msg exec_list(struct exec_arguments describer, struct ast *ast
 static struct ret_msg exec_operator(struct exec_arguments describer, struct ast *ast)
 {
     struct ret_msg ans = execute_tree(ast->data.ast_operator.left, describer);
+    if (ans.type == EXT)
+        return ans;
     if (ast->data.ast_operator.type == OP_OR)
         return ans.value == 0 ? ans : execute_tree(ast->data.ast_operator.right, describer);
     return ans.value != 0 ? ans : execute_tree(ast->data.ast_operator.right, describer);
