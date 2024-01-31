@@ -1,4 +1,5 @@
 #include "exec_tree.h"
+#include "variables/variable.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -40,6 +41,7 @@ static int exec_if(struct exec_arguments describer, struct ast *ast)
         ans = 0;
     return ans;
 }
+
 static int exec_pipe(struct exec_arguments describer, struct ast *ast)
 {
     // Set up pipe
@@ -197,6 +199,12 @@ static int exec_operator(struct exec_arguments describer, struct ast *ast)
         return ans == 0 ? ans : execute_tree(ast->data.ast_operator.right, describer);
     return ans != 0 ? ans : execute_tree(ast->data.ast_operator.right, describer);
 }
+static int exec_variable(struct ast *ast)
+{
+    struct ast_variable variable_struct = ast->data.ast_variable;
+    update_variable(variable_struct.name, variable_struct.value->data.ast_cmd.words[0]);
+    return 0;
+}
 
 int execute_tree(struct ast *ast, struct exec_arguments describer)
 {
@@ -223,6 +231,8 @@ int execute_tree(struct ast *ast, struct exec_arguments describer)
         return exec_list(describer, ast);
     case AST_OPERATOR:
         return exec_operator(describer, ast);
+    case AST_VARIABLE:
+        return exec_variable(ast);
     default:
         return -1;
         break;
