@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LEXER_H
+#define LEXER_H
 
 enum token_type
 {
@@ -29,13 +30,15 @@ enum token_type
     TOKEN_CURLY_CLOSE,
     TOKEN_BRACKET_OPEN,
     TOKEN_BRACKET_CLOSE,
+    TOKEN_ASSIGNMENT_WORD,
     TOKEN_ERROR
 };
 
 enum lexer_status
 {
     LEXER_OK,
-    LEXER_FOR
+    LEXER_IN,
+    LEXER_DO
 };
 
 struct token
@@ -48,7 +51,6 @@ struct token
 
 struct lexer
 {
-    int cmd_status;
     char *input;
     int index;
     struct token *prev_token;
@@ -97,4 +99,13 @@ struct token *lexer_pop(struct lexer *lex);
 
 struct token *lexer_peek(struct lexer *lex);
 
-// #endif /* ! LEXER_H */
+/**
+ * @brief same behaviour as lexer_pop but it does not update either the index or
+ * the prev_token
+ * @param lexer
+ * @return token lexed
+ */
+
+struct lexer *lexer_copy(struct lexer *lex);
+
+#endif /* ! LEXER_H */
