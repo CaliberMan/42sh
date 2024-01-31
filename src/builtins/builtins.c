@@ -146,5 +146,5 @@ int b_exit(struct exec_arguments command)
         fprintf(stderr, "exit: too many arguments");
         return -1;
     }
-    return ans > 0 ? 256 + (ans % 256) : ans % 256 ;
+    return ans < 0 ? 256 + (ans % 256) : ans % 256 ;
 }

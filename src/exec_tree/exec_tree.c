@@ -39,6 +39,8 @@ static struct ret_msg check_builtins(struct exec_arguments command)
         ans.value = b_exit(command);
         if (ans.value == -1)
             ans.value = 1;
+        else
+            ans.type = EXT;
         return ans;
     }
     else
