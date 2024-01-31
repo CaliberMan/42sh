@@ -1,15 +1,14 @@
 #ifndef VARIABLE_H
 #define VARIABLE_H
 
+#include <ctype.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include <stdlib.h>
 
 #include "../../exec/exec.h"
 
-//Diferent type of data for a variable
+// Diferent type of data for a variable
 enum var_type
 {
     INT,
@@ -26,7 +25,7 @@ union var_data
     char *string;
 };
 
-//variable struct
+// variable struct
 struct variable
 {
     char *name;
@@ -34,7 +33,7 @@ struct variable
     union var_data data;
 };
 
-//linked list of variables
+// linked list of variables
 struct variable_list
 {
     struct variable *var;

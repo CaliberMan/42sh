@@ -1,4 +1,5 @@
 #include "parser_for.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -9,12 +10,14 @@ void copy_word(struct token *token, struct ast *dest, int index)
     if (dest->type == AST_CMD)
     {
         dest->data.ast_cmd.words[index] = calloc(token->len + 1, sizeof(char));
-        dest->data.ast_cmd.words[index] = strcpy(dest->data.ast_cmd.words[index], token->data);
+        dest->data.ast_cmd.words[index] =
+            strcpy(dest->data.ast_cmd.words[index], token->data);
     }
     else if (dest->type == AST_LOOP)
     {
         dest->data.ast_loop.var_name = calloc(token->len + 1, sizeof(char));
-        dest->data.ast_loop.var_name = strcpy(dest->data.ast_loop.var_name, token->data);
+        dest->data.ast_loop.var_name =
+            strcpy(dest->data.ast_loop.var_name, token->data);
     }
 }
 

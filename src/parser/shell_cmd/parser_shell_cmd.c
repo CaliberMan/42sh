@@ -14,13 +14,25 @@ enum parser_status parse_brackets(struct ast **ast, struct lexer *lexer)
 
     lexer_pop(lexer);
     token_free(token);
-    enum parser_status status = parse_command(ast, lexer);
+
+    enum parser_status status = parse_compound_list(ast, lexer);
     if (status != PARSER_OK)
         return status;
 
     token = lexer_peek(lexer);
     if (token->type != type)
+    {
+        token_free(token);
         return PARSER_ERROR;
+    }
+
+    lexer_pop(lexer);
+    if (type == TOKEN_BRACKET_CLOSE)
+    {
+        struct ast *sub = init_ast(AST_SUBSHELL);
+        sub->data.ast_sub.list = *ast;
+        *ast = sub;
+    }
 
     return PARSER_OK;
 }

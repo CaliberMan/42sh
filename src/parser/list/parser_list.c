@@ -208,7 +208,7 @@ enum parser_status parse_pipeline(struct ast **ast, struct lexer *lexer)
     return PARSER_OK;
 }
 
-enum parser_status redirect_loop(struct ast **ast, struct lexer *lexer)
+static enum parser_status redirect_loop(struct ast **ast, struct lexer *lexer)
 {
     while (1)
     {
@@ -240,7 +240,7 @@ enum parser_status parse_funcdec(struct ast **ast, struct lexer *lexer)
 
     func->name = calloc(token->len + 1, sizeof(char));
     func->name = strcpy(func->name, token->data);
-    
+
     lexer_pop(lexer);
     token_free(token);
 
@@ -277,7 +277,7 @@ enum parser_status parse_funcdec(struct ast **ast, struct lexer *lexer)
     return PARSER_OK;
 }
 
-enum parser_status func_aux(struct ast **ast, struct lexer *lexer)
+static enum parser_status func_aux(struct ast **ast, struct lexer *lexer)
 {
     if (!lexer)
     {
@@ -325,7 +325,7 @@ enum parser_status parse_command(struct ast **ast, struct lexer *lexer)
     return redirect_loop(ast, lexer);
 }
 
-enum redir_type parse_redir_type(char *str)
+static enum redir_type parse_redir_type(char *str)
 {
     if (!strcmp(str, ">>"))
         return STD_OUT_END;

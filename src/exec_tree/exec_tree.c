@@ -1,4 +1,5 @@
 #include "exec_tree.h"
+
 #include <stddef.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -97,28 +98,33 @@ static int exec_redir(struct exec_arguments describer, struct ast *ast)
     int ionumber = ast->data.ast_redir.ioNumber;
     if (ast->type != AST_REDIR)
         return -1;
-    switch(ast->data.ast_redir.type)
+    switch (ast->data.ast_redir.type)
     {
     case STD_OUT:
     case STD_RIGHT_ARROW_PIPE:
         in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
-        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
+                      O_CREAT | O_TRUNC | O_WRONLY, 0644);
         break;
     case STD_IN:
-        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename, O_RDONLY);
+        out_fd =
+            open(ast->data.ast_redir.right->data.ast_file.filename, O_RDONLY);
         in_fd = ionumber != -1 ? ionumber : STDIN_FILENO;
         break;
     case STD_OUT_END:
         in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
-        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename, O_APPEND | O_WRONLY, 0644);
+        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
+                      O_APPEND | O_WRONLY, 0644);
         break;
     case STD_IN_OUT:
         in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
-        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename, O_CREAT | O_RDWR, 0666);
+        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
+                      O_CREAT | O_RDWR, 0666);
         break;
     case STD_ERR:
         in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
-        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
+                      O_WRONLY | O_CREAT | O_TRUNC, 0666);
         break;
     default:
         printf("Not dealing with it rn good luck\n");
@@ -130,7 +136,7 @@ static int exec_redir(struct exec_arguments describer, struct ast *ast)
     int f = fork();
     if (f < 0)
         errx(1, "Bad fork");
-    //child
+    // child
     if (f == 0)
     {
         dup2(out_fd, in_fd);

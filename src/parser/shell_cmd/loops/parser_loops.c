@@ -2,7 +2,8 @@
 
 #include "../../list/parser_list.h"
 
-enum parser_status parse_while_until(struct ast **ast, struct lexer *lexer, enum loop_type type)
+enum parser_status parse_while_until(struct ast **ast, struct lexer *lexer,
+                                     enum loop_type type)
 {
     lexer_pop(lexer);
 

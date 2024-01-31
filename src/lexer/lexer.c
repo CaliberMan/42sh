@@ -93,17 +93,9 @@ int increase_capacity(struct token *t)
 int valid_char(struct lexer *lex, int *index)
 {
     char c = lex->input[*index];
-    return c != ' ' &&
-           c != ';' &&
-           c != '\n' &&
-           c != 0 &&
-           c != '<' &&
-           c != '>' &&
-           c != '|' &&
-           c != '=' &&
-           c != '(' &&
-           c != ')' &&
-           !((c == '&' || c == '|') && lex->input[(*index) + 1] == c);
+    return c != ' ' && c != ';' && c != '\n' && c != 0 && c != '<' && c != '>'
+        && c != '|' && c != '=' && c != '(' && c != ')'
+        && !((c == '&' || c == '|') && lex->input[(*index) + 1] == c);
 }
 
 void init_token_2(struct lexer *lex, struct token *t)
@@ -213,9 +205,8 @@ enum token_type single_char_tokens(struct lexer *lex, struct token *t,
         tt = TOKEN_BRACKET_OPEN;
     else if (lex->input[index] == ')')
         tt = TOKEN_BRACKET_CLOSE;
- 
-    else if (lex->input[index] == '<' ||
-            lex->input[index] == '>')
+
+    else if (lex->input[index] == '<' || lex->input[index] == '>')
     {
         if (lex->input[index + 1] == '>' || lex->input[index + 1] == '&'
             || (lex->input[index] == '>' && lex->input[index + 1] == '|'))

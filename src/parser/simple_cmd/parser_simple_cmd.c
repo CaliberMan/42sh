@@ -54,7 +54,6 @@ enum parser_status get_word(struct ast **ast, struct lexer *lexer)
             free_ast(next_word);
             index++;
         }
-
     }
 
     return PARSER_OK;

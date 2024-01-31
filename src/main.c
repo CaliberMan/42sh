@@ -6,8 +6,8 @@
 #include "exec/exec.h"
 #include "exec_tree/exec_tree.h"
 #include "lexer/lexer.h"
-#include "pretty_print/pretty_print.h"
 #include "parser/input/input.h"
+#include "pretty_print/pretty_print.h"
 #include "unistd.h"
 
 int is_valid_file(const char *path)
@@ -78,9 +78,9 @@ struct lexer *create_lexer(int argc, char *argv[])
             fprintf(stderr, "invalid arguments");
             return NULL;
         }
-	char *buffer = calloc(strlen(argv[2]) + 1, sizeof(char));
-	for (int i = 0; argv[2][i]; i++)
-		buffer[i] = argv[2][i];
+        char *buffer = calloc(strlen(argv[2]) + 1, sizeof(char));
+        for (int i = 0; argv[2][i]; i++)
+            buffer[i] = argv[2][i];
         struct lexer *lexer = init_lexer(buffer);
         return lexer;
     }

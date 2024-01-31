@@ -1,4 +1,5 @@
 #include "variable.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -139,7 +140,8 @@ void init_variables(void)
     update_variable("?", STR, y);
 }
 
-static char *replace_str(char *ptr, char *str, size_t before_declaration, char * after_word)
+static char *replace_str(char *ptr, char *str, size_t before_declaration,
+                         char *after_word)
 {
     if (*after_word == '}')
         after_word++;
@@ -153,22 +155,23 @@ static char *replace_str(char *ptr, char *str, size_t before_declaration, char *
     return new_guy;
 }
 
-static int expand_special(char *str, size_t j, struct exec_arguments *command, size_t str_pos)
+static int expand_special(char *str, size_t j, struct exec_arguments *command,
+                          size_t str_pos)
 {
-    char *special_args[] = {"@", "*", "?", "$", "#"};
-    if (str[j+1] == '{')
-            j++;
+    char *special_args[] = { "@", "*", "?", "$", "#" };
+    if (str[j + 1] == '{')
+        j++;
     for (size_t i = 0; i < 5; i++)
     {
-        if (str[j+1] == *special_args[i])
+        if (str[j + 1] == *special_args[i])
         {
             struct variable *ptr = find(special_args[i]);
-            char *tmp = calloc(1,1);
+            char *tmp = calloc(1, 1);
             char *new = NULL;
             if (ptr)
-                new = replace_str(ptr->data.string, str, j, str + j+2);
+                new = replace_str(ptr->data.string, str, j, str + j + 2);
             else
-                new = replace_str(tmp, str, j, str + j+2);
+                new = replace_str(tmp, str, j, str + j + 2);
             free(tmp);
             free(command->args[str_pos]);
             command->args[str_pos] = new;
@@ -177,7 +180,6 @@ static int expand_special(char *str, size_t j, struct exec_arguments *command, s
     }
     return 1;
 }
-
 
 int variable_expansion(struct exec_arguments command)
 {
@@ -202,7 +204,7 @@ int variable_expansion(struct exec_arguments command)
         if (str[j] == '{')
             j++;
 
-        const char *env_var[] = {"OLDPWD", "PWD", "IFS"};
+        const char *env_var[] = { "OLDPWD", "PWD", "IFS" };
         size_t variable_size = get_longest_valid_name(str, j);
         char *ptr = NULL;
         char *after_word = str + variable_size + j;
@@ -211,7 +213,7 @@ int variable_expansion(struct exec_arguments command)
         {
             if (strncmp(str + j, env_var[k], variable_size) == 0)
             {
-                char *tmp = calloc(1,1);
+                char *tmp = calloc(1, 1);
                 char *new = NULL;
                 if ((ptr = getenv(env_var[k])))
                     new = replace_str(ptr, str, before_declaration, after_word);
@@ -231,12 +233,12 @@ int variable_expansion(struct exec_arguments command)
         memcpy(get_var, str + j, variable_size);
         struct variable *p = find(get_var);
         free(get_var);
-        char *tmp = calloc(1,1);
+        char *tmp = calloc(1, 1);
         char *new = NULL;
         if (ptr)
-            new = replace_str(p->data.string, str, j, str + j+2);
+            new = replace_str(p->data.string, str, j, str + j + 2);
         else
-            new = replace_str(tmp, str, j, str + j+2);
+            new = replace_str(tmp, str, j, str + j + 2);
         free(tmp);
         free(command.args[i]);
         command.args[i] = new;

@@ -1,6 +1,6 @@
-#include <stdio.h>
-
 #include "pretty_print.h"
+
+#include <stdio.h>
 
 void tab_print(int x)
 {
@@ -32,7 +32,7 @@ int pretty_print(struct ast *ast, int x)
             tab_print(x);
             printf("\n}");
         }
-//        pretty_print(ast->next, 0);
+        //        pretty_print(ast->next, 0);
         tab_print(x);
         printf("\n");
         break;
@@ -46,7 +46,7 @@ int pretty_print(struct ast *ast, int x)
             i++;
             str = ast->data.ast_cmd.words[i];
         }
-  //      pretty_print(ast->next, 0);
+        //      pretty_print(ast->next, 0);
         tab_print(x);
         printf("\n");
         break;

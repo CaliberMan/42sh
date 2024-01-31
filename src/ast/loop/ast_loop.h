@@ -24,4 +24,4 @@ struct ast_loop
  */
 void free_loop(struct ast_loop *ast);
 
-#endif /* ! AST_LOOP */
+#endif /* ! AST_LOOP_H */
