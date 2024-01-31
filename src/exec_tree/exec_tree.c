@@ -2,16 +2,19 @@
 #include "variables/variable.h"
 #include <stddef.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 static int check_builtins(struct exec_arguments command)
 {
     if (strcmp(command.args[0], "echo") == 0)
         return b_echo(command);
-    if (strcmp(command.args[0], "true") == 0)
+    else if (strcmp(command.args[0], "true") == 0)
         return b_true();
     else if (strcmp(command.args[0], "false") == 0)
         return b_false();
+    else if (strcmp(command.args[0], "unset") == 0)
+        return b_unset(command);
     else
         return exec(command);
 }

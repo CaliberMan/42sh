@@ -30,6 +30,12 @@ int b_false(void);
  * 1 if the output of the excecution is false, 0 if everything went well
  */
 int b_echo(struct exec_arguments command);
+/**
+ * @brief simulate unset
+ * @param arguments for unset
+ * @return Returns 0 even if it failled
+ */
+int b_unset(struct exec_arguments command);
 
 /**
  * @brief simulate cd with option of '-'
