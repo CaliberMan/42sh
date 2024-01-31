@@ -320,7 +320,7 @@ enum parser_status parse_redirection(struct ast **ast, struct lexer *lexer)
     int total = -1;
 
     struct token *token = lexer_peek(lexer);
-    if (token->type == TOKEN_WORD)
+    if (token->type == TOKEN_IONUM)
     {
         total = 0;
         for (int i = 0; i < token->len; i++)
