@@ -54,7 +54,7 @@ static int exec_pipe(struct exec_arguments describer, struct ast *ast)
     if (fork_fd < 0)
         errx(1, "%s\n", "Bad fork");
 
-    int ans;
+    int ans = 0;
     describer.child_process = fork_fd;
     if (fork_fd == 0)
     {
