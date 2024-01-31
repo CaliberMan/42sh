@@ -24,6 +24,14 @@ struct lexer *init_lexer(char *input)
     return lex;
 }
 
+int better_len(char *str)
+{
+    int count = 0;
+    for (int i = 0; str[i]; i++)
+        count++;
+    return count;
+}
+
 struct token *token_copy(struct token *t)
 {
     struct token *new = calloc(1, sizeof(struct token));
@@ -31,7 +39,8 @@ struct token *token_copy(struct token *t)
         return NULL;
     if (t->data)
     {
-        char *str = calloc(t->capacity, sizeof(char));
+        int len = better_len(t->data);
+        char *str = calloc(len + 1, sizeof(char));
         if (!str)
             return NULL;
         for (int i = 0; t->data[i]; i++)
@@ -48,7 +57,7 @@ struct token *token_copy(struct token *t)
 
 struct lexer *lexer_copy(struct lexer *lex)
 {
-    char *str = calloc(strlen(lex->input) + 1, sizeof(char));
+    char *str = calloc(better_len(lex->input) + 1, sizeof(char));
     if (!str)
         return NULL;
     for (int i = 0; lex->input[i]; i++)
@@ -272,6 +281,25 @@ int pop_traverse(struct lexer *lex, struct token *t, int *index)
     }
     while (valid_char(lex, index))
     {
+        if (lex->input[*index] == '=' && t->len > 0 &&
+                lex->prev_token->type != TOKEN_WORD)
+        {
+            int valid = 1;
+            if (!(isalpha(t->data[0]) || t->data[0] == '_'))
+                valid = 0;
+            else
+            {
+                for (int i = 1; t->data[i]; i++)
+                    if (!(isalnum(t->data[i]) || t->data[i] == '_'))
+                        valid = 0;
+            }
+            if (valid)
+            {
+                (*index)++;
+                t->type = TOKEN_ASSIGNMENT_WORD;
+                return 0;
+            }
+        }
         if (lex->input[*index] == '\'' || lex->input[*index] == '"')
         {
             int res = lex_string(lex, t, index);
@@ -311,7 +339,7 @@ struct token *lexer_pop(struct lexer *lex)
         t->type = single_char_tokens(lex, t, lex->index);
         lex->index += t->len;
     }
-    else
+    else if (t->type != TOKEN_ASSIGNMENT_WORD)
     {
         if (lex->input[lex->index] == '>' || lex->input[lex->index] == '<')
         {
@@ -349,7 +377,7 @@ struct token *lexer_peek(struct lexer *lex)
         return token_free(t);
     if (t->data[0] == 0)
         t->type = single_char_tokens(lex, t, index);
-    else
+    else if (t->type != TOKEN_ASSIGNMENT_WORD)
     {
         if (lex->input[index] == '>' || lex->input[index] == '<')
         {
