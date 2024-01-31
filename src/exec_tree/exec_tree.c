@@ -170,6 +170,16 @@ static int exec_loop(struct exec_arguments describer, struct ast *ast)
         while (execute_tree(loop_struct.cond, describer) != 0)
             ans = execute_tree(loop_struct.then_body, describer);
     }
+    else
+    {
+        // for looop
+        update_variable(loop_struct.var_name, "");
+        for (size_t i = 0; loop_struct.cond->data.ast_cmd.words[i]; i++)
+        {
+            update_variable(loop_struct.var_name, loop_struct.cond->data.ast_cmd.words[i]);
+            execute_tree(loop_struct.then_body, describer);
+        }
+    }
     return ans;
 }
 
