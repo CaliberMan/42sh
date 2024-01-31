@@ -48,6 +48,7 @@ config = {"categories": ["execution/echo", "execution/for", "execution/if",
                          "execution/not",
                          "syntax/bad",
                          "execution/variable",
+                         "execution/operator",
                          "execution/piping"]}
 
 if __name__ == "__main__":
@@ -77,6 +78,7 @@ if __name__ == "__main__":
         print(f"{EQUALS}" * 48)
         print(f"Category: {category.name}")
         for file in category.tests:
+            print(file)
             sh_proc = run_shell(binary_path, file)
             sh_ref = run_shell("bash", "--posix", file)
 
