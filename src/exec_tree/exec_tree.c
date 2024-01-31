@@ -15,6 +15,8 @@ static int check_builtins(struct exec_arguments command)
         return b_false();
     else if (strcmp(command.args[0], "unset") == 0)
         return b_unset(command);
+    else if (strcmp(command.args[0], "cd") == 0)
+        return b_cd(command);
     else
         return exec(command);
 }
