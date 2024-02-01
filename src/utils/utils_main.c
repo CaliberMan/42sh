@@ -3,10 +3,7 @@
 #include <sys/stat.h>
 #include <stdio.h>
 
-#include "../lexer/lexer.h"
-#include "utils.h"
-
-
+#include "utils_main.h"
 
 int is_valid_file(const char *path)
 {
