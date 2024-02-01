@@ -55,8 +55,11 @@ enum parser_status rule2(struct ast **ast, struct lexer *lexer)
     }
 
     token_free(token);
+    struct ast *list = init_ast(AST_LIST);
     struct ast *word_list = init_ast(AST_CMD);
-    *ast = word_list;
+    list->data.ast_list.list[0] = word_list;
+    *ast = list;
+
     size_t index = 0;
 
     token = lexer_peek(lexer);
@@ -64,6 +67,7 @@ enum parser_status rule2(struct ast **ast, struct lexer *lexer)
     {
         lexer_pop(lexer);
         copy_word(token, word_list, index++);
+
         if (index == word_list->data.ast_cmd.capacity)
             realloc_words(&word_list->data.ast_cmd);
 
