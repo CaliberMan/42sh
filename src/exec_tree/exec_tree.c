@@ -292,12 +292,17 @@ static struct ret_msg exec_loop(struct exec_arguments describer, struct ast *ast
         // actully something inside
         if (loop_struct.cond)
         {
-            for (size_t i = 0; loop_struct.cond->data.ast_cmd.words[i]; i++)
+            struct ast_list l = loop_struct.cond->data.ast_list;
+            for (size_t i = 0; l.list[i]; i++)
             {
-                update_variable(loop_struct.var_name, loop_struct.cond->data.ast_cmd.words[i]);
-                ans = execute_tree(loop_struct.then_body, describer);
-                if (ans.type == EXT)
-                    return ans;
+                struct ast_cmd cmd = l.list[i]->data.ast_cmd;
+                for (size_t k = 0; cmd.words[k]; k++)
+                {
+                    update_variable(loop_struct.var_name, cmd.words[k]);
+                    ans = execute_tree(loop_struct.then_body, describer);
+                    if (ans.type == EXT)
+                        return ans;
+                }
             }
         }
     }
