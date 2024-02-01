@@ -7,20 +7,7 @@
 #include <string.h>
 
 #include "../../exec/exec.h"
-
-//variable struct
-struct variable
-{
-    char *name;
-    char *value;
-};
-
-// linked list of variables
-struct variable_list
-{
-    struct variable *var;
-    struct variable_list *next;
-};
+#include "../var_utils/var_utils.h"
 
 /**
  * @brief Frees the list of variables
