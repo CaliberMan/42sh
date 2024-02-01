@@ -1,4 +1,5 @@
 #include "exec_tree.h"
+#include "var_utils/var_utils.h"
 #include "variables/variable.h"
 #include <stddef.h>
 #include <stdio.h>
@@ -46,6 +47,13 @@ static struct ret_msg check_builtins(struct exec_arguments command)
     }
     else
     {
+        // function check
+        struct function *func = NULL;
+        if ((func = find_func(command.args[0])))
+        {
+            ans = execute_tree(func->body, command);
+            return ans;
+        }
         ans.value = exec(command);
         if (ans.value != 0 && ans.value != 1)
             ans.type = ERR;
@@ -355,6 +363,16 @@ static struct ret_msg exec_variable(struct ast *ast)
     return ans;
 }
 
+static struct ret_msg exec_function(struct ast *ast)
+{
+    struct ast_func func_struct = ast->data.ast_func;
+    update_function(func_struct.name, func_struct.body);
+    struct ret_msg ans;
+    ans.value = 0;
+    ans.type = VAL;
+    return ans;
+}
+
 struct ret_msg execute_tree(struct ast *ast, struct exec_arguments describer)
 {
     struct ret_msg ans;
@@ -385,6 +403,8 @@ struct ret_msg execute_tree(struct ast *ast, struct exec_arguments describer)
         return exec_operator(describer, ast);
     case AST_VARIABLE:
         return exec_variable(ast);
+    case AST_FUNCTION:
+        return exec_function(ast);
     default:
         ans.type = ERR;
         ans.value = -1;

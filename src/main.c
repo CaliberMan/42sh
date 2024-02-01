@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
         ans = execute_tree(ast, command);
     lexer_free(lexer);
     free_ast(ast);
-    free_list_variables();
+    free_list_global();
     if (ans.value == -1)
     {
         fprintf(stderr, "execute_tree error");
