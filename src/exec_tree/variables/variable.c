@@ -86,6 +86,18 @@ int unset_variable(char *name)
     return 1;
 }
 
+struct function *find_func(char *name)
+{
+    struct function_list *actual = begining_list->func_list;
+    while (actual)
+    {
+        if (strcmp(actual->func->name, name) == 0)
+            return actual->func;
+        actual = actual->next;
+    }
+    return NULL;
+}
+
 struct variable *find_var(char *name)
 {
     struct variable_list *actual = begining_list->var_list;
@@ -100,6 +112,7 @@ struct variable *find_var(char *name)
 
 void init_variables(void)
 {
+    begining_list = calloc(1,sizeof(struct global_list*));
     char base_str1[16] = {0};
     sprintf(base_str1, "%d", getpid());
     update_variable("$", base_str1);
@@ -128,7 +141,7 @@ int expand_special(char *str, size_t j, struct exec_arguments *command,
     {
         if (str[j + 1] == *special_args[i])
         {
-            struct variable *ptr = find(special_args[i]);
+            struct variable *ptr = find_var(special_args[i]);
             char *tmp = calloc(1, 1);
             char *new = NULL;
             if (ptr)
@@ -179,7 +192,7 @@ int variable_expansion(struct exec_arguments command)
             sprintf(new_rand, "%d", r);
             update_variable("RANDOM", new_rand);
         }
-        struct variable *p = find(get_var);
+        struct variable *p = find_var(get_var);
         free(get_var);
         char *tmp = calloc(1, 1);
         char *new = NULL;
@@ -225,16 +238,20 @@ int unset_function(char *name)
     if (actual && strcmp(actual->func->name, name) == 0)
     {
         begining_list->func_list = begining_list->func_list->next;
-        free_single_var(actual);
+        free(actual->func->name);
+        free(actual->func);
+        free(actual);
         return 0;
     }
     while (actual)
     {
-        if (actual->next && strcmp(actual->next->var->name, name) == 0)
+        if (actual->next && strcmp(actual->next->func->name, name) == 0)
         {
-            struct variable_list *to_rm = actual->next;
+            struct function_list *to_rm = actual->next;
             actual->next = to_rm->next;
-            free_single_var(to_rm);
+            free(actual->func->name);
+            free(actual->func);
+            free(actual);
             return 0;
         }
         actual = actual->next;
