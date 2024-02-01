@@ -49,7 +49,7 @@ int b_dot(struct exec_arguments command)
         char var_name[64];
         sprintf(var_name, "%zu", i - 1);
         struct variable *var = find(var_name);
-        calloc(strlen(var->value) + 1, sizeof(char));
+        var_list[i - 2] = calloc(strlen(var->value) + 1, sizeof(char));
         strcpy(var_list[i - 2], var->value);
         update_variable(var_name, command.args[i]);
     }
@@ -59,7 +59,9 @@ int b_dot(struct exec_arguments command)
         char var_name[64];
         sprintf(var_name, "%zu", i + 1);
         update_variable(var_name, var_list[i]);
+        free(var_list[i]);
     }
+    free(var_list);
     return ans;
 }
 
