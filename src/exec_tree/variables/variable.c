@@ -1,5 +1,6 @@
 #include "variable.h"
 #include <stdio.h>
+#include <time.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -117,10 +118,14 @@ void init_variables(void)
     update_variable("?", base_str2);
     char base_str3[1028] = {0};
     getcwd(base_str3, 1028);
+    // they start with the same value
     update_variable("PWD", base_str3);
-    char base_str4[1028] = {0};
-    getcwd(base_str4, 1028);
     update_variable("OLDPWD", base_str3);
+    char base_str4[1028] = {0};
+    srand(time(NULL));
+    int r = rand() % 32768;
+    sprintf(base_str4, "%d", r);
+    update_variable("RANDOM", base_str4);
 }
 
 int variable_expansion(struct exec_arguments command)
@@ -151,6 +156,13 @@ int variable_expansion(struct exec_arguments command)
         // TEMPORARY CODE FOR OTHER VARIABLE
         char *get_var = calloc(1, variable_size + 1);
         memcpy(get_var, str + j, variable_size);
+        if (strcmp(get_var, "RANDOM") == 0)
+        {
+            char new_rand[16] = {0};
+            int r = rand() % 32768;
+            sprintf(new_rand, "%d", r);
+            update_variable("RANDOM", new_rand);
+        }
         struct variable *p = find(get_var);
         free(get_var);
         char *tmp = calloc(1, 1);
