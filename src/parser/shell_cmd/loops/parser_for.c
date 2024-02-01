@@ -57,12 +57,12 @@ enum parser_status rule2(struct ast **ast, struct lexer *lexer)
     token_free(token);
     struct ast *list = init_ast(AST_LIST);
     struct ast *word_list = init_ast(AST_CMD);
-    list->data.ast_list.list[0] = word_list;
-    list->data.ast_list.nb_nodes++;
-    *ast = list;
 
     size_t index = 0;
+    add_ast(&list->data.ast_list, word_list, &index);
+    *ast = list;
 
+    index = 0;
     token = lexer_peek(lexer);
     while (token->type == TOKEN_WORD)
     {

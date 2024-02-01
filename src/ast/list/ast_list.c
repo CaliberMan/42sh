@@ -30,3 +30,12 @@ void double_list_size(struct ast_list *ast)
 
     ast->capacity *= 2;
 }
+
+void add_ast(struct ast_list *ast, struct ast *elm, size_t *index)
+{
+    if (*index == ast->capacity)
+        double_list_size(ast);
+
+    ast->list[(*index)++] = elm;
+    ast->nb_nodes++;
+}

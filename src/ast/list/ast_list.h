@@ -28,4 +28,12 @@ void init_list(struct ast_list *ast);
  */
 void double_list_size(struct ast_list *ast);
 
+/**
+ * @brief adds an ast to the list
+ * @param ast The ast list
+ * @param elm The elm to add
+ * @param index The index to add to
+ */
+void add_ast(struct ast_list *ast, struct ast *elm, size_t *index);
+
 #endif /* ! AST_LIST_H */
