@@ -49,4 +49,10 @@ int b_cd(struct exec_arguments command);
  * @return Returns whatever the user wants or 0, and -1 if to many args
  */
 int b_exit(struct exec_arguments command);
+/**
+ * @brief simulate dot with input variables
+ * @param the file followed by all the input arguments of the file
+ * @return Returns whatever the file is outputins
+ */
+int b_dot(struct exec_arguments command);
 #endif /* ! BUILTINS_H */

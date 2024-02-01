@@ -9,10 +9,11 @@ bin_PROGRAMS = 42sh
 	lexer/liblexer.a \
 	exec_tree/libexec_tree.a \
 	builtins/libbuiltins.a \
+	utils/libutils.a \
 	pretty_print/libpretty_print.a \
 	exec/libexec.a
 
-SUBDIRS = ast builtins exec exec_tree lexer parser pretty_print
+SUBDIRS = utils ast builtins exec exec_tree lexer parser pretty_print
 
 clean-local:
 	rm -rf .deps

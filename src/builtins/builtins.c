@@ -1,6 +1,13 @@
 #include "builtins.h"
+#include "../parser/input/input.h"
+#include "../ast/ast.h"
+#include "../exec_tree/exec_tree.h"
 #include "stdlib.h"
+#include "../utils/utils.h"
+#include "../lexer/lexer.h"
+#include <stddef.h>
 #include <stdio.h>
+#include <string.h>
 
 static size_t get_arr_len(char **arr)
 {
@@ -147,4 +154,42 @@ int b_exit(struct exec_arguments command)
         return -1;
     }
     return ans < 0 ? 256 + (ans % 256) : ans % 256 ;
+}
+
+int b_dot(struct exec_arguments command)
+{
+    struct lexer *lexer = file_to_lexer(command.args[1]);
+    if (!lexer)
+    {
+        fprintf(stderr, "%s: not runnable", command.args[1]);
+        return 1;
+    }
+    struct ast *ast;
+    enum parser_status ps = parse_input(&ast, lexer);
+    if (ps == PARSER_ERROR)
+    {
+        fprintf(stderr, "%s: not parsable", command.args[1]);
+        free_ast(ast);
+        lexer_free(lexer);
+        return 1;
+    }
+    size_t cap = 64;
+    char **var_list = calloc(cap, sizeof(char *));
+    for (size_t i = 2; command.args[i]; i++)
+    {
+        char var_name[64];
+        sprintf(var_name, "%zu", i - 1);
+        struct variable *var = find(var_name);
+        calloc(strlen(var->value) + 1, sizeof(char));
+        strcpy(var_list[i - 2], var->value);
+        update_variable(var_name, command.args[i]);
+    }
+    int ans = execute_tree(ast, command).value;
+    for (size_t i = 0; var_list[i]; i++)
+    {
+        char var_name[64];
+        sprintf(var_name, "%zu", i + 1);
+        update_variable(var_name, var_list[i]);
+    }
+    return ans;
 }
