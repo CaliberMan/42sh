@@ -30,6 +30,8 @@ struct function_list *make_function(char *name, struct ast *ast)
     memcpy(var->name, name, name_len);
     var->body = ast;
 
+    list->func = var;
+
     return list;
 }
 
