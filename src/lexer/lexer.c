@@ -311,6 +311,12 @@ static int pop_traverse(struct lexer *lex, struct token *t, int *index)
         }
         else
         {
+ 	    if (lex->input[*index] == '\\' && lex->input[*index + 1])
+	    {
+		    (*index)++;
+		    if (!lex->input[*index])
+			    return 1;
+	    }
             t->data[t->len] = lex->input[*index];
             t->len++;
             if (t->len == t->capacity)
