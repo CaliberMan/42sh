@@ -88,6 +88,26 @@ enum parser_status rule2(struct ast **ast, struct lexer *lexer)
     return PARSER_OK;
 }
 
+static enum parser_status parse_body(struct ast **ast, struct lexer *lexer)
+{
+    struct ast *then_body;
+    enum parser_status status = parse_compound_list(&then_body, lexer);
+    if (status != PARSER_OK)
+        return PARSER_ERROR;
+
+    (*ast)->data.ast_loop.then_body = then_body;
+    struct token *token = lexer_peek(lexer);
+    if (token->type != TOKEN_DONE)
+    {
+        token_free(token);
+        return PARSER_ERROR;
+    }
+
+    lexer_pop(lexer);
+    token_free(token);
+    return PARSER_OK;
+}
+
 enum parser_status parse_for(struct ast **ast, struct lexer *lexer)
 {
     lexer_pop(lexer);
@@ -134,20 +154,5 @@ enum parser_status parse_for(struct ast **ast, struct lexer *lexer)
     token_free(token);
     lexer_pop(lexer);
 
-    struct ast *then_body;
-    status = parse_compound_list(&then_body, lexer);
-    if (status != PARSER_OK)
-        return PARSER_ERROR;
-
-    for_loop->data.ast_loop.then_body = then_body;
-    token = lexer_peek(lexer);
-    if (token->type != TOKEN_DONE)
-    {
-        token_free(token);
-        return PARSER_ERROR;
-    }
-
-    lexer_pop(lexer);
-    token_free(token);
-    return PARSER_OK;
+    return parse_body(ast, lexer);
 }
