@@ -14,6 +14,25 @@ void free_single_var(struct variable_list *actual)
     free(actual);
 }
 
+struct function_list *make_function(char *name, struct ast *ast)
+{
+    size_t name_len = strlen(name) + 1;
+    struct function_list *list = calloc(1, sizeof(struct function_list));
+    if (!list)
+        return NULL;
+    list->next = NULL;
+
+    struct function *var = calloc(1, sizeof(struct function));
+    if (!var)
+        return NULL;
+
+    var->name = calloc(1, name_len + 1);
+    memcpy(var->name, name, name_len);
+    var->body = ast;
+
+    return list;
+}
+
 struct variable_list *make_variable(char *name, char *new_value)
 {
     size_t name_len = strlen(name) + 1;

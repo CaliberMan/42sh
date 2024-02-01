@@ -13,7 +13,7 @@
  * @brief Frees the list of variables
  * @return Nothing
  */
-void free_list_variables(void);
+void free_list_global(void);
 
 /**
  * @brief Adds or update the variable given

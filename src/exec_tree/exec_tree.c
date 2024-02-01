@@ -355,6 +355,15 @@ static struct ret_msg exec_variable(struct ast *ast)
     return ans;
 }
 
+static struct ret_msg exec_function(struct ast *ast)
+{
+    struct ast_func func_struct = ast->data.ast_func;
+    struct ret_msg ans;
+    ans.value = 0;
+    ans.type = VAL;
+    return ans;
+}
+
 struct ret_msg execute_tree(struct ast *ast, struct exec_arguments describer)
 {
     struct ret_msg ans;
@@ -385,6 +394,8 @@ struct ret_msg execute_tree(struct ast *ast, struct exec_arguments describer)
         return exec_operator(describer, ast);
     case AST_VARIABLE:
         return exec_variable(ast);
+    case AST_FUNCTION:
+        return exec_function(ast);
     default:
         ans.type = ERR;
         ans.value = -1;
