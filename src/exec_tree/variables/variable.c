@@ -34,6 +34,7 @@ void free_list_global(void)
             actual = next;
         }
     }
+    free(begining_list);
 }
 
 int update_variable(char *name, char *new_value)
@@ -120,17 +121,27 @@ void init_variables(char *arg_list[])
         starting_point++;
 
     starting_point++;
-    int arg_counter = 1;
+    int arg_counter = 0;
     for (size_t i = starting_point; arg_list[i]; i++)
     {
+        arg_counter++;
         char arg_holder[16] = {0};
         sprintf(arg_holder, "%d", arg_counter);
         update_variable(arg_holder, arg_list[i]);
-        arg_counter++;
     }
+    // sprintf stuff
+    char base_str[16] = { 0 };
+    sprintf(base_str, "%d", arg_counter);
+    update_variable("#", base_str);
     char base_str1[16] = { 0 };
     sprintf(base_str1, "%d", getpid());
     update_variable("$", base_str1);
+    char base_str4[1028] = { 0 };
+    srand(time(NULL));
+    int r = rand() % 32768;
+    sprintf(base_str4, "%d", r);
+    update_variable("RANDOM", base_str4);
+    // set to zero stuff
     char base_str2[16] = { 0 };
     base_str2[0] = '0';
     update_variable("?", base_str2);
@@ -139,11 +150,6 @@ void init_variables(char *arg_list[])
     // they start with the same value
     update_variable("PWD", base_str3);
     update_variable("OLDPWD", base_str3);
-    char base_str4[1028] = { 0 };
-    srand(time(NULL));
-    int r = rand() % 32768;
-    sprintf(base_str4, "%d", r);
-    update_variable("RANDOM", base_str4);
 }
 
 int expand_special(char *str, size_t j, struct exec_arguments *command,
