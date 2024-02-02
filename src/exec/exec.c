@@ -13,7 +13,7 @@ int exec(struct exec_arguments command)
     {
         if (execvp(command.args[0], command.args) == -1)
         {
-            fprintf(stderr, "%s: command not found", command.args[0]);
+            fprintf(stderr, "%s: command not found\n", command.args[0]);
             exit(127);
         }
     }

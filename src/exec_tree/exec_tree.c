@@ -102,6 +102,9 @@ static struct ret_msg exec_cmd(struct exec_arguments describer, struct ast *ast)
 
     if (ans.value != 0 && ans.value != 1)
         ans.type = ERR;
+    char buf[16];
+    sprintf(buf, "%d", ans.value);
+    update_variable("?", buf);
     return ans;
 }
 
