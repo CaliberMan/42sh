@@ -61,38 +61,22 @@ struct lexer *stdin_to_lexer(void)
 
 struct lexer *create_lexer(int argc, char *argv[])
 {
-    if (argc > 3)
+    if (argc == 1)
     {
-        fprintf(stderr, "Invalid number of arguments");
-        return NULL;
-    }
-    if (argc == 3)
-    {
-        if (strcmp("-p", argv[2]) == 0)
-        {
-            struct lexer *lexer = file_to_lexer(argv[1]);
-            return lexer;
-        }
-        if (strcmp("-c", argv[1]) && strcmp("-p", argv[1]))
-        {
-            fprintf(stderr, "invalid arguments");
-            return NULL;
-        }
-        
-	char *buffer = calloc(strlen(argv[2]) + 1, sizeof(char));
-	for (int i = 0; argv[2][i]; i++)
-		buffer[i] = argv[2][i];
-        struct lexer *lexer = init_lexer(buffer);
+        struct lexer *lexer = stdin_to_lexer();
         return lexer;
     }
-    else if (argc == 2)
+    else if (strcmp("-c", argv[1]) == 0)
     {
-        struct lexer *lexer = file_to_lexer(argv[1]);
+        char *buffer = calloc(strlen(argv[2]) + 1, sizeof(char));
+        for (int i = 0; argv[2][i]; i++)
+            buffer[i] = argv[2][i];
+        struct lexer *lexer = init_lexer(buffer);
         return lexer;
     }
     else
     {
-        struct lexer *lexer = stdin_to_lexer();
+        struct lexer *lexer = file_to_lexer(argv[1]);
         return lexer;
     }
 }
