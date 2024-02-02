@@ -376,6 +376,50 @@ static struct ret_msg exec_variable(struct ast *ast)
     return ans;
 }
 
+static struct ret_msg exec_subshell(struct exec_arguments describer, struct ast *ast)
+{
+    struct ret_msg ans;
+    ans.value = 0;
+    ans.type = VAL;
+
+    struct ast_sub subshell_struct = ast->data.ast_sub;
+    // set up forking
+    int fork_fd = fork();
+    if (fork_fd < 0)
+        errx(1, "%s\n", "Bad fork");
+
+    describer.child_process = fork_fd;
+    if (fork_fd == 0)
+    {
+        ans = execute_tree(subshell_struct.list, describer);
+        struct exec_arguments exit_args;
+        char buf[16] = { 0 };
+        sprintf(buf, "%d", ans.value);
+        char *ar[] = {"exit", buf, 0};
+        exit_args.args = ar;
+        ans.value = b_exit(exit_args);
+        if (ans.value == -1)
+            ans.value = 1;
+        else
+            ans.type = EXT;
+        return ans;
+    }
+    else
+    {
+        int status;
+        waitpid(fork_fd, &status, 0);
+        if (WIFEXITED(status))
+        {
+            int ex_st = WEXITSTATUS(status);
+            ans.value = ex_st;
+            if (ex_st == 127)
+                ans.type = ERR;
+            return ans;
+        }
+    }
+    return ans;
+}
+
 static struct ret_msg exec_function(struct ast *ast)
 {
     struct ast_func func_struct = ast->data.ast_func;
@@ -418,6 +462,8 @@ struct ret_msg execute_tree(struct ast *ast, struct exec_arguments describer)
         return exec_variable(ast);
     case AST_FUNCTION:
         return exec_function(ast);
+    case AST_SUBSHELL:
+        return exec_subshell(describer, ast);
     default:
         ans.type = ERR;
         ans.value = -1;
