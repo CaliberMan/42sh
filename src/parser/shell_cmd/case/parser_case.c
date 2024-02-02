@@ -100,6 +100,7 @@ enum parser_status parse_clause(struct ast **ast, struct lexer *lexer)
 
         struct ast *item;
         status = parse_item(&item, lexer);
+        add_ast(list, item, &index);
 
         if (status == PARSER_UNKNOWN_TOKEN)
             return PARSER_OK;
@@ -109,6 +110,7 @@ enum parser_status parse_clause(struct ast **ast, struct lexer *lexer)
         token = lexer_peek(lexer);
     }
 
+    token_free(token);
     pop_duplicates(lexer, TOKEN_NEWLINE);
     return PARSER_OK;
 }
