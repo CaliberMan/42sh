@@ -153,7 +153,18 @@ static struct ret_msg exec_pipe(struct exec_arguments describer,
     {
         close(describer.pipe_fds[0]);
         dup2(describer.pipe_fds[1], STDOUT_FILENO);
-        execute_tree(ast->data.ast_pipe.left_arg, describer);
+        ans = execute_tree(ast->data.ast_pipe.left_arg, describer);
+        struct exec_arguments exit_args;
+        char buf[16] = { 0 };
+        sprintf(buf, "%d", ans.value);
+        char *ar[] = {"exit", buf, 0};
+        exit_args.args = ar;
+        ans.value = b_exit(exit_args);
+        if (ans.value == -1)
+            ans.value = 1;
+        else
+            ans.type = EXT;
+        return ans;
     }
     else
     {
