@@ -42,10 +42,9 @@ struct function *find_func(char *name);
  */
 int unset_variable(char *name);
 int variable_expansion(struct exec_arguments command);
-void init_variables(void);
+void init_variables(char *arg_list[]);
 
 int update_function(char *name, struct ast *ast);
 int unset_function(char *name);
-
 
 #endif /* ! VARIABLE_H */

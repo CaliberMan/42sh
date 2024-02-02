@@ -1,11 +1,13 @@
 #include "exec_tree.h"
-#include "var_utils/var_utils.h"
-#include "variables/variable.h"
+
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include "var_utils/var_utils.h"
+#include "variables/variable.h"
 
 static struct ret_msg check_builtins(struct exec_arguments command)
 {
@@ -121,7 +123,8 @@ static struct ret_msg exec_if(struct exec_arguments describer, struct ast *ast)
     return ans;
 }
 
-static struct ret_msg exec_pipe(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_pipe(struct exec_arguments describer,
+                                struct ast *ast)
 {
     struct ret_msg ans;
     ans.type = VAL;
@@ -182,7 +185,8 @@ static struct ret_msg wrong_file(char *name)
     return ans;
 }
 
-static struct ret_msg exec_redir(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_redir(struct exec_arguments describer,
+                                 struct ast *ast)
 {
     struct ret_msg ans;
     ans.type = VAL;
@@ -190,7 +194,7 @@ static struct ret_msg exec_redir(struct exec_arguments describer, struct ast *as
     int in_fd;
     int out_fd;
     int ionumber = ast->data.ast_redir.ioNumber;
-    switch(ast->data.ast_redir.type)
+    switch (ast->data.ast_redir.type)
     {
     case STD_OUT:
     case STD_RIGHT_ARROW_PIPE:
@@ -257,7 +261,8 @@ static struct ret_msg exec_redir(struct exec_arguments describer, struct ast *as
     }
     return ans;
 }
-static struct ret_msg exec_loop(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_loop(struct exec_arguments describer,
+                                struct ast *ast)
 {
     struct ast_loop loop_struct = ast->data.ast_loop;
     struct ret_msg ans;
@@ -317,7 +322,8 @@ static struct ret_msg exec_loop(struct exec_arguments describer, struct ast *ast
     return ans;
 }
 
-static struct ret_msg exec_negation(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_negation(struct exec_arguments describer,
+                                    struct ast *ast)
 {
     struct ret_msg ans;
     ans = execute_tree(ast->data.ast_not.child, describer);
@@ -330,7 +336,8 @@ static struct ret_msg exec_negation(struct exec_arguments describer, struct ast 
         return ans;
 }
 
-static struct ret_msg exec_list(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_list(struct exec_arguments describer,
+                                struct ast *ast)
 {
     struct ret_msg ans;
     ans.value = 0;
@@ -344,19 +351,25 @@ static struct ret_msg exec_list(struct exec_arguments describer, struct ast *ast
     return ans;
 }
 
-static struct ret_msg exec_operator(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_operator(struct exec_arguments describer,
+                                    struct ast *ast)
 {
     struct ret_msg ans = execute_tree(ast->data.ast_operator.left, describer);
     if (ans.type == EXT)
         return ans;
     if (ast->data.ast_operator.type == OP_OR)
-        return ans.value == 0 ? ans : execute_tree(ast->data.ast_operator.right, describer);
-    return ans.value != 0 ? ans : execute_tree(ast->data.ast_operator.right, describer);
+        return ans.value == 0
+            ? ans
+            : execute_tree(ast->data.ast_operator.right, describer);
+    return ans.value != 0
+        ? ans
+        : execute_tree(ast->data.ast_operator.right, describer);
 }
 static struct ret_msg exec_variable(struct ast *ast)
 {
     struct ast_variable variable_struct = ast->data.ast_variable;
-    update_variable(variable_struct.name, variable_struct.value->data.ast_cmd.words[0]);
+    update_variable(variable_struct.name,
+                    variable_struct.value->data.ast_cmd.words[0]);
     struct ret_msg ans;
     ans.value = 0;
     ans.type = VAL;

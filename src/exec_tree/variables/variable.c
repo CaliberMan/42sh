@@ -1,8 +1,9 @@
 #include "variable.h"
+
 #include <stdio.h>
-#include <time.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 struct global_list *begining_list = NULL;
@@ -110,21 +111,35 @@ struct variable *find_var(char *name)
     return NULL;
 }
 
-void init_variables(void)
+void init_variables(char *arg_list[])
 {
-    begining_list = calloc(1,sizeof(struct global_list*));
-    char base_str1[16] = {0};
+    begining_list = calloc(1, sizeof(struct global_list *));
+    // sk
+    size_t starting_point = 1;
+    if (arg_list[starting_point] && (strcmp(arg_list[starting_point], "-c") == 0))
+        starting_point++;
+
+    starting_point++;
+    int arg_counter = 1;
+    for (size_t i = starting_point; arg_list[i]; i++)
+    {
+        char arg_holder[16] = {0};
+        sprintf(arg_holder, "%d", arg_counter);
+        update_variable(arg_holder, arg_list[i]);
+        arg_counter++;
+    }
+    char base_str1[16] = { 0 };
     sprintf(base_str1, "%d", getpid());
     update_variable("$", base_str1);
-    char base_str2[16] = {0};
+    char base_str2[16] = { 0 };
     base_str2[0] = '0';
     update_variable("?", base_str2);
-    char base_str3[1028] = {0};
+    char base_str3[1028] = { 0 };
     getcwd(base_str3, 1028);
     // they start with the same value
     update_variable("PWD", base_str3);
     update_variable("OLDPWD", base_str3);
-    char base_str4[1028] = {0};
+    char base_str4[1028] = { 0 };
     srand(time(NULL));
     int r = rand() % 32768;
     sprintf(base_str4, "%d", r);
@@ -132,10 +147,10 @@ void init_variables(void)
 }
 
 int expand_special(char *str, size_t j, struct exec_arguments *command,
-                          size_t str_pos)
+                   size_t str_pos)
 {
-    char *special_args[] = {"@", "*", "?", "$", "#"};
-    if (str[j+1] == '{')
+    char *special_args[] = { "@", "*", "?", "$", "#" };
+    if (str[j + 1] == '{')
         j++;
     for (size_t i = 0; i < 5; i++)
     {
@@ -145,7 +160,7 @@ int expand_special(char *str, size_t j, struct exec_arguments *command,
             char *tmp = calloc(1, 1);
             char *new = NULL;
             if (ptr)
-                new = replace_str(ptr->value, str, j, str + j+2);
+                new = replace_str(ptr->value, str, j, str + j + 2);
             else
                 new = replace_str(tmp, str, j, str + j + 2);
             free(tmp);
@@ -187,7 +202,7 @@ int variable_expansion(struct exec_arguments command)
         memcpy(get_var, str + j, variable_size);
         if (strcmp(get_var, "RANDOM") == 0)
         {
-            char new_rand[16] = {0};
+            char new_rand[16] = { 0 };
             int r = rand() % 32768;
             sprintf(new_rand, "%d", r);
             update_variable("RANDOM", new_rand);

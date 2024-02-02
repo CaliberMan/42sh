@@ -22,13 +22,12 @@ struct function_list
     struct function *func;
 };
 
-//variable struct
+// variable struct
 struct variable
 {
     char *name;
     char *value;
 };
-
 
 // linked list of variables
 struct variable_list
