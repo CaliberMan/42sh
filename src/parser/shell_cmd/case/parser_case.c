@@ -28,19 +28,21 @@ enum parser_status parse_item(struct ast **ast, struct lexer *lexer)
         }
         else if (token->type == TOKEN_WORD)
         {
-            token_free(token);
             struct ast *cmd = init_ast(AST_CMD);
             cmd->data.ast_cmd.words[0] = calloc(token->len + 1, sizeof(char));
             cmd->data.ast_cmd.words[0] =
                 strcpy(cmd->data.ast_cmd.words[0], token->data);
             add_ast(&list->data.ast_list, cmd, &index);
             lexer_pop(lexer);
+            token_free(token);
         }
         else if (token->type == TOKEN_BRACKET_CLOSE)
         {
             lexer_pop(lexer);
             break;
         }
+        else if (token->type == TOKEN_PIPE)
+            lexer_pop(lexer);
         else
         {
             token_free(token);
