@@ -3,13 +3,13 @@
 
 struct ast_case
 {
-    struct ast *expr;
+    char *expr;
     struct ast *cases_list; // ast_list of ast_case
 };
 
 struct ast_pattern
 {
-    struct ast *pattern;
+    struct ast *pattern; // ast_list
     struct ast *statement;
 };
 

@@ -4,6 +4,7 @@
 #include "if/parser_if.h"
 #include "loops/parser_for.h"
 #include "loops/parser_loops.h"
+#include "case/parser_case.h"
 
 enum parser_status parse_brackets(struct ast **ast, struct lexer *lexer)
 {
@@ -69,6 +70,12 @@ enum parser_status parse_shell_command(struct ast **ast, struct lexer *lexer)
     {
         token_free(token);
         return parse_for(ast, lexer);
+    }
+
+    if (token->type == TOKEN_CASE)
+    {
+        token_free(token);
+        return parse_case(ast, lexer);
     }
 
     token_free(token);

@@ -4,7 +4,7 @@
 
 void free_case(struct ast_case *ast)
 {
-    free_ast(ast->expr);
+    free(ast->expr);
     ast->expr = NULL;
 
     free_ast(ast->cases_list);
