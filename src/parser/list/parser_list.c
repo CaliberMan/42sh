@@ -226,7 +226,7 @@ enum parser_status parse_funcdec(struct ast **ast, struct lexer *lexer)
     token_free(token);
     *ast = ast_func;
 
-    lexer_peek(lexer);
+    token = lexer_peek(lexer);
     if (token->type != TOKEN_BRACKET_CLOSE)
     {
         token_free(token);

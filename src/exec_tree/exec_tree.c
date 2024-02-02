@@ -1,10 +1,13 @@
 #include "exec_tree.h"
-#include "variables/variable.h"
+
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include "var_utils/var_utils.h"
+#include "variables/variable.h"
 
 static struct ret_msg check_builtins(struct exec_arguments command)
 {
@@ -44,8 +47,22 @@ static struct ret_msg check_builtins(struct exec_arguments command)
             ans.type = EXT;
         return ans;
     }
+    else if (strcmp(command.args[0], ".") == 0)
+    {
+        ans.value = b_dot(command);
+        if (ans.value == -1)
+            ans.value = 1;
+        return ans;
+    }
     else
     {
+        // function check
+        struct function *func = NULL;
+        if ((func = find_func(command.args[0])))
+        {
+            ans = execute_tree(func->body, command);
+            return ans;
+        }
         ans.value = exec(command);
         if (ans.value != 0 && ans.value != 1)
             ans.type = ERR;
@@ -113,7 +130,8 @@ static struct ret_msg exec_if(struct exec_arguments describer, struct ast *ast)
     return ans;
 }
 
-static struct ret_msg exec_pipe(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_pipe(struct exec_arguments describer,
+                                struct ast *ast)
 {
     struct ret_msg ans;
     ans.type = VAL;
@@ -135,7 +153,18 @@ static struct ret_msg exec_pipe(struct exec_arguments describer, struct ast *ast
     {
         close(describer.pipe_fds[0]);
         dup2(describer.pipe_fds[1], STDOUT_FILENO);
-        execute_tree(ast->data.ast_pipe.left_arg, describer);
+        ans = execute_tree(ast->data.ast_pipe.left_arg, describer);
+        struct exec_arguments exit_args;
+        char buf[16] = { 0 };
+        sprintf(buf, "%d", ans.value);
+        char *ar[] = {"exit", buf, 0};
+        exit_args.args = ar;
+        ans.value = b_exit(exit_args);
+        if (ans.value == -1)
+            ans.value = 1;
+        else
+            ans.type = EXT;
+        return ans;
     }
     else
     {
@@ -174,7 +203,8 @@ static struct ret_msg wrong_file(char *name)
     return ans;
 }
 
-static struct ret_msg exec_redir(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_redir(struct exec_arguments describer,
+                                 struct ast *ast)
 {
     struct ret_msg ans;
     ans.type = VAL;
@@ -182,7 +212,7 @@ static struct ret_msg exec_redir(struct exec_arguments describer, struct ast *as
     int in_fd;
     int out_fd;
     int ionumber = ast->data.ast_redir.ioNumber;
-    switch(ast->data.ast_redir.type)
+    switch (ast->data.ast_redir.type)
     {
     case STD_OUT:
     case STD_RIGHT_ARROW_PIPE:
@@ -249,7 +279,8 @@ static struct ret_msg exec_redir(struct exec_arguments describer, struct ast *as
     }
     return ans;
 }
-static struct ret_msg exec_loop(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_loop(struct exec_arguments describer,
+                                struct ast *ast)
 {
     struct ast_loop loop_struct = ast->data.ast_loop;
     struct ret_msg ans;
@@ -309,7 +340,8 @@ static struct ret_msg exec_loop(struct exec_arguments describer, struct ast *ast
     return ans;
 }
 
-static struct ret_msg exec_negation(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_negation(struct exec_arguments describer,
+                                    struct ast *ast)
 {
     struct ret_msg ans;
     ans = execute_tree(ast->data.ast_not.child, describer);
@@ -322,7 +354,8 @@ static struct ret_msg exec_negation(struct exec_arguments describer, struct ast 
         return ans;
 }
 
-static struct ret_msg exec_list(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_list(struct exec_arguments describer,
+                                struct ast *ast)
 {
     struct ret_msg ans;
     ans.value = 0;
@@ -336,19 +369,79 @@ static struct ret_msg exec_list(struct exec_arguments describer, struct ast *ast
     return ans;
 }
 
-static struct ret_msg exec_operator(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_operator(struct exec_arguments describer,
+                                    struct ast *ast)
 {
     struct ret_msg ans = execute_tree(ast->data.ast_operator.left, describer);
     if (ans.type == EXT)
         return ans;
     if (ast->data.ast_operator.type == OP_OR)
-        return ans.value == 0 ? ans : execute_tree(ast->data.ast_operator.right, describer);
-    return ans.value != 0 ? ans : execute_tree(ast->data.ast_operator.right, describer);
+        return ans.value == 0
+            ? ans
+            : execute_tree(ast->data.ast_operator.right, describer);
+    return ans.value != 0
+        ? ans
+        : execute_tree(ast->data.ast_operator.right, describer);
 }
 static struct ret_msg exec_variable(struct ast *ast)
 {
     struct ast_variable variable_struct = ast->data.ast_variable;
-    update_variable(variable_struct.name, variable_struct.value->data.ast_cmd.words[0]);
+    update_variable(variable_struct.name,
+                    variable_struct.value->data.ast_cmd.words[0]);
+    struct ret_msg ans;
+    ans.value = 0;
+    ans.type = VAL;
+    return ans;
+}
+
+static struct ret_msg exec_subshell(struct exec_arguments describer, struct ast *ast)
+{
+    struct ret_msg ans;
+    ans.value = 0;
+    ans.type = VAL;
+
+    struct ast_sub subshell_struct = ast->data.ast_sub;
+    // set up forking
+    int fork_fd = fork();
+    if (fork_fd < 0)
+        errx(1, "%s\n", "Bad fork");
+
+    describer.child_process = fork_fd;
+    if (fork_fd == 0)
+    {
+        ans = execute_tree(subshell_struct.list, describer);
+        struct exec_arguments exit_args;
+        char buf[16] = { 0 };
+        sprintf(buf, "%d", ans.value);
+        char *ar[] = {"exit", buf, 0};
+        exit_args.args = ar;
+        ans.value = b_exit(exit_args);
+        if (ans.value == -1)
+            ans.value = 1;
+        else
+            ans.type = EXT;
+        return ans;
+    }
+    else
+    {
+        int status;
+        waitpid(fork_fd, &status, 0);
+        if (WIFEXITED(status))
+        {
+            int ex_st = WEXITSTATUS(status);
+            ans.value = ex_st;
+            if (ex_st == 127)
+                ans.type = ERR;
+            return ans;
+        }
+    }
+    return ans;
+}
+
+static struct ret_msg exec_function(struct ast *ast)
+{
+    struct ast_func func_struct = ast->data.ast_func;
+    update_function(func_struct.name, func_struct.body);
     struct ret_msg ans;
     ans.value = 0;
     ans.type = VAL;
@@ -385,6 +478,10 @@ struct ret_msg execute_tree(struct ast *ast, struct exec_arguments describer)
         return exec_operator(describer, ast);
     case AST_VARIABLE:
         return exec_variable(ast);
+    case AST_FUNCTION:
+        return exec_function(ast);
+    case AST_SUBSHELL:
+        return exec_subshell(describer, ast);
     default:
         ans.type = ERR;
         ans.value = -1;

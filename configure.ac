@@ -9,6 +9,7 @@ AC_PROG_RANLIB
 
 AC_CONFIG_FILES([
                  Makefile
+                 src/utils/Makefile
                  src/ast/Makefile
                  src/builtins/Makefile
                  src/exec/Makefile

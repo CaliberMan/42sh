@@ -1,6 +1,13 @@
-#include "builtins.h"
-#include "stdlib.h"
+#include "../parser/input/input.h"
+#include "../utils/utils_main.h"
+#include "../parser/utils.h"
+#include "../exec_tree/exec_tree.h"
+#include <stdlib.h>
+#include <stddef.h>
 #include <stdio.h>
+#include <string.h>
+
+#include "stdlib.h"
 
 static size_t get_arr_len(char **arr)
 {
@@ -20,6 +27,58 @@ int b_false(void)
     return 1;
 }
 
+int b_dot(struct exec_arguments command)
+{
+    struct lexer *lexer = file_to_lexer(command.args[1]);
+    if (!lexer)
+    {
+        fprintf(stderr, "%s: not runnable", command.args[1]);
+        return 1;
+    }
+    struct ast *ast;
+    enum parser_status ps = parse_input(&ast, lexer);
+    if (ps == PARSER_ERROR)
+    {
+        fprintf(stderr, "%s: not parsable", command.args[1]);
+        free_ast(ast);
+        lexer_free(lexer);
+        return 1;
+    }
+    size_t cap = 64;
+    char **var_list = calloc(cap, sizeof(char *));
+    for (size_t i = 2; command.args[i]; i++)
+    {
+        char var_name[64];
+        sprintf(var_name, "%zu", i - 1);
+        struct variable *var = find_var(var_name);
+        if (!var)
+        {
+            var_list[i - 2] = NULL;
+        }
+        else 
+        {
+            var_list[i - 2] = calloc(strlen(var->value) + 1, sizeof(char));
+            strcpy(var_list[i - 2], var->value);
+        }
+        update_variable(var_name, command.args[i]);
+    }
+    int ans = execute_tree(ast, command).value;
+    for (size_t i = 0; i < cap; i++)
+    {
+        char var_name[64];
+        sprintf(var_name, "%zu", i + 1);
+        if (var_list[i] != NULL)
+        {
+            update_variable(var_name, var_list[i]);
+            free(var_list[i]);
+        }
+    }
+    free(var_list);
+    lexer_free(lexer);
+    free_ast(ast);
+    return ans;
+}
+
 int b_cd(struct exec_arguments command)
 {
     char **args = command.args;
@@ -32,7 +91,7 @@ int b_cd(struct exec_arguments command)
     getcwd(cur_dir, 1028);
     if (strcmp(args[1], "-") == 0)
     {
-        struct variable *var = find("OLDPWD");
+        struct variable *var = find_var("OLDPWD");
         if (!var || chdir(var->value) == -1)
         {
             fprintf(stderr, "%s\n", "Dont you dare do something like that");
@@ -119,7 +178,7 @@ int b_unset(struct exec_arguments command)
     else if (strcmp("-f", command.args[i]) == 0)
     {
         i++;
-        //TODO fix once the functions are working
+        // TODO fix once the functions are working
     }
     else
     {
@@ -128,7 +187,7 @@ int b_unset(struct exec_arguments command)
             int ans = unset_variable(command.args[i]);
             if (ans == 1)
             {
-                //TODO fix once the functions are working
+                // TODO fix once the functions are working
             }
         }
     }
@@ -146,5 +205,6 @@ int b_exit(struct exec_arguments command)
         fprintf(stderr, "exit: too many arguments");
         return -1;
     }
-    return ans < 0 ? 256 + (ans % 256) : ans % 256 ;
+    return ans < 0 ? 256 + (ans % 256) : ans % 256;
 }
+

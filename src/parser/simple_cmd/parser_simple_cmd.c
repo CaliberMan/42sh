@@ -6,7 +6,8 @@
 #include "../list/parser_list.h"
 
 enum parser_status get_word(struct ast **ast, struct lexer *lexer)
-{ struct token *token = lexer_peek(lexer);
+{
+    struct token *token = lexer_peek(lexer);
     if (token->type != TOKEN_WORD)
     {
         token_free(token);
