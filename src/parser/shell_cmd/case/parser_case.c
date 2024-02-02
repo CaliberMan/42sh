@@ -81,7 +81,7 @@ enum parser_status parse_clause(struct ast **ast, struct lexer *lexer)
 
     while (1)
     {
-        if (token->type != TOKEN_CASE_SEMI)
+        if (token->type != TOKEN_DOUBLE_COLON)
             break;
 
         token_free(token);
