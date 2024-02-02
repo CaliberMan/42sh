@@ -1,5 +1,8 @@
 echo meow
 echo $?
 
-epnsph
+echo he | tr e i
+echo $?
+
+false
 echo $?
