@@ -13,6 +13,7 @@
 #include "pipe/ast_pipe.h"
 #include "redir/ast_redir.h"
 #include "subshells/ast_sub.h"
+#include "case/ast_case.h"
 #include "variable/ast_variable.h"
 
 enum ast_type
@@ -28,7 +29,9 @@ enum ast_type
     AST_VARIABLE,
     AST_LIST,
     AST_FUNCTION,
-    AST_SUBSHELL
+    AST_SUBSHELL,
+    AST_CASE,
+    AST_PATTERN
 };
 
 union ast_union
@@ -45,6 +48,8 @@ union ast_union
     struct ast_list ast_list;
     struct ast_func ast_func;
     struct ast_sub ast_sub;
+    struct ast_case ast_case;
+    struct ast_pattern ast_pattern;
 };
 
 struct ast

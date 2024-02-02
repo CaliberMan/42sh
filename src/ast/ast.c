@@ -44,6 +44,10 @@ void free_ast(struct ast *ast)
         free_func(&ast->data.ast_func);
     else if (ast->type == AST_SUBSHELL)
         free_sub(&ast->data.ast_sub);
+    else if (ast->type == AST_CASE)
+        free_case(&ast->data.ast_case);
+    else if (ast->type == AST_PATTERN)
+        free_pattern(&ast->data.ast_pattern);
 
     free(ast);
 }

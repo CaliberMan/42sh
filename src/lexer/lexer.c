@@ -155,6 +155,14 @@ static void init_token_2(struct lexer *lex, struct token *t, int pop)
             lex->status = LEXER_IN;
         t->type = TOKEN_FOR;
     }
+    else if (!strcmp("case", t->data))
+    {
+        if (pop)
+            lex->status = LEXER_IN;
+        t->type = TOKEN_CASE;
+    }
+    else if (!strcmp("esac", t->data))
+        t->type = TOKEN_ESAC;
     else
         t->type = TOKEN_WORD;
 }
@@ -185,7 +193,12 @@ static enum token_type single_char_tokens(struct lexer *lex, struct token *t,
     t->data[0] = lex->input[index];
     enum token_type tt = TOKEN_ERROR;
     if (lex->input[index] == ';')
-        tt = TOKEN_COLON;
+    {
+	if (lex->input[index + 1] == ';')
+	    tt = TOKEN_DOUBLE_COLON;
+	else
+            tt = TOKEN_COLON;
+    }
     else if (lex->input[index] == '\n')
         tt = TOKEN_NEWLINE;
     else if (lex->input[index] == '&' && lex->input[index + 1] == '&')
