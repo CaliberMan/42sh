@@ -33,6 +33,7 @@ enum token_type
     TOKEN_ASSIGNMENT_WORD,
     TOKEN_CASE,
     TOKEN_ESAC,
+    TOKEN_DOUBLE_COLON,
     TOKEN_ERROR
 };
 
