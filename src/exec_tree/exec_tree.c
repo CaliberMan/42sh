@@ -437,6 +437,30 @@ static struct ret_msg exec_subshell(struct exec_arguments describer, struct ast 
     }
     return ans;
 }
+static struct ret_msg exec_case(struct exec_arguments describer, struct ast *ast)
+{
+    struct ast_case case_struct = ast->data.ast_case;
+    char *matcher= case_struct.expr;
+    struct ast_list list = case_struct.cases_list->data.ast_list;
+    for (size_t i = 0; i < list.nb_nodes; i++)
+    {
+        struct ast **current_pattern = list.list[i]->data.ast_pattern.pattern->data.ast_list.list;
+        for (size_t k = 0; current_pattern[k]; k++)
+        {
+            char *cur_word = current_pattern[k]->data.ast_cmd.words[0];
+            if (strcmp("*", cur_word) == 0)
+                return execute_tree(list.list[i]->data.ast_pattern.statement, describer);
+            // found a match
+            if (strcmp(matcher, cur_word) == 0)
+                return execute_tree(list.list[i]->data.ast_pattern.statement, describer);
+        }
+    }
+
+    struct ret_msg ans;
+    ans.value = 0;
+    ans.type = VAL;
+    return ans;
+}
 
 static struct ret_msg exec_function(struct ast *ast)
 {
@@ -482,6 +506,8 @@ struct ret_msg execute_tree(struct ast *ast, struct exec_arguments describer)
         return exec_function(ast);
     case AST_SUBSHELL:
         return exec_subshell(describer, ast);
+    case AST_CASE:
+        return exec_case(describer, ast);
     default:
         ans.type = ERR;
         ans.value = -1;
