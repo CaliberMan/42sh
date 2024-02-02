@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "stdlib.h"
+
 static size_t get_arr_len(char **arr)
 {
     size_t i = 0;
@@ -89,7 +91,7 @@ int b_cd(struct exec_arguments command)
     getcwd(cur_dir, 1028);
     if (strcmp(args[1], "-") == 0)
     {
-        struct variable *var = find("OLDPWD");
+        struct variable *var = find_var("OLDPWD");
         if (!var || chdir(var->value) == -1)
         {
             fprintf(stderr, "%s\n", "Dont you dare do something like that");
@@ -176,7 +178,7 @@ int b_unset(struct exec_arguments command)
     else if (strcmp("-f", command.args[i]) == 0)
     {
         i++;
-        //TODO fix once the functions are working
+        // TODO fix once the functions are working
     }
     else
     {
@@ -185,7 +187,7 @@ int b_unset(struct exec_arguments command)
             int ans = unset_variable(command.args[i]);
             if (ans == 1)
             {
-                //TODO fix once the functions are working
+                // TODO fix once the functions are working
             }
         }
     }
@@ -203,6 +205,6 @@ int b_exit(struct exec_arguments command)
         fprintf(stderr, "exit: too many arguments");
         return -1;
     }
-    return ans < 0 ? 256 + (ans % 256) : ans % 256 ;
+    return ans < 0 ? 256 + (ans % 256) : ans % 256;
 }
 

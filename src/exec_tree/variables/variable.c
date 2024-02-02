@@ -1,62 +1,50 @@
 #include "variable.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
-struct variable_list *begining_list = NULL;
+struct global_list *begining_list = NULL;
 
-static void free_single_var(struct variable_list *actual)
+void free_list_global(void)
 {
-    free(actual->var->name);
-    free(actual->var->value);
-    free(actual->var);
-    free(actual);
-}
-
-void free_list_variables(void)
-{
-    if (begining_list == NULL)
-        return;
-    struct variable_list *actual = begining_list;
-    while (actual)
+    struct variable_list *list = begining_list->var_list;
+    if (list != NULL)
     {
-        struct variable_list *next = actual->next;
-        free_single_var(actual);
-        actual = next;
+        struct variable_list *actual = list;
+        while (actual)
+        {
+            struct variable_list *next = actual->next;
+            free_single_var(actual);
+            actual = next;
+        }
     }
-}
-
-static struct variable_list *make_variable(char *name, char *new_value)
-{
-    size_t name_len = strlen(name) + 1;
-    struct variable_list *list = calloc(1, sizeof(struct variable_list));
-    if (!list)
-        return NULL;
-    list->next = NULL;
-
-    struct variable *var = calloc(1, sizeof(struct variable));
-    if (!var)
-        return NULL;
-
-    size_t len_var = strlen(new_value);
-    var->value = calloc(1, len_var + 1);
-    memcpy(var->value, new_value, len_var);
-    var->name = calloc(1, name_len + 1);
-    memcpy(var->name, name, name_len);
-    list->var = var;
-
-    return list;
+    struct function_list *li = begining_list->func_list;
+    if (li != NULL)
+    {
+        struct function_list *actual = li;
+        while (actual)
+        {
+            struct function_list *next = actual->next;
+            free(actual->func->name);
+            free(actual->func);
+            free(actual);
+            actual = next;
+        }
+    }
 }
 
 int update_variable(char *name, char *new_value)
 {
-    if (begining_list == NULL)
+    struct variable_list *list = begining_list->var_list;
+    if (list == NULL)
     {
-        begining_list = make_variable(name, new_value);
+        begining_list->var_list = make_variable(name, new_value);
         return 0;
     }
-    struct variable_list *actual = begining_list;
+    struct variable_list *actual = list;
     struct variable_list *prev = NULL;
     while (actual)
     {
@@ -78,10 +66,10 @@ int update_variable(char *name, char *new_value)
 
 int unset_variable(char *name)
 {
-    struct variable_list *actual = begining_list;
+    struct variable_list *actual = begining_list->var_list;
     if (actual && strcmp(actual->var->name, name) == 0)
     {
-        begining_list = begining_list->next;
+        begining_list->var_list = begining_list->var_list->next;
         free_single_var(actual);
         return 0;
     }
@@ -99,9 +87,21 @@ int unset_variable(char *name)
     return 1;
 }
 
-struct variable *find(char *name)
+struct function *find_func(char *name)
 {
-    struct variable_list *actual = begining_list;
+    struct function_list *actual = begining_list->func_list;
+    while (actual)
+    {
+        if (strcmp(actual->func->name, name) == 0)
+            return actual->func;
+        actual = actual->next;
+    }
+    return NULL;
+}
+
+struct variable *find_var(char *name)
+{
+    struct variable_list *actual = begining_list->var_list;
     while (actual)
     {
         if (strcmp(actual->var->name, name) == 0)
@@ -111,60 +111,56 @@ struct variable *find(char *name)
     return NULL;
 }
 
-static size_t get_longest_valid_name(char *str, size_t i)
+void init_variables(char *arg_list[])
 {
-    size_t j = 0;
-    while (str[j + i] && isalnum(str[j + i]))
-        j++;
-    return j;
-}
+    begining_list = calloc(1, sizeof(struct global_list *));
+    // sk
+    size_t starting_point = 1;
+    if (arg_list[starting_point] && (strcmp(arg_list[starting_point], "-c") == 0))
+        starting_point++;
 
-void init_variables(void)
-{
-    char base_str1[16] = {0};
+    starting_point++;
+    int arg_counter = 1;
+    for (size_t i = starting_point; arg_list[i]; i++)
+    {
+        char arg_holder[16] = {0};
+        sprintf(arg_holder, "%d", arg_counter);
+        update_variable(arg_holder, arg_list[i]);
+        arg_counter++;
+    }
+    char base_str1[16] = { 0 };
     sprintf(base_str1, "%d", getpid());
     update_variable("$", base_str1);
-    char base_str2[16] = {0};
+    char base_str2[16] = { 0 };
     base_str2[0] = '0';
     update_variable("?", base_str2);
-    char base_str3[1028] = {0};
+    char base_str3[1028] = { 0 };
     getcwd(base_str3, 1028);
+    // they start with the same value
     update_variable("PWD", base_str3);
-    char base_str4[1028] = {0};
-    getcwd(base_str4, 1028);
     update_variable("OLDPWD", base_str3);
+    char base_str4[1028] = { 0 };
+    srand(time(NULL));
+    int r = rand() % 32768;
+    sprintf(base_str4, "%d", r);
+    update_variable("RANDOM", base_str4);
 }
 
-static char *replace_str(char *ptr, char *str, size_t before_declaration,
-                         char *after_word)
+int expand_special(char *str, size_t j, struct exec_arguments *command,
+                   size_t str_pos)
 {
-    if (*after_word == '}')
-        after_word++;
-    size_t ptr_len = strlen(ptr);
-    size_t str_len = strlen(str);
-    size_t after_len = strlen(after_word);
-    char *new_guy = calloc(1, ptr_len + str_len);
-    memcpy(new_guy, str, before_declaration);
-    memcpy(new_guy + before_declaration, ptr, ptr_len);
-    memcpy(new_guy + before_declaration + ptr_len, after_word, after_len);
-    return new_guy;
-}
-
-static int expand_special(char *str, size_t j, struct exec_arguments *command,
-                          size_t str_pos)
-{
-    char *special_args[] = {"@", "*", "?", "$", "#"};
-    if (str[j+1] == '{')
+    char *special_args[] = { "@", "*", "?", "$", "#" };
+    if (str[j + 1] == '{')
         j++;
     for (size_t i = 0; i < 5; i++)
     {
         if (str[j + 1] == *special_args[i])
         {
-            struct variable *ptr = find(special_args[i]);
+            struct variable *ptr = find_var(special_args[i]);
             char *tmp = calloc(1, 1);
             char *new = NULL;
             if (ptr)
-                new = replace_str(ptr->value, str, j, str + j+2);
+                new = replace_str(ptr->value, str, j, str + j + 2);
             else
                 new = replace_str(tmp, str, j, str + j + 2);
             free(tmp);
@@ -204,7 +200,14 @@ int variable_expansion(struct exec_arguments command)
         // TEMPORARY CODE FOR OTHER VARIABLE
         char *get_var = calloc(1, variable_size + 1);
         memcpy(get_var, str + j, variable_size);
-        struct variable *p = find(get_var);
+        if (strcmp(get_var, "RANDOM") == 0)
+        {
+            char new_rand[16] = { 0 };
+            int r = rand() % 32768;
+            sprintf(new_rand, "%d", r);
+            update_variable("RANDOM", new_rand);
+        }
+        struct variable *p = find_var(get_var);
         free(get_var);
         char *tmp = calloc(1, 1);
         char *new = NULL;
@@ -217,4 +220,56 @@ int variable_expansion(struct exec_arguments command)
         command.args[i] = new;
     }
     return 0;
+}
+
+int update_function(char *name, struct ast *ast)
+{
+    struct function_list *list = begining_list->func_list;
+    if (list == NULL)
+    {
+        begining_list->func_list = make_function(name, ast);
+        return 0;
+    }
+    struct function_list *actual = list;
+    struct function_list *prev = NULL;
+    while (actual)
+    {
+        if (strcmp(actual->func->name, name) == 0)
+        {
+            actual->func->body = ast;
+            return 0;
+        }
+        prev = actual;
+        actual = actual->next;
+    }
+
+    prev->next = make_function(name, ast);
+    return 0;
+}
+
+int unset_function(char *name)
+{
+    struct function_list *actual = begining_list->func_list;
+    if (actual && strcmp(actual->func->name, name) == 0)
+    {
+        begining_list->func_list = begining_list->func_list->next;
+        free(actual->func->name);
+        free(actual->func);
+        free(actual);
+        return 0;
+    }
+    while (actual)
+    {
+        if (actual->next && strcmp(actual->next->func->name, name) == 0)
+        {
+            struct function_list *to_rm = actual->next;
+            actual->next = to_rm->next;
+            free(actual->func->name);
+            free(actual->func);
+            free(actual);
+            return 0;
+        }
+        actual = actual->next;
+    }
+    return 1;
 }

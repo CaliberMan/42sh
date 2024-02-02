@@ -22,17 +22,17 @@ struct ret_msg execute_tree(struct ast *ast, struct exec_arguments args);
 
 enum ret_type
 {
-    ERR,    //error
-    EXT,    //exit
-    BRK,    //break
-    CTN,    //continue
-    VAL     //normal value
+    ERR, // error
+    EXT, // exit
+    BRK, // break
+    CTN, // continue
+    VAL // normal value
 };
 
 struct ret_msg
 {
-    enum ret_type type; //type of return message
-    int value;          //actual value
+    enum ret_type type; // type of return message
+    int value; // actual value
 };
 
 #endif /* ! EXEC_TREE_H */

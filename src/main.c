@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -7,8 +8,8 @@
 #include "exec_tree/exec_tree.h"
 #include "exec_tree/variables/variable.h"
 #include "lexer/lexer.h"
-#include "pretty_print/pretty_print.h"
 #include "parser/input/input.h"
+#include "pretty_print/pretty_print.h"
 #include "unistd.h"
 #include "utils/utils_main.h"
 
@@ -33,7 +34,7 @@ int main(int argc, char *argv[])
         lexer_free(lexer);
         return 2;
     }
-    init_variables();
+    init_variables(argv);
     int default_fds[2] = { STDIN_FILENO, STDOUT_FILENO };
     struct exec_arguments command;
 
@@ -42,13 +43,11 @@ int main(int argc, char *argv[])
     struct ret_msg ans;
     ans.type = VAL;
     ans.value = 0;
-    if (strcmp("-p", argv[1]) == 0 || (argc == 3 &&  strcmp("-p", argv[2]) == 0))
-        pretty_print(ast, 0);
-    else
-        ans = execute_tree(ast, command);
+    ans = execute_tree(ast, command);
+
     lexer_free(lexer);
     free_ast(ast);
-    free_list_variables();
+    free_list_global();
     if (ans.value == -1)
     {
         fprintf(stderr, "execute_tree error");

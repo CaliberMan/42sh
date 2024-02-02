@@ -7,26 +7,13 @@
 #include <string.h>
 
 #include "../../exec/exec.h"
-
-//variable struct
-struct variable
-{
-    char *name;
-    char *value;
-};
-
-// linked list of variables
-struct variable_list
-{
-    struct variable *var;
-    struct variable_list *next;
-};
+#include "../var_utils/var_utils.h"
 
 /**
  * @brief Frees the list of variables
  * @return Nothing
  */
-void free_list_variables(void);
+void free_list_global(void);
 
 /**
  * @brief Adds or update the variable given
@@ -40,8 +27,13 @@ int update_variable(char *name, char *new_value);
  * @param the name of the variable
  * @return the variable pointer or NULL if it doesn't exist
  */
-
-struct variable *find(char *name);
+struct variable *find_var(char *name);
+/**
+ * @brief Find the function by the name
+ * @param the name of the function
+ * @return the function pointer or NULL if it doesn't exist
+ */
+struct function *find_func(char *name);
 
 /**
  * @brief Unset the previously setted variable
@@ -50,6 +42,9 @@ struct variable *find(char *name);
  */
 int unset_variable(char *name);
 int variable_expansion(struct exec_arguments command);
-void init_variables(void);
+void init_variables(char *arg_list[]);
+
+int update_function(char *name, struct ast *ast);
+int unset_function(char *name);
 
 #endif /* ! VARIABLE_H */

@@ -15,8 +15,6 @@ enum parser_status variable_list(struct ast **ast, struct lexer *lexer,
         return PARSER_ERROR;
 
     ast_list->list[index]->data.ast_variable.value = value;
-    ast_list->nb_nodes++;
-
     return PARSER_OK;
 }
 
@@ -29,8 +27,7 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
     // create an ast list
     size_t index = 0;
     struct ast *ast_list = init_ast(AST_LIST);
-    ast_list->data.ast_list.list[index++] = *ast;
-    ast_list->data.ast_list.nb_nodes++;
+    add_ast(&ast_list->data.ast_list, *ast, &index);
 
     *ast = ast_list;
 
@@ -57,11 +54,7 @@ enum parser_status parse_list(struct ast **ast, struct lexer *lexer)
             return PARSER_ERROR;
 
         // increase the size if needed
-        if (index == ast_list->data.ast_list.capacity)
-            double_list_size(&ast_list->data.ast_list);
-
-        ast_list->data.ast_list.list[index++] = next;
-        ast_list->data.ast_list.nb_nodes++;
+        add_ast(&ast_list->data.ast_list, next, &index);
 
         if (ast_list->data.ast_list.list[index - 1]->type == AST_VARIABLE)
         {
@@ -233,7 +226,7 @@ enum parser_status parse_funcdec(struct ast **ast, struct lexer *lexer)
     token_free(token);
     *ast = ast_func;
 
-    lexer_peek(lexer);
+    token = lexer_peek(lexer);
     if (token->type != TOKEN_BRACKET_CLOSE)
     {
         token_free(token);
@@ -390,8 +383,8 @@ enum parser_status parse_compound_list(struct ast **ast, struct lexer *lexer)
         return PARSER_ERROR;
 
     struct ast *ast_list = init_ast(AST_LIST);
-    ast_list->data.ast_list.list[0] = and_or_ast;
-    ast_list->data.ast_list.nb_nodes++;
+    size_t index = 0;
+    add_ast(&ast_list->data.ast_list, and_or_ast, &index);
     *ast = ast_list;
 
     if (and_or_ast->type == AST_VARIABLE)
@@ -444,12 +437,7 @@ enum parser_status parse_compound_list_rep(struct ast **ast,
         if (status != PARSER_OK)
             return status;
 
-        if (index == ast_list->data.ast_list.capacity)
-            double_list_size(&ast_list->data.ast_list);
-
-        ast_list->data.ast_list.list[index++] = node;
-        ast_list->data.ast_list.nb_nodes++;
-
+        add_ast(&ast_list->data.ast_list, node, &index);
 
         if (ast_list->data.ast_list.list[index - 1]->type == AST_VARIABLE)
         {
