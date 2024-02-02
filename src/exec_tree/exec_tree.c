@@ -47,6 +47,13 @@ static struct ret_msg check_builtins(struct exec_arguments command)
             ans.type = EXT;
         return ans;
     }
+    else if (strcmp(command.args[0], ".") == 0)
+    {
+        ans.value = b_dot(command);
+        if (ans.value == -1)
+            ans.value = 1;
+        return ans;
+    }
     else
     {
         // function check
