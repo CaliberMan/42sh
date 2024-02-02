@@ -50,7 +50,7 @@ int b_dot(struct exec_arguments command)
     {
         char var_name[64];
         sprintf(var_name, "%zu", i - 1);
-        struct variable *var = find(var_name);
+        struct variable *var = find_var(var_name);
         if (!var)
         {
             var_list[i - 2] = NULL;
