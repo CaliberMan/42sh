@@ -46,21 +46,31 @@ int b_dot(struct exec_arguments command)
     }
     size_t cap = 64;
     char **var_list = calloc(cap, sizeof(char *));
-    for (size_t i = 2; command.args[i]; i++)
+    int out = 0;
+    for (size_t i = 2; i < 66; i++)
     {
-        char var_name[64];
-        sprintf(var_name, "%zu", i - 1);
-        struct variable *var = find_var(var_name);
-        if (!var)
+        if (out == 0 && command.args[i])
         {
-            var_list[i - 2] = NULL;
+            char var_name[64];
+            sprintf(var_name, "%zu", i - 1);
+            struct variable *var = find_var(var_name);
+            if (!var)
+            {
+                var_list[i - 2] = calloc(3, sizeof(char));
+                strcpy(var_list[i - 2], "");
+            }
+            else 
+            {
+                var_list[i - 2] = calloc(strlen(var->value) + 1, sizeof(char));
+                strcpy(var_list[i - 2], var->value);
+            }
+            update_variable(var_name, command.args[i]);
         }
         else 
         {
-            var_list[i - 2] = calloc(strlen(var->value) + 1, sizeof(char));
-            strcpy(var_list[i - 2], var->value);
+            var_list[i - 2] = NULL;
+            out = 1;
         }
-        update_variable(var_name, command.args[i]);
     }
     int ans = execute_tree(ast, command).value;
     for (size_t i = 0; i < cap; i++)
@@ -69,7 +79,10 @@ int b_dot(struct exec_arguments command)
         sprintf(var_name, "%zu", i + 1);
         if (var_list[i] != NULL)
         {
-            update_variable(var_name, var_list[i]);
+            if (var_list[i][0] == 0)
+                unset_variable(var_name);
+            else
+                update_variable(var_name, var_list[i]);
             free(var_list[i]);
         }
     }
@@ -78,7 +91,6 @@ int b_dot(struct exec_arguments command)
     free_ast(ast);
     return ans;
 }
-
 int b_cd(struct exec_arguments command)
 {
     char **args = command.args;
