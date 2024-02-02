@@ -314,7 +314,7 @@ static int pop_traverse(struct lexer *lex, struct token *t, int *index)
             if (res)
                 return res;
         }
-        else
+        else if (!(lex->input[*index] == '$' && lex->input[*index + 1] == '('))
         {
             if (lex->input[*index] == '\\' && lex->input[*index + 1])
             {
