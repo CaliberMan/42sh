@@ -49,19 +49,31 @@ int b_dot(struct exec_arguments command)
         char var_name[64];
         sprintf(var_name, "%zu", i - 1);
         struct variable *var = find(var_name);
-        var_list[i - 2] = calloc(strlen(var->value) + 1, sizeof(char));
-        strcpy(var_list[i - 2], var->value);
+        if (!var)
+        {
+            var_list[i - 2] = NULL;
+        }
+        else 
+        {
+            var_list[i - 2] = calloc(strlen(var->value) + 1, sizeof(char));
+            strcpy(var_list[i - 2], var->value);
+        }
         update_variable(var_name, command.args[i]);
     }
     int ans = execute_tree(ast, command).value;
-    for (size_t i = 0; var_list[i]; i++)
+    for (size_t i = 0; i < cap; i++)
     {
         char var_name[64];
         sprintf(var_name, "%zu", i + 1);
-        update_variable(var_name, var_list[i]);
-        free(var_list[i]);
+        if (var_list[i] != NULL)
+        {
+            update_variable(var_name, var_list[i]);
+            free(var_list[i]);
+        }
     }
     free(var_list);
+    lexer_free(lexer);
+    free_ast(ast);
     return ans;
 }
 
