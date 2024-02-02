@@ -4,7 +4,7 @@
 struct ast_case
 {
     char *expr;
-    struct ast *cases_list; // ast_list of ast_case
+    struct ast *cases_list; // ast_list of ast_pattern
 };
 
 struct ast_pattern
