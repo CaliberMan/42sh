@@ -42,7 +42,15 @@ enum parser_status parse_item(struct ast **ast, struct lexer *lexer)
             break;
         }
         else if (token->type == TOKEN_PIPE)
+        {
+            token_free(token);
             lexer_pop(lexer);
+        }
+        else if (token->type == TOKEN_ESAC)
+        {
+            token_free(token);
+            return PARSER_OK;
+        }
         else
         {
             token_free(token);
