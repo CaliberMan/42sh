@@ -55,4 +55,16 @@ int b_exit(struct exec_arguments command);
  * @return Returns whatever the file is outputins
  */
 int b_dot(struct exec_arguments command);
+/**
+ * @brief simulate the break
+ * @param the number of loops it wants to escape
+ * @return Returns the number of loops (0 if not specified) -1 if wrong args
+ */
+int b_break(struct exec_arguments command);
+/**
+ * @brief simulate the break
+ * @param the number of loops it wants to escape
+ * @return Returns the number of loops (0 if not specified) -1 if wrong args
+ */
+int b_continue(struct exec_arguments command);
 #endif /* ! BUILTINS_H */
