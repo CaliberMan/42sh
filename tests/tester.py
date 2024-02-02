@@ -52,6 +52,7 @@ config = {"categories": ["execution/echo", "execution/for", "execution/if",
                          "execution/exit",
                          "execution/functions",
                          "execution/subshells",
+                         "execution/cases",
                          "execution/piping"]}
 
 if __name__ == "__main__":
