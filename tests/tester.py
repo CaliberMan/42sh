@@ -50,6 +50,7 @@ config = {"categories": ["execution/echo", "execution/for", "execution/if",
                          "execution/variable",
                          "execution/operator",
                          "execution/exit",
+                         "execution/functions",
                          "execution/piping"]}
 
 if __name__ == "__main__":
