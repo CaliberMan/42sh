@@ -195,7 +195,10 @@ static enum token_type single_char_tokens(struct lexer *lex, struct token *t,
     if (lex->input[index] == ';')
     {
 	if (lex->input[index + 1] == ';')
+	{
+	    t->data[1] = ';';
 	    tt = TOKEN_DOUBLE_COLON;
+	}
 	else
             tt = TOKEN_COLON;
     }
