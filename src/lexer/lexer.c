@@ -112,16 +112,9 @@ static int increase_capacity(struct token *t)
 static int valid_char(struct lexer *lex, int *index)
 {
     char c = lex->input[*index];
-    return c != ' ' &&
-           c != ';' &&
-           c != '\n' &&
-           c != 0 &&
-           c != '<' &&
-           c != '>' &&
-           c != '|' &&
-           c != '(' &&
-           c != ')' &&
-           !((c == '&' || c == '|') && lex->input[(*index) + 1] == c);
+    return c != ' ' && c != ';' && c != '\n' && c != 0 && c != '<' && c != '>'
+        && c != '|' && c != '(' && c != ')'
+        && !((c == '&' || c == '|') && lex->input[(*index) + 1] == c);
 }
 
 static void init_token_2(struct lexer *lex, struct token *t, int pop)
@@ -187,7 +180,7 @@ static int init_token(struct lexer *lex, struct token *t, int pop)
 }
 
 static enum token_type single_char_tokens(struct lexer *lex, struct token *t,
-                                   int index)
+                                          int index)
 {
     t->data[0] = lex->input[index];
     enum token_type tt = TOKEN_ERROR;
@@ -213,9 +206,8 @@ static enum token_type single_char_tokens(struct lexer *lex, struct token *t,
         tt = TOKEN_BRACKET_OPEN;
     else if (lex->input[index] == ')')
         tt = TOKEN_BRACKET_CLOSE;
- 
-    else if (lex->input[index] == '<' ||
-            lex->input[index] == '>')
+
+    else if (lex->input[index] == '<' || lex->input[index] == '>')
     {
         if (lex->input[index + 1] == '>' || lex->input[index + 1] == '&'
             || (lex->input[index] == '>' && lex->input[index + 1] == '|'))
@@ -284,8 +276,8 @@ static int pop_traverse(struct lexer *lex, struct token *t, int *index)
     }
     while (valid_char(lex, index))
     {
-        if (lex->input[*index] == '=' && t->len > 0 &&
-                lex->prev_token->type != TOKEN_WORD)
+        if (lex->input[*index] == '=' && t->len > 0
+            && lex->prev_token->type != TOKEN_WORD)
         {
             int valid = 1;
             if (!(isalpha(t->data[0]) || t->data[0] == '_'))
@@ -311,12 +303,12 @@ static int pop_traverse(struct lexer *lex, struct token *t, int *index)
         }
         else
         {
- 	    if (lex->input[*index] == '\\' && lex->input[*index + 1])
-	    {
-		    (*index)++;
-		    if (!lex->input[*index])
-			    return 1;
-	    }
+            if (lex->input[*index] == '\\' && lex->input[*index + 1])
+            {
+                (*index)++;
+                if (!lex->input[*index])
+                    return 1;
+            }
             t->data[t->len] = lex->input[*index];
             t->len++;
             if (t->len == t->capacity)

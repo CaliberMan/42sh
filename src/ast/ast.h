@@ -12,8 +12,8 @@
 #include "operator/ast_operator.h"
 #include "pipe/ast_pipe.h"
 #include "redir/ast_redir.h"
-#include "variable/ast_variable.h"
 #include "subshells/ast_sub.h"
+#include "variable/ast_variable.h"
 
 enum ast_type
 {

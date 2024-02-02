@@ -1,6 +1,8 @@
 #include "builtins.h"
-#include "stdlib.h"
+
 #include <stdio.h>
+
+#include "stdlib.h"
 
 static size_t get_arr_len(char **arr)
 {
@@ -119,7 +121,7 @@ int b_unset(struct exec_arguments command)
     else if (strcmp("-f", command.args[i]) == 0)
     {
         i++;
-        //TODO fix once the functions are working
+        // TODO fix once the functions are working
     }
     else
     {
@@ -128,7 +130,7 @@ int b_unset(struct exec_arguments command)
             int ans = unset_variable(command.args[i]);
             if (ans == 1)
             {
-                //TODO fix once the functions are working
+                // TODO fix once the functions are working
             }
         }
     }
@@ -146,5 +148,5 @@ int b_exit(struct exec_arguments command)
         fprintf(stderr, "exit: too many arguments");
         return -1;
     }
-    return ans < 0 ? 256 + (ans % 256) : ans % 256 ;
+    return ans < 0 ? 256 + (ans % 256) : ans % 256;
 }

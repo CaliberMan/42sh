@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -7,8 +8,8 @@
 #include "exec_tree/exec_tree.h"
 #include "exec_tree/variables/variable.h"
 #include "lexer/lexer.h"
-#include "pretty_print/pretty_print.h"
 #include "parser/input/input.h"
+#include "pretty_print/pretty_print.h"
 #include "unistd.h"
 
 int is_valid_file(const char *path)
@@ -67,38 +68,22 @@ struct lexer *stdin_to_lexer(void)
 
 struct lexer *create_lexer(int argc, char *argv[])
 {
-    if (argc > 3)
+    if (argc == 1)
     {
-        fprintf(stderr, "Invalid number of arguments");
-        return NULL;
-    }
-    if (argc == 3)
-    {
-        if (strcmp("-p", argv[2]) == 0)
-        {
-            struct lexer *lexer = file_to_lexer(argv[1]);
-            return lexer;
-        }
-        if (strcmp("-c", argv[1]) && strcmp("-p", argv[1]))
-        {
-            fprintf(stderr, "invalid arguments");
-            return NULL;
-        }
-        
-	char *buffer = calloc(strlen(argv[2]) + 1, sizeof(char));
-	for (int i = 0; argv[2][i]; i++)
-		buffer[i] = argv[2][i];
-        struct lexer *lexer = init_lexer(buffer);
+        struct lexer *lexer = stdin_to_lexer();
         return lexer;
     }
-    else if (argc == 2)
+    else if (strcmp("-c", argv[1]) == 0)
     {
-        struct lexer *lexer = file_to_lexer(argv[1]);
+        char *buffer = calloc(strlen(argv[2]) + 1, sizeof(char));
+        for (int i = 0; argv[2][i]; i++)
+            buffer[i] = argv[2][i];
+        struct lexer *lexer = init_lexer(buffer);
         return lexer;
     }
     else
     {
-        struct lexer *lexer = stdin_to_lexer();
+        struct lexer *lexer = file_to_lexer(argv[1]);
         return lexer;
     }
 }
@@ -122,7 +107,7 @@ int main(int argc, char *argv[])
         lexer_free(lexer);
         return 2;
     }
-    init_variables();
+    init_variables(argv);
     int default_fds[2] = { STDIN_FILENO, STDOUT_FILENO };
     struct exec_arguments command;
 
@@ -131,10 +116,8 @@ int main(int argc, char *argv[])
     struct ret_msg ans;
     ans.type = VAL;
     ans.value = 0;
-    if (strcmp("-p", argv[1]) == 0 || (argc == 3 &&  strcmp("-p", argv[2]) == 0))
-        pretty_print(ast, 0);
-    else
-        ans = execute_tree(ast, command);
+    ans = execute_tree(ast, command);
+
     lexer_free(lexer);
     free_ast(ast);
     free_list_global();
