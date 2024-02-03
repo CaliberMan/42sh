@@ -47,4 +47,7 @@ void init_variables(char *arg_list[]);
 int update_function(char *name, struct ast *ast);
 int unset_function(char *name);
 
+void set_global_list(struct global_list *new_list);
+struct global_list *get_global_list(void);
+
 #endif /* ! VARIABLE_H */

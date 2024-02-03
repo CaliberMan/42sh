@@ -8,6 +8,16 @@
 
 struct global_list *begining_list = NULL;
 
+void set_global_list(struct global_list *new_list)
+{
+    begining_list = new_list;
+}
+
+struct global_list *get_global_list(void)
+{
+    return begining_list;
+}
+
 void free_list_global(void)
 {
     struct variable_list *list = begining_list->var_list;
