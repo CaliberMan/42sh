@@ -36,22 +36,8 @@ static int litlle_helper(struct ast *ast, struct lexer *lexer,
     return 1;
 }
 
-int b_dot(struct exec_arguments command)
+static int little_helper2(struct exec_arguments command, char **var_list)
 {
-    struct lexer *lexer = file_to_lexer(command.args[1]);
-    if (!lexer)
-    {
-        fprintf(stderr, "%s: not runnable", command.args[1]);
-        return 1;
-    }
-    struct ast *ast;
-    enum parser_status ps = parse_input(&ast, lexer);
-    if (ps == PARSER_ERROR)
-    {
-        return litlle_helper(ast, lexer, command);
-    }
-    size_t cap = 64;
-    char **var_list = calloc(cap, sizeof(char *));
     int out = 0;
     for (size_t i = 2; i < 66; i++)
     {
@@ -78,6 +64,26 @@ int b_dot(struct exec_arguments command)
             out = 1;
         }
     }
+    return 0;
+}
+
+int b_dot(struct exec_arguments command)
+{
+    struct lexer *lexer = file_to_lexer(command.args[1]);
+    if (!lexer)
+    {
+        fprintf(stderr, "%s: not runnable", command.args[1]);
+        return 1;
+    }
+    struct ast *ast;
+    enum parser_status ps = parse_input(&ast, lexer);
+    if (ps == PARSER_ERROR)
+    {
+        return litlle_helper(ast, lexer, command);
+    }
+    size_t cap = 64;
+    char **var_list = calloc(cap, sizeof(char *));
+    little_helper2(command, var_list);
     int ans = execute_tree(ast, command).value;
     for (size_t i = 0; i < cap; i++)
     {
