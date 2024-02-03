@@ -7,14 +7,12 @@
 #include <unistd.h>
 
 #include "../exec_tree/var_utils/var_utils.h"
+#include "../exec_tree/variables/variable.h"
 #include "../utils/utils_main.h"
-
-extern struct global_list *begining_list;
 
 static void run_main(char **buffer, char *str)
 {
-    struct global_list *temp = begining_list;
-    begining_list = NULL;
+    struct global_list *temp = get_global_list();
 
     int is_main = 0;
     if (isatty(1))
@@ -30,7 +28,7 @@ static void run_main(char **buffer, char *str)
     argv[2] = str;
     main(argc, argv);
     free(argv);
-    begining_list = temp;
+    set_global_list(temp);
 
     long length;
     if (f)
@@ -43,7 +41,13 @@ static void run_main(char **buffer, char *str)
             fread(*buffer, 1, length, f);
     }
     if (is_main)
+    {
+        fclose(f);
         freopen ("/dev/tty", "a+", stdout);
+        remove("subshell_output_file.txt");
+    }
+    else
+        freopen("subshell_output_file.txt", "w+", f);
 }
 
 static int find_close(char *str, int index)
