@@ -11,7 +11,7 @@
 
 extern struct global_list *begining_list;
 
-void run_main(char **buffer, char *str)
+static void run_main(char **buffer, char *str)
 {
     struct global_list *temp = begining_list;
     begining_list = NULL;
@@ -484,6 +484,8 @@ struct token *lexer_pop(struct lexer *lex)
             if (io)
             {
                 t->type = TOKEN_IONUM;
+                token_free(lex->prev_token);
+                lex->prev_token = t;
                 return t;
             }
         }
