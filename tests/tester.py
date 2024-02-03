@@ -52,7 +52,8 @@ config = {"categories": ["execution/echo", "execution/for", "execution/if",
                          "execution/exit",
                          "execution/functions",
                          "execution/subshells",
-                         "execution/piping"]}
+                         "execution/piping",
+                         "execution/break_continue"]}
 
 if __name__ == "__main__":
     parser = ArgumentParser("TestSuite")

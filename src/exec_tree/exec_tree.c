@@ -58,7 +58,6 @@ static struct ret_msg check_builtins(struct exec_arguments command)
     }
     else if (strcmp(command.args[0], "break") == 0)
     {
-        ans.value = 1;
         if (nb_loops == 0)
         {
             fprintf(stderr, "break: only meaningfull if a 'while', 'for' or 'until' loop");
@@ -69,11 +68,11 @@ static struct ret_msg check_builtins(struct exec_arguments command)
         if (ans.value == -1)
         {
             ans.value = 1;
-            ans.type = VAL;
+            ans.type = EXT;
         }
         else 
         {
-            ans.type = CTN;
+            ans.type = BRK;
         }
         if (ans.value > nb_loops)
             ans.value = nb_loops;
@@ -81,17 +80,16 @@ static struct ret_msg check_builtins(struct exec_arguments command)
     }
     else if (strcmp(command.args[0], "continue") == 0)
     {
-        ans.value = 1;
         if (nb_loops == 0)
         {
-            fprintf(stderr, "break: only meaningfull if a 'while', 'for' or 'until' loop");
+            fprintf(stderr, "continue: only meaningfull if a 'while', 'for' or 'until' loop");
             return ans;
         }
         ans.value = b_continue(command);
         if (ans.value == -1)
         {
             ans.value = 1;
-            ans.type = VAL;
+            ans.type = EXT;
         }
         else 
         {
@@ -111,7 +109,7 @@ static struct ret_msg check_builtins(struct exec_arguments command)
             return ans;
         }
         ans.value = exec(command);
-        if (ans.value != 0 && ans.value != 1)
+        if (ans.value != 0 && ans.type != 1)
             ans.type = ERR;
         return ans;
     }
@@ -147,8 +145,6 @@ static struct ret_msg exec_cmd(struct exec_arguments describer, struct ast *ast)
         free(to_pass[i]);
     free(to_pass);
 
-    if (ans.value != 0 && ans.value != 1)
-        ans.type = ERR;
     return ans;
 }
 
@@ -168,9 +164,9 @@ static struct ret_msg exec_if(struct exec_arguments describer, struct ast *ast)
     }
     else if (if_struct.else_body != NULL)
     {
+        ans = execute_tree(if_struct.else_body, describer);
         if (ans.type == EXT || ans.type == BRK || ans.type == CTN)
             return ans;
-        ans = execute_tree(if_struct.else_body, describer);
     }
     else
         ans.value = 0;
@@ -389,18 +385,7 @@ static struct ret_msg exec_loop(struct exec_arguments describer,
                 nb_loops--;
                 return ret;
             }
-            if (stop == 2) 
-            {
-                ret = execute_tree(loop_struct.cond, describer);
-            }
             ret = execute_tree(loop_struct.cond, describer);
-            if (stop == 0)
-            {
-                nb_loops--;
-                return ret;
-            }
-            if (stop == 2)
-                ret = execute_tree(loop_struct.cond, describer);
         }
     }
     else if (loop_struct.type == UNTIL_LOOP)
@@ -415,7 +400,7 @@ static struct ret_msg exec_loop(struct exec_arguments describer,
         if (stop == 2)
             ret = execute_tree(loop_struct.cond, describer);
         while (ret.type == VAL && ret.value == 0)
-        {            
+        {
             ans = execute_tree(loop_struct.then_body, describer);
             stop = stop_loop_check(&ans);
             if (stop == 0)
@@ -423,18 +408,7 @@ static struct ret_msg exec_loop(struct exec_arguments describer,
                 nb_loops--;
                 return ret;
             }
-            if (stop == 2) 
-            {
-                ret = execute_tree(loop_struct.cond, describer);
-            }
             ret = execute_tree(loop_struct.cond, describer);
-            if (stop == 0)
-            {
-                nb_loops--;
-                return ret;
-            }
-            if (stop == 2)
-                ret = execute_tree(loop_struct.cond, describer);
         }
     }
     else
