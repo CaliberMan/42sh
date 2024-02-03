@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-enum parser_status variable_list(struct ast **ast, struct lexer *lexer,
+static enum parser_status variable_list(struct ast **ast, struct lexer *lexer,
                                  size_t index)
 {
     // get the value
