@@ -34,6 +34,7 @@ void free_list_global(void)
             actual = next;
         }
     }
+    free(begining_list);
 }
 
 int update_variable(char *name, char *new_value)
