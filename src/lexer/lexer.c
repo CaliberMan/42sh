@@ -4,6 +4,116 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+
+#include "../exec_tree/var_utils/var_utils.h"
+#include "../utils/utils_main.h"
+
+extern struct global_list *begining_list;
+
+void run_main(char **buffer, char *str)
+{
+    struct global_list *temp = begining_list;
+    begining_list = NULL;
+
+    int is_main = 0;
+    if (isatty(1))
+        is_main = 1;
+    FILE *f = freopen("subshell_output_file.txt", "w+", stdout);
+
+    int argc = 3;
+    char **argv = calloc(4, sizeof(char *));
+    char *name = "alt42";
+    char *c = "-c";
+    argv[0] = name;
+    argv[1] = c;
+    argv[2] = str;
+    main(argc, argv);
+    free(argv);
+    begining_list = temp;
+
+    long length;
+    if (f)
+    {
+        fseek(f, 0, SEEK_END);
+        length = ftell(f);
+        fseek(f, 0, SEEK_SET);
+        *buffer = calloc(length + 1, sizeof(char));
+        if (*buffer)
+            fread(*buffer, 1, length, f);
+    }
+    if (is_main)
+        freopen ("/dev/tty", "a+", stdout);
+}
+
+static int find_close(char *str, int index)
+{
+    int depth = 1;
+    while (str[index] && depth)
+    {
+        if (str[index] == '"')
+            while (str[index] && !(str[index] == '"' && str[index - 1] == '\\'))
+                index++;
+        else if (str[index] == '\'')
+            while (str[index] && str[index] != '\'')
+                index++;
+        else if (str[index] == '(')
+            depth++;
+        else if (str[index] == ')')
+            depth--;
+        index++;
+    }
+    if (depth != 0)
+        return -1;
+    return index;
+}
+
+static int expand_subshells(struct lexer *lexer)
+{
+    for (int i = 0; lexer->input[i]; i++)
+    {
+        if (lexer->input[i] == '$' && lexer->input[i + 1] == '(')
+        {
+            int end = find_close(lexer->input, i + 2);
+            if (end == -1)
+                return 1;
+            char *str = calloc(end - i, sizeof(char));
+            for (int j = i + 2; j < end - 1; j++)
+                str[j - i - 2] = lexer->input[j];
+            char *buffer = NULL;
+            run_main(&buffer, str);
+            char *new_input = calloc(strlen(lexer->input) + strlen(buffer), sizeof(char));
+            free(str);
+            int index = 0;
+            while (index < i)
+            {
+                new_input[index] = lexer->input[index];
+                index++;
+            }
+            int index_b = 0;
+            while (buffer[index_b])
+            {
+                if (buffer[index_b] == '\n')
+                    new_input[index] = ' ';
+                else
+                    new_input[index] = buffer[index_b];
+                index++;
+                index_b++;
+            }
+            while (lexer->input[end])
+            {
+                new_input[index] = lexer->input[end];
+                index++;
+                end++;
+            }
+            if (buffer)
+                free(buffer);
+            free(lexer->input);
+            lexer->input = new_input;
+        }
+    }
+    return 0;
+}
 
 struct lexer *init_lexer(char *input)
 {
@@ -21,6 +131,7 @@ struct lexer *init_lexer(char *input)
     lex->prev_token = t;
     lex->input = input;
     lex->status = LEXER_OK;
+    expand_subshells(lex);
     return lex;
 }
 
@@ -194,12 +305,12 @@ static enum token_type single_char_tokens(struct lexer *lex, struct token *t,
     enum token_type tt = TOKEN_ERROR;
     if (lex->input[index] == ';')
     {
-	if (lex->input[index + 1] == ';')
-	{
-	    t->data[1] = ';';
-	    tt = TOKEN_DOUBLE_COLON;
-	}
-	else
+        if (lex->input[index + 1] == ';')
+        {
+            t->data[1] = ';';
+            tt = TOKEN_DOUBLE_COLON;
+        }
+        else
             tt = TOKEN_COLON;
     }
     else if (lex->input[index] == '\n')
@@ -259,7 +370,11 @@ static int lex_string(struct lexer *lex, struct token *t, int *index)
         (*index)++;
         while (lex->input[*index] != '"' && lex->input[*index] != 0)
         {
-            if (lex->input[*index] == '\\')
+            if (lex->input[*index] == '\\' && (lex->input[*index + 1] == '$' ||
+                lex->input[*index + 1] == '\'' ||
+                lex->input[*index + 1] == '"' ||
+                lex->input[*index + 1] == '\\' ||
+                lex->input[*index + 1] == '\n'))
             {
                 (*index)++;
                 if (lex->input[*index] == 0)
@@ -319,8 +434,10 @@ static int pop_traverse(struct lexer *lex, struct token *t, int *index)
         }
         else if (!(lex->input[*index] == '$' && lex->input[*index + 1] == '('))
         {
-            if (lex->input[*index] == '\\' && lex->input[*index + 1])
+            if (lex->input[*index] == '\\')
             {
+                if (!lex->input[*index + 1])
+                    return 1;
                 (*index)++;
                 if (!lex->input[*index])
                     return 1;

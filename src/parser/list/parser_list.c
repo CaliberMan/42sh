@@ -107,6 +107,43 @@ enum parser_status parse_and_or(struct ast **ast, struct lexer *lexer)
     return PARSER_OK;
 }
 
+static enum parser_status pipeline_loop(struct ast **ast, struct lexer *lexer)
+{
+    int num_args = 0;
+    while (1)
+    {
+        struct token *token = lexer_peek(lexer);
+        if (token->type != TOKEN_PIPE)
+        {
+            token_free(token);
+            return PARSER_OK;
+        }
+
+        lexer_pop(lexer);
+        token_free(token);
+        pop_duplicates(lexer, TOKEN_NEWLINE);
+
+        num_args++;
+        struct ast *pipe_ast = init_ast(AST_PIPE);
+        pipe_ast->data.ast_pipe.left_arg = *ast;
+        *ast = pipe_ast;
+
+        struct ast *right_arg;
+        enum parser_status status = parse_command(&right_arg, lexer);
+        if (status == PARSER_ERROR)
+            return status;
+        if (status == PARSER_UNKNOWN_TOKEN && num_args % 2 != 0)
+            return PARSER_ERROR;
+        if (status == PARSER_UNKNOWN_TOKEN && num_args % 2 == 0)
+            return PARSER_OK;
+
+        pipe_ast->data.ast_pipe.right_arg = right_arg;
+        num_args++;
+    }
+
+    return PARSER_OK;
+}
+
 enum parser_status parse_pipeline(struct ast **ast, struct lexer *lexer)
 {
     struct token *token = lexer_peek(lexer);
@@ -129,46 +166,12 @@ enum parser_status parse_pipeline(struct ast **ast, struct lexer *lexer)
         status = parse_command(ast, lexer);
 
     token_free(token);
-
     if (status == PARSER_ERROR)
         return PARSER_ERROR;
-
     if (status == PARSER_UNKNOWN_TOKEN)
         return PARSER_UNKNOWN_TOKEN;
 
-    int num_args = 0;
-    while (1)
-    {
-        struct token *token = lexer_peek(lexer);
-        if (token->type != TOKEN_PIPE)
-        {
-            token_free(token);
-            return PARSER_OK;
-        }
-
-        lexer_pop(lexer);
-        token_free(token);
-        pop_duplicates(lexer, TOKEN_NEWLINE);
-
-        num_args++;
-        struct ast *pipe_ast = init_ast(AST_PIPE);
-        pipe_ast->data.ast_pipe.left_arg = *ast;
-        *ast = pipe_ast;
-
-        struct ast *right_arg;
-        status = parse_command(&right_arg, lexer);
-        if (status == PARSER_ERROR)
-            return status;
-        if (status == PARSER_UNKNOWN_TOKEN && num_args % 2 != 0)
-            return PARSER_ERROR;
-        if (status == PARSER_UNKNOWN_TOKEN && num_args % 2 == 0)
-            return PARSER_OK;
-
-        pipe_ast->data.ast_pipe.right_arg = right_arg;
-        num_args++;
-    }
-
-    return PARSER_OK;
+    return pipeline_loop(ast, lexer);
 }
 
 static enum parser_status redirect_loop(struct ast **ast, struct lexer *lexer)

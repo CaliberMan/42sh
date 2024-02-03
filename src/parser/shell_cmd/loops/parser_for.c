@@ -55,42 +55,22 @@ enum parser_status rule2(struct ast **ast, struct lexer *lexer)
     }
 
     token_free(token);
-    struct ast *list = init_ast(AST_LIST);
     struct ast *word_list = init_ast(AST_CMD);
-
-    size_t list_index = 0;
-    add_ast(&list->data.ast_list, word_list, &list_index);
-    *ast = list;
+    *ast = word_list;
 
     size_t index = 0;
     token = lexer_peek(lexer);
-    while (token->type == TOKEN_WORD || token->type == TOKEN_BRACKET_OPEN)
+    while (token->type == TOKEN_WORD)
     {
-        if (token->type == TOKEN_WORD)
-        {
-            lexer_pop(lexer);
-            copy_word(token, word_list, index++);
+        lexer_pop(lexer);
+        copy_word(token, word_list, index++);
 
-            if (index == word_list->data.ast_cmd.capacity)
-                realloc_words(&word_list->data.ast_cmd);
-        }
-        else
-        {
-            struct ast *subshell;
-            if (parse_shell_command(&subshell, lexer) != PARSER_OK)
-                return PARSER_ERROR;
-
-            add_ast(&list->data.ast_list, subshell, &list_index);
-            index = 0;
-            word_list = init_ast(AST_CMD);
-        }
+        if (index == word_list->data.ast_cmd.capacity)
+            realloc_words(&word_list->data.ast_cmd);
 
         token_free(token);
         token = lexer_peek(lexer);
     }
-
-    if (index == 0)
-        free_ast(word_list);
 
     if (token->type != TOKEN_COLON && token->type != TOKEN_NEWLINE)
     {

@@ -6,5 +6,6 @@
 struct lexer *file_to_lexer(char *filename);
 struct lexer *stdin_to_lexer(void);
 struct lexer *create_lexer(int argc, char *argv[]);
+int main(int argc, char *argv[]);
 
 #endif /* ! UTILS_MAIN_H */
