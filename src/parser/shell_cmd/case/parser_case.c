@@ -6,8 +6,8 @@
 
 enum parser_status parse_item(struct ast **ast, struct lexer *lexer)
 {
-    struct ast *list = init_ast(AST_LIST);
     struct ast *pattern = init_ast(AST_PATTERN);
+    struct ast *list = init_ast(AST_CMD);
 
     pattern->data.ast_pattern.pattern = list;
     *ast = pattern;
@@ -16,36 +16,17 @@ enum parser_status parse_item(struct ast **ast, struct lexer *lexer)
     struct token *token = lexer_peek(lexer);
     while (1)
     {
-        if (token->type == TOKEN_BRACKET_OPEN)
+        if (token->type == TOKEN_WORD)
         {
-            token_free(token);
-            struct ast *shell;
-            enum parser_status status = parse_shell_command(&shell, lexer);
-            if (status != PARSER_OK)
-                return PARSER_ERROR;
-
-            add_ast(&list->data.ast_list, shell, &index);
-        }
-        else if (token->type == TOKEN_WORD)
-        {
-            struct ast *cmd = init_ast(AST_CMD);
-            cmd->data.ast_cmd.words[0] = calloc(token->len + 1, sizeof(char));
-            cmd->data.ast_cmd.words[0] =
-                strcpy(cmd->data.ast_cmd.words[0], token->data);
-            add_ast(&list->data.ast_list, cmd, &index);
+            list->data.ast_cmd.words[index] =
+                calloc(token->len + 1, sizeof(char));
+            list->data.ast_cmd.words[index] =
+                strcpy(list->data.ast_cmd.words[index], token->data);
             lexer_pop(lexer);
-            token_free(token);
-        }
-        else if (token->type == TOKEN_BRACKET_CLOSE)
-        {
-            lexer_pop(lexer);
-            break;
+            index++;
         }
         else if (token->type == TOKEN_PIPE)
-        {
-            token_free(token);
             lexer_pop(lexer);
-        }
         else if (token->type == TOKEN_ESAC)
         {
             token_free(token);
@@ -57,10 +38,18 @@ enum parser_status parse_item(struct ast **ast, struct lexer *lexer)
             return PARSER_ERROR;
         }
 
+        token_free(token);
         token = lexer_peek(lexer);
     }
 
+    if (token->type != TOKEN_BRACKET_CLOSE)
+    {
+        token_free(token);
+        return PARSER_ERROR;
+    }
+
     token_free(token);
+    lexer_pop(lexer);
     pop_duplicates(lexer, TOKEN_NEWLINE);
 
     struct ast *statement;
