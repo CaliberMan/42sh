@@ -220,3 +220,42 @@ int b_exit(struct exec_arguments command)
     return ans < 0 ? 256 + (ans % 256) : ans % 256;
 }
 
+int b_break(struct exec_arguments command)
+{
+    size_t i = 1;
+    int ans = 0;
+    if (!command.args[i])
+        return 0;
+    ans = atoi(command.args[i++]);
+    if (ans < 0)
+    {
+        fprintf(stderr, "continue: %i loop count out of range", ans);
+        ans = -1;
+    }
+    if (command.args[i])
+    {
+        ans = -1;
+        fprintf(stderr, "break: too many arguments");
+    }
+    return ans;
+}
+
+int b_continue(struct exec_arguments command)
+{
+    size_t i = 1;
+    int ans = 0;
+    if (!command.args[i])
+        return 0;
+    ans = atoi(command.args[i++]);
+    if (ans < 0)
+    {
+        fprintf(stderr, "continue: %i loop count out of range", ans);
+        ans = -1;
+    }
+    if (command.args[i])
+    {
+        ans = -1;
+        fprintf(stderr, "continue: too many arguments");
+    }
+    return ans;
+}

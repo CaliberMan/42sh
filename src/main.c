@@ -53,5 +53,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "execute_tree error");
         return 1;
     }
+    if (ans.type == BRK || ans.type == CTN)
+        ans.value = 0;
     return ans.value;
 }

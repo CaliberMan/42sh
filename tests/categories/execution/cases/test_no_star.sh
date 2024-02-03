@@ -6,4 +6,3 @@ case Lithuania in
         echo NADA
         ;;
 esac
-
