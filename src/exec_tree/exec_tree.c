@@ -105,7 +105,20 @@ static struct ret_msg check_builtins(struct exec_arguments command)
         struct function *func = NULL;
         if ((func = find_func(command.args[0])))
         {
+            struct global_list *prev_context = get_global_list();
+            struct exec_arguments passing_args;
+            char *buf[] = { "42sh", command.args[0],command.args[1],
+                command.args[2],command.args[3],
+                command.args[4],command.args[5],
+                command.args[6],command.args[7],
+                command.args[8],command.args[9] };
+
+            passing_args.args = buf;
+            init_variables(passing_args.args);
             ans = execute_tree(func->body, command);
+
+            free_list_global();
+            set_global_list(prev_context);
             return ans;
         }
         ans.value = exec(command);
