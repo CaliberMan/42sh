@@ -94,7 +94,10 @@ static int expand_subshells(struct lexer *lexer)
 	    int index_b = 0;
 	    while (buffer[index_b])
 	    {
-		new_input[index] = buffer[index_b];
+		if (buffer[index_b] == '\n')
+		    new_input[index] = ' ';
+		else
+		    new_input[index] = buffer[index_b];
 	    	index++;
 		index_b++;
 	    }
