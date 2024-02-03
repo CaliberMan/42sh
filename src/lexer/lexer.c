@@ -83,7 +83,7 @@ static int expand_subshells(struct lexer *lexer)
 		str[j - i - 2] = lexer->input[j];
 	    char *buffer = NULL;
 	    run_main(&buffer, str);
-	    char *new_input = calloc(strlen(str) + strlen(buffer), sizeof(char));
+	    char *new_input = calloc(strlen(lexer->input) + strlen(buffer), sizeof(char));
 	    free(str);
 	    int index = 0;
 	    while (index < i)
