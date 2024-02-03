@@ -249,6 +249,42 @@ static struct ret_msg wrong_file(char *name)
     return ans;
 }
 
+static int find_out(int *in_fd, int *out_fd, int ionumber, struct ast*ast)
+{
+    switch (ast->data.ast_redir.type)
+    {
+    case STD_OUT:
+    case STD_RIGHT_ARROW_PIPE:
+        *in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
+        *out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
+                      O_CREAT | O_TRUNC | O_WRONLY, 0644);
+        break;
+    case STD_IN:
+        *out_fd =
+            open(ast->data.ast_redir.right->data.ast_file.filename, O_RDONLY);
+        *in_fd = ionumber != -1 ? ionumber : STDIN_FILENO;
+        break;
+    case STD_OUT_END:
+        *in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
+        *out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
+                      O_APPEND | O_WRONLY, 0644);
+        break;
+    case STD_IN_OUT:
+        *in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
+        *out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
+                      O_CREAT | O_RDWR, 0666);
+        break;
+    case STD_ERR:
+        *in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
+        *out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
+                      O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        break;
+    default:
+        return 1;
+    }
+    return 0;
+}
+
 static struct ret_msg exec_redir(struct exec_arguments describer,
                                  struct ast *ast)
 {
@@ -258,71 +294,41 @@ static struct ret_msg exec_redir(struct exec_arguments describer,
     int in_fd;
     int out_fd;
     int ionumber = ast->data.ast_redir.ioNumber;
-    switch (ast->data.ast_redir.type)
+    if (find_out(&in_fd, &out_fd, ionumber, ast) == 1)
     {
-    case STD_OUT:
-    case STD_RIGHT_ARROW_PIPE:
-        in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
-        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
-                      O_CREAT | O_TRUNC | O_WRONLY, 0644);
-        break;
-    case STD_IN:
-        out_fd =
-            open(ast->data.ast_redir.right->data.ast_file.filename, O_RDONLY);
-        in_fd = ionumber != -1 ? ionumber : STDIN_FILENO;
-        break;
-    case STD_OUT_END:
-        in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
-        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
-                      O_APPEND | O_WRONLY, 0644);
-        break;
-    case STD_IN_OUT:
-        in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
-        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
-                      O_CREAT | O_RDWR, 0666);
-        break;
-    case STD_ERR:
-        in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
-        out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
-                      O_WRONLY | O_CREAT | O_TRUNC, 0666);
-        break;
-    default:
         ans.value = 1;
-        ans.type = ERR;
         return ans;
     }
     if (out_fd == -1)
         return wrong_file(ast->data.ast_redir.right->data.ast_file.filename);
 
-    int f = fork();
-    if (f < 0)
-        errx(1, "Bad fork");
-    // child
-    if (f == 0)
+    int saved = dup(in_fd);
+    dup2(out_fd, in_fd);
+    int saved_2 = -1;
+    if (ast->data.ast_redir.type == STD_IN_OUT)
     {
-        dup2(out_fd, in_fd);
-        if (ast->data.ast_redir.type == STD_IN_OUT)
-            dup2(out_fd, STDIN_FILENO);
-        if (ast->data.ast_redir.type == STD_ERR)
-            dup2(out_fd, STD_ERR);
-        close(out_fd);
-        return execute_tree(ast->data.ast_redir.left, describer);
+        saved_2 = dup(STDIN_FILENO);
+        dup2(out_fd, STDIN_FILENO);
     }
-    else
+    if (ast->data.ast_redir.type == STD_ERR)
     {
-        int status;
-        waitpid(f, &status, 0);
-        close(out_fd);
-        if (WIFEXITED(status))
-        {
-            ans.value = WEXITSTATUS(status);
-            if (ans.value != 0 && ans.value != 1)
-            {
-                ans.type = ERR;
-            }
-            return ans;
-        }
+        saved_2 = dup(STD_ERR);
+        dup2(out_fd, STD_ERR);
     }
+    close(out_fd);
+    ans = execute_tree(ast->data.ast_redir.left, describer);
+    dup2(saved, in_fd);
+    if (ast->data.ast_redir.type == STD_IN_OUT)
+    {
+        dup2(saved_2, STDIN_FILENO);
+        close(saved_2);
+    }
+    if (ast->data.ast_redir.type == STD_ERR)
+    {
+        dup2(saved_2, STD_ERR);
+        close(saved_2);
+    }
+    close(saved);
     return ans;
 }
 

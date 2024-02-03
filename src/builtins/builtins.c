@@ -172,7 +172,7 @@ int b_echo(struct exec_arguments command)
     }
     if (newline)
         printf("\n");
-
+    fflush(stdout);
     return 0;
 }
 
