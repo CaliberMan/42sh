@@ -87,7 +87,7 @@ if __name__ == "__main__":
         int_pass = 0
         for file in category.tests:
             print(file)
-            sh_proc = run_shell(binary_path, file)
+            sh_proc = run_shell(binary_path,file)
             sh_ref = run_shell("bash", "--posix", file)
 
             try:

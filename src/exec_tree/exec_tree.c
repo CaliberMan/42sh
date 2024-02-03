@@ -422,20 +422,41 @@ static struct ret_msg exec_loop(struct exec_arguments describer,
         if (loop_struct.cond)
         {
             char **l = loop_struct.cond->data.ast_cmd.words;
+            // copy commands for expansion
+            size_t len_to_pass = 0;
+            for (size_t i = 0; l[i]; i++)
+                len_to_pass++;
+            char **to_pass = calloc(len_to_pass + 1, sizeof(char *));
             for (size_t i = 0; l[i]; i++)
             {
-                char *word = l[i];
+                char *ar = calloc(1, strlen(l[i]) + 1);
+                memcpy(ar, l[i], strlen(l[i]));
+                to_pass[i] = ar;
+            }
+            struct exec_arguments tmp_desc = { 0 };
+            tmp_desc.args = to_pass;
+            variable_expansion(tmp_desc);
+
+            for (size_t i = 0; to_pass[i]; i++)
+            {
+                char *word = to_pass[i];
                 update_variable(loop_struct.var_name, word);
                 ans = execute_tree(loop_struct.then_body, describer);
                 int stop = stop_loop_check(&ans);
                 if (stop == 0)
                 {
                     nb_loops--;
+                    for (size_t i = 0; to_pass[i]; i++)
+                        free(to_pass[i]);
+                    free(to_pass);
                     return ans;
                 }
                 if (stop == 2)
                     continue;
             }
+            for (size_t i = 0; to_pass[i]; i++)
+                free(to_pass[i]);
+            free(to_pass);
         }
     }
     nb_loops--;
