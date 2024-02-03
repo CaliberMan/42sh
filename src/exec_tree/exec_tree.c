@@ -12,74 +12,78 @@
 
 int nb_loops = 0;
 
-static struct ret_msg check_builtins(struct exec_arguments command)
+static int builtins_aux(struct exec_arguments command, struct ret_msg *ans)
 {
-    struct ret_msg ans;
-    ans.type = VAL;
     if (strcmp(command.args[0], "echo") == 0)
     {
-        ans.value = b_echo(command);
-        return ans;
+        ans->value = b_echo(command);
+        return 1;
     }
     else if (strcmp(command.args[0], "true") == 0)
     {
-        ans.value = b_true();
-        return ans;
+        ans->value = b_true();
+        return 1;
     }
     else if (strcmp(command.args[0], "false") == 0)
     {
-        ans.value = b_false();
-        return ans;
+        ans->value = b_false();
+        return 1;
     }
     else if (strcmp(command.args[0], "unset") == 0)
     {
-        ans.value = b_unset(command);
-        return ans;
+        ans->value = b_unset(command);
+        return 1;
     }
     else if (strcmp(command.args[0], "cd") == 0)
     {
-        ans.value = b_cd(command);
-        return ans;
+        ans->value = b_cd(command);
+        return 1;
     }
     else if (strcmp(command.args[0], "exit") == 0)
     {
-        ans.value = b_exit(command);
-        if (ans.value == -1)
-            ans.value = 1;
+        ans->value = b_exit(command);
+        if (ans->value == -1)
+            ans->value = 1;
         else
-            ans.type = EXT;
-        return ans;
+            ans->type = EXT;
+        return 1;
     }
     else if (strcmp(command.args[0], ".") == 0)
     {
-        ans.value = b_dot(command);
-        if (ans.value == -1)
-            ans.value = 1;
-        return ans;
+        ans->value = b_dot(command);
+        if (ans->value == -1)
+            ans->value = 1;
+        return 1;
     }
-    else if (strcmp(command.args[0], "break") == 0)
+
+    return 0;
+}
+
+static int builtins_aux_1(struct exec_arguments command, struct ret_msg *ans)
+{
+    if (strcmp(command.args[0], "break") == 0)
     {
         if (nb_loops == 0)
         {
             fprintf(
                 stderr,
                 "break: only meaningfull if a 'while', 'for' or 'until' loop");
-            return ans;
+            return 1;
         }
-        ans.value = b_break(command);
-        ans.type = BRK;
-        if (ans.value == -1)
+        ans->value = b_break(command);
+        ans->type = BRK;
+        if (ans->value == -1)
         {
-            ans.value = 1;
-            ans.type = EXT;
+            ans->value = 1;
+            ans->type = EXT;
         }
         else
         {
-            ans.type = BRK;
+            ans->type = BRK;
         }
-        if (ans.value > nb_loops)
-            ans.value = nb_loops;
-        return ans;
+        if (ans->value > nb_loops)
+            ans->value = nb_loops;
+        return 1;
     }
     else if (strcmp(command.args[0], "continue") == 0)
     {
@@ -88,48 +92,57 @@ static struct ret_msg check_builtins(struct exec_arguments command)
             fprintf(stderr,
                     "continue: only meaningfull if a 'while', 'for' or 'until' "
                     "loop");
-            return ans;
+            return 1;
         }
-        ans.value = b_continue(command);
-        if (ans.value == -1)
+        ans->value = b_continue(command);
+        if (ans->value == -1)
         {
-            ans.value = 1;
-            ans.type = EXT;
+            ans->value = 1;
+            ans->type = EXT;
         }
         else
         {
-            ans.type = CTN;
+            ans->type = CTN;
         }
-        if (ans.value > nb_loops)
-            ans.value = nb_loops;
-        return ans;
+        if (ans->value > nb_loops)
+            ans->value = nb_loops;
+        return 1;
     }
-    else
+    return 0;
+}
+
+static struct ret_msg check_builtins(struct exec_arguments command)
+{
+    struct ret_msg ans;
+    ans.type = VAL;
+    ans.value = 0;
+    if (builtins_aux(command, &ans))
+        return ans;
+    if (builtins_aux_1(command, &ans))
+        return ans;
+    // function check
+    struct function *func = NULL;
+    if ((func = find_func(command.args[0])))
     {
-        // function check
-        struct function *func = NULL;
-        if ((func = find_func(command.args[0])))
-        {
-            struct global_list *prev_context = get_global_list();
-            struct exec_arguments passing_args;
-            char *buf[] = { "42sh",          command.args[0], command.args[1],
-                            command.args[2], command.args[3], command.args[4],
-                            command.args[5], command.args[6], command.args[7],
-                            command.args[8], command.args[9] };
+        struct global_list *prev_context = get_global_list();
+        struct exec_arguments passing_args;
+        char *buf[] = { "42sh",          command.args[0], command.args[1],
+                        command.args[2], command.args[3], command.args[4],
+                        command.args[5], command.args[6], command.args[7],
+                        command.args[8], command.args[9] };
 
-            passing_args.args = buf;
-            init_variables(passing_args.args);
-            ans = execute_tree(func->body, command);
+        passing_args.args = buf;
+        init_variables(passing_args.args);
+        ans = execute_tree(func->body, command);
 
-            free_list_global();
-            set_global_list(prev_context);
-            return ans;
-        }
-        ans.value = exec(command);
-        if (ans.value != 0 && ans.type != 1)
-            ans.type = ERR;
+        free_list_global();
+        set_global_list(prev_context);
         return ans;
     }
+    ans.value = exec(command);
+    if (ans.value != 0 && ans.type != 1)
+        ans.type = ERR;
+    return ans;
 }
 
 static struct ret_msg exec_cmd(struct exec_arguments describer, struct ast *ast)
@@ -431,14 +444,14 @@ static struct ret_msg exec_until(struct exec_arguments describer,
     }
     if (stop == 2)
         ret = execute_tree(loop_struct.cond, describer);
-    while (ret.type == VAL && ret.value == 0)
+    while (ret.value == 1)
     {
         ans = execute_tree(loop_struct.then_body, describer);
         stop = stop_loop_check(&ans);
         if (stop == 0)
         {
             nb_loops--;
-            return ret;
+            return ans;
         }
         ret = execute_tree(loop_struct.cond, describer);
     }
