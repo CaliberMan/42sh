@@ -100,14 +100,22 @@ int b_dot(struct exec_arguments command)
 int b_cd(struct exec_arguments command)
 {
     char **args = command.args;
-    if (get_arr_len(args) != 2)
+    if (get_arr_len(args) > 2)
     {
         fprintf(stderr, "%s\n", "Dont you dare do something like that");
         return 1;
     }
     char cur_dir[1028];
     getcwd(cur_dir, 1028);
-    if (strcmp(args[1], "-") == 0)
+    if (!args[1])
+    {
+        if (chdir("/") == -1)
+        {
+            fprintf(stderr, "%s\n", "Dont you dare do something like that");
+            return 1;
+        }
+    }
+    else if (strcmp(args[1], "-") == 0)
     {
         struct variable *var = find_var("OLDPWD");
         if (!var || chdir(var->value) == -1)
