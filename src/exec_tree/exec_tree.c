@@ -294,15 +294,33 @@ static struct ret_msg exec_redir(struct exec_arguments describer,
     if (out_fd == -1)
         return wrong_file(ast->data.ast_redir.right->data.ast_file.filename);
 
-    int save_fd = dup(in_fd);
+    int saved = dup(in_fd);
     dup2(out_fd, in_fd);
+    int saved_2 = -1;
     if (ast->data.ast_redir.type == STD_IN_OUT)
+    {
+        saved_2 = dup(STDIN_FILENO);
         dup2(out_fd, STDIN_FILENO);
+    }
     if (ast->data.ast_redir.type == STD_ERR)
+    {
+        saved_2 = dup(STD_ERR);
         dup2(out_fd, STD_ERR);
-    ans = execute_tree(ast->data.ast_redir.left, describer);
-    dup2(save_fd, out_fd);
+    }
     close(out_fd);
+    ans = execute_tree(ast->data.ast_redir.left, describer);
+    dup2(saved, in_fd);
+    if (ast->data.ast_redir.type == STD_IN_OUT)
+    {
+        dup2(saved_2, STDIN_FILENO);
+        close(saved_2);
+    }
+    if (ast->data.ast_redir.type == STD_ERR)
+    {
+        dup2(saved_2, STD_ERR);
+        close(saved_2);
+    }
+    close(saved);
     return ans;
 }
 
