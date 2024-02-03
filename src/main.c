@@ -9,11 +9,8 @@
 #include "exec_tree/variables/variable.h"
 #include "lexer/lexer.h"
 #include "parser/input/input.h"
-#include "pretty_print/pretty_print.h"
 #include "unistd.h"
 #include "utils/utils_main.h"
-
-
 
 int main(int argc, char *argv[])
 {
