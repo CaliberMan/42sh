@@ -10,6 +10,8 @@
 #include "../exec_tree/variables/variable.h"
 #include "../utils/utils_main.h"
 
+FILE *f = NULL;
+
 static void run_main(char **buffer, char *str)
 {
     struct global_list *temp = get_global_list();
@@ -17,8 +19,8 @@ static void run_main(char **buffer, char *str)
     int is_main = 0;
     if (isatty(1))
         is_main = 1;
-    FILE *f = freopen("subshell_output_file.txt", "w+", stdout);
-
+    if (is_main)
+        f = freopen("src/subshell_output_file.txt", "w+", stdout);
     int argc = 3;
     char **argv = calloc(4, sizeof(char *));
     char *name = "alt42";
@@ -42,12 +44,12 @@ static void run_main(char **buffer, char *str)
     }
     if (is_main)
     {
+        f = freopen("src/subshell_output_file.txt", "w+", f);
         fclose(f);
-        freopen("/dev/tty", "a+", stdout);
-        remove("subshell_output_file.txt");
+        freopen ("/dev/tty", "a+", stdout);
     }
     else
-        freopen("subshell_output_file.txt", "w+", f);
+        f = freopen("src/subshell_output_file.txt", "w+", f);
 }
 
 static int find_close(char *str, int index)
