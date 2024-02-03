@@ -28,4 +28,3 @@ void free_list_global(void)
     }
     free(get_global_list());
 }
-

@@ -5,7 +5,7 @@
 #include <string.h>
 
 static enum parser_status variable_list(struct ast **ast, struct lexer *lexer,
-                                 size_t index)
+                                        size_t index)
 {
     // get the value
     struct ast_list *ast_list = &(*ast)->data.ast_list;

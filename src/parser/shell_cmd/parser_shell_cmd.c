@@ -1,10 +1,10 @@
 #include "parser_shell_cmd.h"
 
 #include "../list/parser_list.h"
+#include "case/parser_case.h"
 #include "if/parser_if.h"
 #include "loops/parser_for.h"
 #include "loops/parser_loops.h"
-#include "case/parser_case.h"
 
 enum parser_status parse_brackets(struct ast **ast, struct lexer *lexer)
 {

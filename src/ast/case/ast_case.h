@@ -14,7 +14,7 @@ struct ast_pattern
 };
 
 /**
- * case EXPR in 
+ * case EXPR in
  *  PATTERN_1)
  *      STATEMENT
  *  PATTERN_2)

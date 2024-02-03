@@ -1,9 +1,9 @@
+#include "utils_main.h"
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <stdio.h>
-
-#include "utils_main.h"
 
 int is_valid_file(const char *path)
 {

@@ -98,7 +98,8 @@ void init_variables(char *arg_list[])
     begining_list = calloc(1, sizeof(struct global_list *));
     // sk
     size_t starting_point = 1;
-    if (arg_list[starting_point] && (strcmp(arg_list[starting_point], "-c") == 0))
+    if (arg_list[starting_point]
+        && (strcmp(arg_list[starting_point], "-c") == 0))
         starting_point++;
 
     starting_point++;
@@ -106,7 +107,7 @@ void init_variables(char *arg_list[])
     for (size_t i = starting_point; arg_list[i]; i++)
     {
         arg_counter++;
-        char arg_holder[16] = {0};
+        char arg_holder[16] = { 0 };
         sprintf(arg_holder, "%d", arg_counter);
         update_variable(arg_holder, arg_list[i]);
     }

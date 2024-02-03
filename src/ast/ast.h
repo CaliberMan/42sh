@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 
+#include "case/ast_case.h"
 #include "cmd/ast_cmd.h"
 #include "func/ast_func.h"
 #include "if/ast_if.h"
@@ -13,7 +14,6 @@
 #include "pipe/ast_pipe.h"
 #include "redir/ast_redir.h"
 #include "subshells/ast_sub.h"
-#include "case/ast_case.h"
 #include "variable/ast_variable.h"
 
 enum ast_type

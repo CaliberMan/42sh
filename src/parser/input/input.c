@@ -5,6 +5,17 @@ enum parser_status parse_input(struct ast **ast, struct lexer *lexer)
     struct token *token = lexer_peek(lexer);
     if (token->type == TOKEN_NEWLINE || token->type == TOKEN_EOF)
     {
+        *ast = init_ast(AST_CMD);
+        lexer_pop(lexer);
+        token_free(token);
+
+        token = lexer_peek(lexer);
+        if (token->type != TOKEN_EOF)
+        {
+            token_free(token);
+            return PARSER_ERROR;
+        }
+
         token_free(token);
         return PARSER_OK;
     }

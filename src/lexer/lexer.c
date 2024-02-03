@@ -43,7 +43,7 @@ static void run_main(char **buffer, char *str)
     if (is_main)
     {
         fclose(f);
-        freopen ("/dev/tty", "a+", stdout);
+        freopen("/dev/tty", "a+", stdout);
         remove("subshell_output_file.txt");
     }
     else
@@ -86,7 +86,8 @@ static int expand_subshells(struct lexer *lexer)
                 str[j - i - 2] = lexer->input[j];
             char *buffer = NULL;
             run_main(&buffer, str);
-            char *new_input = calloc(strlen(lexer->input) + strlen(buffer), sizeof(char));
+            char *new_input =
+                calloc(strlen(lexer->input) + strlen(buffer), sizeof(char));
             free(str);
             int index = 0;
             while (index < i)
@@ -374,11 +375,12 @@ static int lex_string(struct lexer *lex, struct token *t, int *index)
         (*index)++;
         while (lex->input[*index] != '"' && lex->input[*index] != 0)
         {
-            if (lex->input[*index] == '\\' && (lex->input[*index + 1] == '$' ||
-                lex->input[*index + 1] == '\'' ||
-                lex->input[*index + 1] == '"' ||
-                lex->input[*index + 1] == '\\' ||
-                lex->input[*index + 1] == '\n'))
+            if (lex->input[*index] == '\\'
+                && (lex->input[*index + 1] == '$'
+                    || lex->input[*index + 1] == '\''
+                    || lex->input[*index + 1] == '"'
+                    || lex->input[*index + 1] == '\\'
+                    || lex->input[*index + 1] == '\n'))
             {
                 (*index)++;
                 if (lex->input[*index] == 0)

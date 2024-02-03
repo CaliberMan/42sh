@@ -61,7 +61,9 @@ static struct ret_msg check_builtins(struct exec_arguments command)
     {
         if (nb_loops == 0)
         {
-            fprintf(stderr, "break: only meaningfull if a 'while', 'for' or 'until' loop");
+            fprintf(
+                stderr,
+                "break: only meaningfull if a 'while', 'for' or 'until' loop");
             return ans;
         }
         ans.value = b_break(command);
@@ -71,7 +73,7 @@ static struct ret_msg check_builtins(struct exec_arguments command)
             ans.value = 1;
             ans.type = EXT;
         }
-        else 
+        else
         {
             ans.type = BRK;
         }
@@ -83,7 +85,9 @@ static struct ret_msg check_builtins(struct exec_arguments command)
     {
         if (nb_loops == 0)
         {
-            fprintf(stderr, "continue: only meaningfull if a 'while', 'for' or 'until' loop");
+            fprintf(stderr,
+                    "continue: only meaningfull if a 'while', 'for' or 'until' "
+                    "loop");
             return ans;
         }
         ans.value = b_continue(command);
@@ -92,7 +96,7 @@ static struct ret_msg check_builtins(struct exec_arguments command)
             ans.value = 1;
             ans.type = EXT;
         }
-        else 
+        else
         {
             ans.type = CTN;
         }
@@ -108,11 +112,10 @@ static struct ret_msg check_builtins(struct exec_arguments command)
         {
             struct global_list *prev_context = get_global_list();
             struct exec_arguments passing_args;
-            char *buf[] = { "42sh", command.args[0],command.args[1],
-                command.args[2],command.args[3],
-                command.args[4],command.args[5],
-                command.args[6],command.args[7],
-                command.args[8],command.args[9] };
+            char *buf[] = { "42sh",          command.args[0], command.args[1],
+                            command.args[2], command.args[3], command.args[4],
+                            command.args[5], command.args[6], command.args[7],
+                            command.args[8], command.args[9] };
 
             passing_args.args = buf;
             init_variables(passing_args.args);
@@ -201,7 +204,7 @@ static struct ret_msg pipe_aux(struct exec_arguments describer, struct ast *ast)
     struct exec_arguments exit_args;
     char buf[16] = { 0 };
     sprintf(buf, "%d", ans.value);
-    char *ar[] = {"exit", buf, 0};
+    char *ar[] = { "exit", buf, 0 };
     exit_args.args = ar;
     ans.value = b_exit(exit_args);
     if (ans.value == -1)
@@ -271,7 +274,7 @@ static struct ret_msg wrong_file(char *name)
     return ans;
 }
 
-static int find_out(int *in_fd, int *out_fd, int ionumber, struct ast*ast)
+static int find_out(int *in_fd, int *out_fd, int ionumber, struct ast *ast)
 {
     switch (ast->data.ast_redir.type)
     {
@@ -279,7 +282,7 @@ static int find_out(int *in_fd, int *out_fd, int ionumber, struct ast*ast)
     case STD_RIGHT_ARROW_PIPE:
         *in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
         *out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
-                      O_CREAT | O_TRUNC | O_WRONLY, 0644);
+                       O_CREAT | O_TRUNC | O_WRONLY, 0644);
         break;
     case STD_IN:
         *out_fd =
@@ -289,17 +292,17 @@ static int find_out(int *in_fd, int *out_fd, int ionumber, struct ast*ast)
     case STD_OUT_END:
         *in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
         *out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
-                      O_APPEND | O_WRONLY, 0644);
+                       O_APPEND | O_WRONLY, 0644);
         break;
     case STD_IN_OUT:
         *in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
         *out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
-                      O_CREAT | O_RDWR, 0666);
+                       O_CREAT | O_RDWR, 0666);
         break;
     case STD_ERR:
         *in_fd = ionumber != -1 ? ionumber : STDOUT_FILENO;
         *out_fd = open(ast->data.ast_redir.right->data.ast_file.filename,
-                      O_WRONLY | O_CREAT | O_TRUNC, 0666);
+                       O_WRONLY | O_CREAT | O_TRUNC, 0666);
         break;
     default:
         return 1;
@@ -354,9 +357,8 @@ static struct ret_msg exec_redir(struct exec_arguments describer,
     return ans;
 }
 
-
-//returns 0 if it should stop the loop, 1 if it should continue and 2 if it should run the condition
-//will uptdate the break and continue values
+// returns 0 if it should stop the loop, 1 if it should continue and 2 if it
+// should run the condition will uptdate the break and continue values
 static int stop_loop_check(struct ret_msg *msg)
 {
     int ans = 1;
@@ -388,7 +390,8 @@ static int stop_loop_check(struct ret_msg *msg)
     return ans;
 }
 
-static struct ret_msg exec_while(struct exec_arguments describer, struct ast *ast, struct ret_msg ans)
+static struct ret_msg exec_while(struct exec_arguments describer,
+                                 struct ast *ast, struct ret_msg ans)
 {
     struct ast_loop loop_struct = ast->data.ast_loop;
     struct ret_msg ret = execute_tree(loop_struct.cond, describer);
@@ -415,7 +418,8 @@ static struct ret_msg exec_while(struct exec_arguments describer, struct ast *as
     return ans;
 }
 
-static struct ret_msg exec_until(struct exec_arguments describer, struct ast *ast, struct ret_msg ans)
+static struct ret_msg exec_until(struct exec_arguments describer,
+                                 struct ast *ast, struct ret_msg ans)
 {
     struct ast_loop loop_struct = ast->data.ast_loop;
     struct ret_msg ret = execute_tree(loop_struct.cond, describer);
@@ -442,7 +446,8 @@ static struct ret_msg exec_until(struct exec_arguments describer, struct ast *as
     return ans;
 }
 
-static struct ret_msg exec_for(struct exec_arguments describer, struct ast *ast, struct ret_msg ans)
+static struct ret_msg exec_for(struct exec_arguments describer, struct ast *ast,
+                               struct ret_msg ans)
 {
     struct ast_loop loop_struct = ast->data.ast_loop;
     update_variable(loop_struct.var_name, "");
@@ -568,7 +573,8 @@ static struct ret_msg exec_variable(struct ast *ast)
     return ans;
 }
 
-static struct ret_msg exec_subshell(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_subshell(struct exec_arguments describer,
+                                    struct ast *ast)
 {
     struct ret_msg ans;
     ans.value = 0;
@@ -587,7 +593,7 @@ static struct ret_msg exec_subshell(struct exec_arguments describer, struct ast 
         struct exec_arguments exit_args;
         char buf[16] = { 0 };
         sprintf(buf, "%d", ans.value);
-        char *ar[] = {"exit", buf, 0};
+        char *ar[] = { "exit", buf, 0 };
         exit_args.args = ar;
         ans.value = b_exit(exit_args);
         if (ans.value == -1)
@@ -611,22 +617,26 @@ static struct ret_msg exec_subshell(struct exec_arguments describer, struct ast 
     }
     return ans;
 }
-static struct ret_msg exec_case(struct exec_arguments describer, struct ast *ast)
+static struct ret_msg exec_case(struct exec_arguments describer,
+                                struct ast *ast)
 {
     struct ast_case case_struct = ast->data.ast_case;
-    char *matcher= case_struct.expr;
+    char *matcher = case_struct.expr;
     struct ast_list list = case_struct.cases_list->data.ast_list;
     for (size_t i = 0; i < list.nb_nodes; i++)
     {
-        char **current_pattern = list.list[i]->data.ast_pattern.pattern->data.ast_cmd.words;
+        char **current_pattern =
+            list.list[i]->data.ast_pattern.pattern->data.ast_cmd.words;
         for (size_t k = 0; current_pattern[k]; k++)
         {
             char *cur_word = current_pattern[k];
             if (strcmp("*", cur_word) == 0)
-                return execute_tree(list.list[i]->data.ast_pattern.statement, describer);
+                return execute_tree(list.list[i]->data.ast_pattern.statement,
+                                    describer);
             // found a match
             if (strcmp(matcher, cur_word) == 0)
-                return execute_tree(list.list[i]->data.ast_pattern.statement, describer);
+                return execute_tree(list.list[i]->data.ast_pattern.statement,
+                                    describer);
         }
     }
 

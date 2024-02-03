@@ -1,12 +1,12 @@
-#include "../parser/input/input.h"
-#include "../utils/utils_main.h"
-#include "../parser/utils.h"
-#include "../exec_tree/exec_tree.h"
-#include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
+#include "../exec_tree/exec_tree.h"
+#include "../parser/input/input.h"
+#include "../parser/utils.h"
+#include "../utils/utils_main.h"
 #include "stdlib.h"
 
 static size_t get_arr_len(char **arr)
@@ -27,7 +27,8 @@ int b_false(void)
     return 1;
 }
 
-static int litlle_helper(struct ast *ast, struct lexer *lexer, struct exec_arguments command)
+static int litlle_helper(struct ast *ast, struct lexer *lexer,
+                         struct exec_arguments command)
 {
     fprintf(stderr, "%s: not parsable", command.args[1]);
     free_ast(ast);
@@ -64,14 +65,14 @@ int b_dot(struct exec_arguments command)
                 var_list[i - 2] = calloc(3, sizeof(char));
                 strcpy(var_list[i - 2], "");
             }
-            else 
+            else
             {
                 var_list[i - 2] = calloc(strlen(var->value) + 1, sizeof(char));
                 strcpy(var_list[i - 2], var->value);
             }
             update_variable(var_name, command.args[i]);
         }
-        else 
+        else
         {
             var_list[i - 2] = NULL;
             out = 1;
