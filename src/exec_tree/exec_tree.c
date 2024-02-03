@@ -351,7 +351,7 @@ static struct ret_msg exec_redir(struct exec_arguments describer,
 static int stop_loop_check(struct ret_msg *msg)
 {
     int ans = 1;
-    switch (msg->type) 
+    switch (msg->type)
     {
     case BRK:
         ans = 0;
@@ -379,6 +379,108 @@ static int stop_loop_check(struct ret_msg *msg)
     return ans;
 }
 
+static struct ret_msg exec_while(struct exec_arguments describer, struct ast *ast, struct ret_msg ans)
+{
+    struct ast_loop loop_struct = ast->data.ast_loop;
+    struct ret_msg ret = execute_tree(loop_struct.cond, describer);
+    int stop = stop_loop_check(&ret);
+    if (stop == 0)
+    {
+        nb_loops--;
+        return ret;
+    }
+    if (stop == 2)
+        ret = execute_tree(loop_struct.cond, describer);
+    while (ret.type == VAL && ret.value == 0)
+    {
+        ans = execute_tree(loop_struct.then_body, describer);
+        stop = stop_loop_check(&ans);
+        if (stop == 0)
+        {
+            nb_loops--;
+            return ret;
+        }
+        ret = execute_tree(loop_struct.cond, describer);
+    }
+    nb_loops--;
+    return ans;
+}
+
+static struct ret_msg exec_until(struct exec_arguments describer, struct ast *ast, struct ret_msg ans)
+{
+    struct ast_loop loop_struct = ast->data.ast_loop;
+    struct ret_msg ret = execute_tree(loop_struct.cond, describer);
+    int stop = stop_loop_check(&ret);
+    if (stop == 0)
+    {
+        nb_loops--;
+        return ret;
+    }
+    if (stop == 2)
+        ret = execute_tree(loop_struct.cond, describer);
+    while (ret.type == VAL && ret.value == 0)
+    {
+        ans = execute_tree(loop_struct.then_body, describer);
+        stop = stop_loop_check(&ans);
+        if (stop == 0)
+        {
+            nb_loops--;
+            return ret;
+        }
+        ret = execute_tree(loop_struct.cond, describer);
+    }
+    nb_loops--;
+    return ans;
+}
+
+static struct ret_msg exec_for(struct exec_arguments describer, struct ast *ast, struct ret_msg ans)
+{
+    struct ast_loop loop_struct = ast->data.ast_loop;
+    update_variable(loop_struct.var_name, "");
+    // actully something inside
+    if (loop_struct.cond)
+    {
+        char **l = loop_struct.cond->data.ast_cmd.words;
+        // copy commands for expansion
+        size_t len_to_pass = 0;
+        for (size_t i = 0; l[i]; i++)
+            len_to_pass++;
+        char **to_pass = calloc(len_to_pass + 1, sizeof(char *));
+        for (size_t i = 0; l[i]; i++)
+        {
+            char *ar = calloc(1, strlen(l[i]) + 1);
+            memcpy(ar, l[i], strlen(l[i]));
+            to_pass[i] = ar;
+        }
+        struct exec_arguments tmp_desc = { 0 };
+        tmp_desc.args = to_pass;
+        variable_expansion(tmp_desc);
+
+        for (size_t i = 0; to_pass[i]; i++)
+        {
+            char *word = to_pass[i];
+            update_variable(loop_struct.var_name, word);
+            ans = execute_tree(loop_struct.then_body, describer);
+            int stop = stop_loop_check(&ans);
+            if (stop == 0)
+            {
+                nb_loops--;
+                for (size_t i = 0; to_pass[i]; i++)
+                    free(to_pass[i]);
+                free(to_pass);
+                return ans;
+            }
+            if (stop == 2)
+                continue;
+        }
+        for (size_t i = 0; to_pass[i]; i++)
+            free(to_pass[i]);
+        free(to_pass);
+    }
+    nb_loops--;
+    return ans;
+}
+
 static struct ret_msg exec_loop(struct exec_arguments describer,
                                 struct ast *ast)
 {
@@ -389,94 +491,15 @@ static struct ret_msg exec_loop(struct exec_arguments describer,
     nb_loops++;
     if (loop_struct.type == WHILE_LOOP)
     {
-        struct ret_msg ret = execute_tree(loop_struct.cond, describer);
-        int stop = stop_loop_check(&ret);
-        if (stop == 0)
-        {
-            nb_loops--;
-            return ret;
-        }
-        if (stop == 2)
-            ret = execute_tree(loop_struct.cond, describer);
-        while (ret.type == VAL && ret.value == 0)
-        {
-            ans = execute_tree(loop_struct.then_body, describer);
-            stop = stop_loop_check(&ans);
-            if (stop == 0)
-            {
-                nb_loops--;
-                return ret;
-            }
-            ret = execute_tree(loop_struct.cond, describer);
-        }
+        return exec_while(describer, ast, ans);
     }
     else if (loop_struct.type == UNTIL_LOOP)
     {
-        struct ret_msg ret = execute_tree(loop_struct.cond, describer);
-        int stop = stop_loop_check(&ret);
-        if (stop == 0)
-        {
-            nb_loops--;
-            return ret;
-        }
-        if (stop == 2)
-            ret = execute_tree(loop_struct.cond, describer);
-        while (ret.type == VAL && ret.value == 0)
-        {
-            ans = execute_tree(loop_struct.then_body, describer);
-            stop = stop_loop_check(&ans);
-            if (stop == 0)
-            {
-                nb_loops--;
-                return ret;
-            }
-            ret = execute_tree(loop_struct.cond, describer);
-        }
+        return exec_until(describer, ast, ans);
     }
     else
     {
-        // for looop
-        update_variable(loop_struct.var_name, "");
-        // actully something inside
-        if (loop_struct.cond)
-        {
-            char **l = loop_struct.cond->data.ast_cmd.words;
-            // copy commands for expansion
-            size_t len_to_pass = 0;
-            for (size_t i = 0; l[i]; i++)
-                len_to_pass++;
-            char **to_pass = calloc(len_to_pass + 1, sizeof(char *));
-            for (size_t i = 0; l[i]; i++)
-            {
-                char *ar = calloc(1, strlen(l[i]) + 1);
-                memcpy(ar, l[i], strlen(l[i]));
-                to_pass[i] = ar;
-            }
-            struct exec_arguments tmp_desc = { 0 };
-            tmp_desc.args = to_pass;
-            variable_expansion(tmp_desc);
-
-            for (size_t i = 0; to_pass[i]; i++)
-            {
-                char *word = to_pass[i];
-                update_variable(loop_struct.var_name, word);
-                ans = execute_tree(loop_struct.then_body, describer);
-                int stop = stop_loop_check(&ans);
-                if (stop == 0)
-                {
-                    nb_loops--;
-                    for (size_t i = 0; to_pass[i]; i++)
-                        free(to_pass[i]);
-                    free(to_pass);
-                    return ans;
-                }
-                if (stop == 2)
-                    continue;
-            }
-            for (size_t i = 0; to_pass[i]; i++)
-                free(to_pass[i]);
-            free(to_pass);
-        }
+        return exec_for(describer, ast, ans);
     }
     nb_loops--;
     return ans;

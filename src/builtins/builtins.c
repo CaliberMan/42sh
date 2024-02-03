@@ -27,6 +27,14 @@ int b_false(void)
     return 1;
 }
 
+static int litlle_helper(struct ast *ast, struct lexer *lexer, struct exec_arguments command)
+{
+    fprintf(stderr, "%s: not parsable", command.args[1]);
+    free_ast(ast);
+    lexer_free(lexer);
+    return 1;
+}
+
 int b_dot(struct exec_arguments command)
 {
     struct lexer *lexer = file_to_lexer(command.args[1]);
@@ -39,10 +47,7 @@ int b_dot(struct exec_arguments command)
     enum parser_status ps = parse_input(&ast, lexer);
     if (ps == PARSER_ERROR)
     {
-        fprintf(stderr, "%s: not parsable", command.args[1]);
-        free_ast(ast);
-        lexer_free(lexer);
-        return 1;
+        return litlle_helper(ast, lexer, command);
     }
     size_t cap = 64;
     char **var_list = calloc(cap, sizeof(char *));
@@ -190,7 +195,8 @@ int b_unset(struct exec_arguments command)
     else if (strcmp("-f", command.args[i]) == 0)
     {
         i++;
-        // TODO fix once the functions are working
+        for (; command.args[i]; i++)
+            unset_function(command.args[i]);
     }
     else
     {
@@ -199,7 +205,7 @@ int b_unset(struct exec_arguments command)
             int ans = unset_variable(command.args[i]);
             if (ans == 1)
             {
-                // TODO fix once the functions are working
+                unset_function(command.args[i]);
             }
         }
     }
