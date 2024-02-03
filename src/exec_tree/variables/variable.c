@@ -18,35 +18,6 @@ struct global_list *get_global_list(void)
     return begining_list;
 }
 
-void free_list_global(void)
-{
-    struct variable_list *list = begining_list->var_list;
-    if (list != NULL)
-    {
-        struct variable_list *actual = list;
-        while (actual)
-        {
-            struct variable_list *next = actual->next;
-            free_single_var(actual);
-            actual = next;
-        }
-    }
-    struct function_list *li = begining_list->func_list;
-    if (li != NULL)
-    {
-        struct function_list *actual = li;
-        while (actual)
-        {
-            struct function_list *next = actual->next;
-            free(actual->func->name);
-            free(actual->func);
-            free(actual);
-            actual = next;
-        }
-    }
-    free(begining_list);
-}
-
 int update_variable(char *name, char *new_value)
 {
     struct variable_list *list = begining_list->var_list;

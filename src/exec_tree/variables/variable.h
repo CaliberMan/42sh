@@ -41,11 +41,12 @@ struct function *find_func(char *name);
  * @return 0 if it worked and 1 if it didn't find the variable
  */
 int unset_variable(char *name);
+int unset_function(char *name);
+
 int variable_expansion(struct exec_arguments command);
 void init_variables(char *arg_list[]);
 
 int update_function(char *name, struct ast *ast);
-int unset_function(char *name);
 
 void set_global_list(struct global_list *new_list);
 struct global_list *get_global_list(void);
