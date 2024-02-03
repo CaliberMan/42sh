@@ -32,6 +32,8 @@ enum parser_status parse_item(struct ast **ast, struct lexer *lexer)
             token_free(token);
             return PARSER_OK;
         }
+        else if (token->type == TOKEN_BRACKET_CLOSE)
+            break;
         else
         {
             token_free(token);
@@ -40,12 +42,6 @@ enum parser_status parse_item(struct ast **ast, struct lexer *lexer)
 
         token_free(token);
         token = lexer_peek(lexer);
-    }
-
-    if (token->type != TOKEN_BRACKET_CLOSE)
-    {
-        token_free(token);
-        return PARSER_ERROR;
     }
 
     token_free(token);
