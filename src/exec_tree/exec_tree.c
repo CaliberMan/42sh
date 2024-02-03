@@ -421,23 +421,20 @@ static struct ret_msg exec_loop(struct exec_arguments describer,
         // actully something inside
         if (loop_struct.cond)
         {
-            struct ast_list l = loop_struct.cond->data.ast_list;
-            for (size_t i = 0; l.list[i]; i++)
+            char **l = loop_struct.cond->data.ast_cmd.words;
+            for (size_t i = 0; l[i]; i++)
             {
-                struct ast_cmd cmd = l.list[i]->data.ast_cmd;
-                for (size_t k = 0; cmd.words[k]; k++)
+                char *word = l[i];
+                update_variable(loop_struct.var_name, word);
+                ans = execute_tree(loop_struct.then_body, describer);
+                int stop = stop_loop_check(&ans);
+                if (stop == 0)
                 {
-                    update_variable(loop_struct.var_name, cmd.words[k]);
-                    ans = execute_tree(loop_struct.then_body, describer);
-                    int stop = stop_loop_check(&ans);
-                    if (stop == 0)
-                    {
-                        nb_loops--;
-                        return ans;
-                    }
-                    if (stop == 2)
-                        continue;
+                    nb_loops--;
+                    return ans;
                 }
+                if (stop == 2)
+                    continue;
             }
         }
     }
@@ -549,10 +546,10 @@ static struct ret_msg exec_case(struct exec_arguments describer, struct ast *ast
     struct ast_list list = case_struct.cases_list->data.ast_list;
     for (size_t i = 0; i < list.nb_nodes; i++)
     {
-        struct ast **current_pattern = list.list[i]->data.ast_pattern.pattern->data.ast_list.list;
+        char **current_pattern = list.list[i]->data.ast_pattern.pattern->data.ast_cmd.words;
         for (size_t k = 0; current_pattern[k]; k++)
         {
-            char *cur_word = current_pattern[k]->data.ast_cmd.words[0];
+            char *cur_word = current_pattern[k];
             if (strcmp("*", cur_word) == 0)
                 return execute_tree(list.list[i]->data.ast_pattern.statement, describer);
             // found a match
