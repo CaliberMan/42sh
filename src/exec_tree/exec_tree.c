@@ -8,6 +8,7 @@
 
 #include "var_utils/var_utils.h"
 #include "variables/variable.h"
+#include "variables/variable_new.h"
 
 int nb_loops = 0;
 
