@@ -19,8 +19,14 @@ def diff(expected: str, actual: str) -> str:
     actual_lines = actual.splitlines(keepends=True)
     return "".join(unified_diff(expected_lines, actual_lines, fromfile="expected", tofile="actual"))
 
-def run_shell(*cmd_lines) -> subprocess.CompletedProcess:
-    return subprocess.run(cmd_lines, capture_output=True, text=True)
+def run_42sh(file: str) -> subprocess.CompletedProcess:
+    catting = subprocess.run(['cat', file], check=True, capture_output=True, text=True)
+    return subprocess.run([binary], input=catting.stdout, capture_output=True, text=True)
+
+def run_bash(file: str) -> subprocess.CompletedProcess:
+    catting = subprocess.run(['cat', file], check=True, capture_output=True, text=True)
+    return subprocess.run(['bash', '--posix'], input=catting.stdout, capture_output=True, text=True)
+
 
 #ref_proc = sp.run(["bash", "--posix"], capture_output=True, text=True)
 #student_proc = sp.run([binary], capture_output=True, text=True)
@@ -89,8 +95,9 @@ if __name__ == "__main__":
         int_pass = 0
         for file in category.tests:
             print(file)
-            sh_proc = run_shell(binary_path,file)
-            sh_ref = run_shell("bash", "--posix", file)
+            sh_proc = run_42sh(file)
+            sh_ref = run_bash(file)
+            #sh_proc = run_shell(binary_path,file)
 
             try:
                 perform_checks(sh_ref, sh_proc)
